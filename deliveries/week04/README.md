@@ -1,5 +1,21 @@
 # Data Visualization of EEG and Sleep Deprivation Dataset
 
+Dataset title: A Resting-state EEG Dataset for Sleep Deprivation
+
+Source URL: https://openneuro.org/datasets/ds004902/versions/1.0.8
+
+Organization or collector: Sleep and NeuroImaging Center, Faculty of Psychology, Southwest University, Chongqing, China. The dataset was collected by Chuqin Xiang, Xinrui Fan, Duo Bai, Ke Lv, and Xu Lei. :contentReference
+
+Collection method: The dataset contains resting-state electroencephalography (EEG) recordings and behavioral/psychological measurements from 71 participants. Each participant completed two experimental conditions: Normal Sleep (NS) and Sleep Deprivation (SD), using a within-subject design with the order of conditions counterbalanced across participants. EEG was recorded using 61 Ag/AgCl electrodes arranged according to the extended 10–20 international electrode placement system. The standard sampling rate was 500 Hz. Participants completed eyes-open resting-state EEG recordings, and a subset of 38 participants also completed eyes-closed recordings. The dataset also includes behavioral measurements such as the Psychomotor Vigilance Task (PVT), mood and sleepiness scales, and sleep-quality and personality-related questionnaires. :contentReference[oaicite:2]{index=2}
+
+Geographic coverage: Data were collected at the Sleep and NeuroImaging Center, Southwest University, Chongqing, China. The participants were recruited from this research setting.
+
+Temporal coverage: Data collection was conducted from March 2019 to October 2021 according to the published Scientific Data article. The experimental sessions were separated by at least 7 days and at most one month. The sleep-deprivation condition involved approximately 24–30 hours of sleep deprivation.
+
+Access date: September 1, 2026.
+
+License or terms of use: The OpenNeuro dataset is released under CC0 (Creative Commons Zero), meaning that the dataset is dedicated to the public domain to the extent permitted by law. The associated Scientific Data article is published under a CC BY 4.0 license. Users should still provide appropriate attribution to the dataset authors and associated publication when using the data. :contentReference[oaicite:5]{index=5}
+
 ## Overview
 
 This dataset contains EEG (electroencephalography) recordings collected from participants under two sleep conditions:
@@ -317,18 +333,10 @@ This makes it possible to explore questions such as:
 
 # 15. Why This Dataset Is Interesting for Data Visualization
 
-The dataset is particularly suitable for **interactive data visualization** because it combines information with different dimensions:
+Why the dataset is potentially useful for visualization: This dataset is particularly suitable for interactive data visualization because it combines multiple types of information about the same participants. It includes high-dimensional EEG recordings, which describe brain electrical activity over time and across 61 electrodes, together with behavioral, psychological, sleepiness, mood, and sleep-quality measurements. The two experimental conditions (Normal Sleep and Sleep Deprivation) also provide a natural basis for comparison.
 
-**Participant → Condition → Time → Brain region → EEG activity → Frequency → Behavior → Sleepiness → Emotion**
+The combination of these variables makes it possible to explore relationships between brain activity and human behavior. For example, visualization could be used to investigate how EEG activity changes after sleep deprivation, whether participants with greater subjective sleepiness show different EEG patterns, and whether changes in brain activity are associated with changes in attention or reaction time measured by the PVT.
 
-For example, an interactive visualization could allow a researcher to select participants with high KSS scores and simultaneously see:
+The dataset is also well suited to interactive techniques such as brushing and linking. A user could select participants with high sleepiness scores, for example, and simultaneously examine their EEG signals, electrode activity, frequency characteristics, and behavioral measurements. This allows researchers to explore temporal, spatial, physiological, behavioral, and individual-level patterns together rather than examining each variable independently.
 
-1. Their EEG signals.
-2. Which brain electrodes show the strongest changes.
-3. Which frequency bands are most affected.
-4. Their PVT performance.
-5. Their emotional and sleep-related scores.
-
-This type of **brushing and linking** can reveal relationships between variables that may be difficult to identify when each dataset is examined separately.
-
-The main goal of visualization would therefore not simply be to display the EEG, but to help researchers **explore how brain activity, sleepiness, cognitive performance, and emotional state interact under normal sleep and sleep deprivation**.
+Dataset characteristics relevant to visualization: 71 participants, 218 EEG recordings, 61 EEG channels, approximately 18.1 hours of recordings, two experimental sessions/conditions, and both EEG and behavioral data. The dataset follows the BIDS 1.8.0 standard and is publicly distributed through OpenNeuro.
