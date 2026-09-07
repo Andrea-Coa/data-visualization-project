@@ -68,6 +68,12 @@ Unlike a questionnaire, which might give us one score per participant, EEG produ
 | `EEG_SamplingTime_Open_SD` | Time of day when the eyes-open EEG recording was collected during the Sleep Deprivation condition. |
 | `EEG_SamplingTime_Closed_SD` | Time of day when the eyes-closed EEG recording was collected during the Sleep Deprivation condition. |
 
+Electrodes were placed on the scalp according to the extended 10–20 international electrode placement system. The dataset contains EEG recordings from 61 electrodes following this diagram:
+
+![Electrode Placement](./images/61-electrodes.png)
+
+Voltage difference was measured between each electrode and reference electrode **FCz**. The EEG signals were recorded at a sampling rate of 500 Hz, meaning that 500 measurements were taken per second for each electrode.
+
 ### Open vs. Closed
 
 - **Open:** participant's eyes were open during the EEG recording.
