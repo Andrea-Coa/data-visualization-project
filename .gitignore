@@ -1,2 +1,9 @@
 /ds004902
 /.venv
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz

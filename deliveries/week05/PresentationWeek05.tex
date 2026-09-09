@@ -1,0 +1,162 @@
+\documentclass[10pt,aspectratio=169]{beamer}
+
+\usetheme{metropolis}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{booktabs}
+\usepackage{array}
+
+\setbeamertemplate{frame numbering}{\insertframenumber\,/\,\inserttotalframenumber}
+\metroset{block=fill}
+
+\title{Visualización Web Interactiva de la Vulnerabilidad Individual a la Privación de Sueño}
+\subtitle{Variabilidad theta en EEG -- OpenNeuro ds004902}
+\author{Jimena Gurbillon \and Andrea Coa \and Paolo Medrano}
+\institute{DS5343 -- Data Visualization, UTEC, Semestre 2026-2}
+\date{9 de septiembre de 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{El problema: la vulnerabilidad es un rasgo individual}
+\begin{itemize}
+    \item Ante la misma carga objetiva de horas sin dormir, el deterioro neuroconductual \textbf{varía drásticamente entre personas}.
+    \item Van Dongen et al. (2004): el deterioro es estable dentro de cada persona a lo largo de privaciones repetidas, y no lo explica el historial de sueño previo.
+    \item Cerraron su artículo señalando que los correlatos neurobiológicos de ese rasgo seguían sin identificarse.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{El vacío: promedios grupales diluyen al vulnerable}
+\begin{itemize}
+    \item Práctica estándar en EEGLAB / MNE-Python: calcular \emph{grand averages} y mostrarlos en figuras estáticas.
+    \item Problema metodológico concreto: diluye la señal de los sujetos extremadamente vulnerables con la estabilidad de los resistentes.
+    \item Cui et al. (2026) y Bai et al. (2025) usan este mismo dataset, pero presentan estadísticas y figuras agregadas -- sin interfaz para aislar a un sujeto o subgrupo vulnerable.
+\end{itemize}
+\begin{alertblock}{Nuestra apuesta}
+Visualización interactiva $\neq$ solo mostrar el promedio: permite inspección exploratoria sujeto por sujeto.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Audiencia y propósito}
+\begin{block}{Público objetivo}
+Investigadores en neurociencia del sueño interesados en \textbf{diferencias individuales} y vulnerabilidad a la privación de sueño (no solo el efecto promedio).
+\end{block}
+\begin{block}{Propósito}
+Identificar visualmente qué sujetos son más vulnerables, dónde se concentra esa vulnerabilidad en el cuero cabelludo, y si la variabilidad revela patrones que la potencia media oculta.
+\end{block}
+\begin{block}{Fuera de alcance}
+Uso clínico sobre pacientes individuales; uso operativo de gestión de fatiga.
+\end{block}
+\end{frame}
+
+\begin{frame}{Los datos: OpenNeuro ds004902}
+\begin{columns}[T]
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+    \item 71 participantes, diseño intra-sujeto
+    \item 2 condiciones: Sueño Normal (NS) vs.\ Privación (SD, 24--30h)
+    \item Orden contrabalanceado: 41 NS\textrightarrow SD, 30 SD\textrightarrow NS
+    \item 61 electrodos EEG (sistema 10--20), 500 Hz
+    \item Grabaciones en reposo de $\sim$300 s (5 min)
+\end{itemize}
+\end{column}
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+    \item 218 grabaciones EEG, $\sim$8 GB, BIDS 1.8.0
+    \item Licencia CC0 (dataset) / CC BY 4.0 (artículo)
+    \item Medidas conductuales pareadas: PVT, PANAS, KSS, SSS, SAI, ATQ, PSQI, diario de sueño, EQ, Buss--Perry
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Lo que encontramos al abrir los archivos (EDA week04)}
+\begin{itemize}
+    \item Solo 218 de 284 grabaciones EEG esperadas ($71\times4$ tareas) -- 66 faltantes ($\sim$23\%).
+    \item \texttt{RecordingDuration} y \texttt{SamplingFrequency} inconsistentes en algunos registros (posible error de digitación).
+    \item Missing values \textbf{muy distintos por variable}: dato pareado (NS y SD) en 68/71 PANAS, 35/71 SSS, 33/71 KSS, 30/71 PVT.
+\end{itemize}
+\begin{alertblock}{Hallazgo crítico para el diseño}
+Solo \textbf{2} participantes tienen SSS + KSS + PVT simultáneamente pareados. Ninguna pregunta puede depender de cruzar las tres medidas a la vez.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Preguntas de dominio}
+\centering
+\begin{tabular}{@{}p{0.06\textwidth}p{0.85\textwidth}@{}}
+\toprule
+\textbf{Q1} & Patrón espacial: topomap de variabilidad theta, NS vs.\ SD \\
+\textbf{Q2} & Variabilidad vs.\ media: ¿revela más la variabilidad? \\
+\textbf{Q3} & Panorama de vulnerabilidad individual ($\Delta$variabilidad vs.\ $\Delta$PVT) \\
+\textbf{Q4} & Firma espacial vinculada de sujetos vulnerables \\
+\textbf{Q5} & Convergencia de marcadores, por pares (no intersección triple) \\
+\textbf{Q6} & Dinámica intra-grabación (época por época) \\
+\textbf{Q7} & Moderadores: sexo, edad, PSQI, orden de sesión \\
+\bottomrule
+\end{tabular}
+\end{frame}
+
+\begin{frame}{Arquitectura: tres vistas D3.js vinculadas}
+\centering
+\begin{tikzpicture}[
+    box/.style={draw, rounded corners, minimum width=3.6cm, minimum height=1.6cm, align=center, fill=black!5},
+    node distance=0.9cm
+]
+\node[box] (topo) {Topomap SVG\\ \footnotesize Q1, Q2};
+\node[box, right=of topo] (scatter) {Scatter de\\ vulnerabilidad\\ \footnotesize Q3, Q5, Q7};
+\node[box, right=of scatter] (temporal) {Panel temporal\\ (Canvas)\\ \footnotesize Q6};
+\draw[<->, thick] (topo) -- (scatter) node[midway, above] {\footnotesize brushing};
+\draw[<->, thick] (scatter) -- (temporal) node[midway, above] {\footnotesize brushing};
+\end{tikzpicture}
+\vspace{1em}
+\begin{itemize}
+    \item Seleccionar un sujeto/subgrupo en el scatter resalta su firma en el topomap y en el panel temporal (Q4), sin recargar la página.
+    \item Todo el procesamiento pesado (PSD, variabilidad) ocurre offline en Python; el navegador solo filtra/agrega JSON pequeño.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Alcance: qué dejamos fuera y por qué}
+\begin{tabular}{@{}p{0.35\textwidth}p{0.58\textwidth}@{}}
+\toprule
+\textbf{Excluido} & \textbf{Razón} \\
+\midrule
+Microestados EEG (Bai et al.) & Clustering + \emph{backfitting}: un pipeline de análisis de señales aparte \\
+Conectividad funcional & Un segundo pipeline completo; consume el presupuesto del núcleo \\
+Detección de microsueños & Exige señal continua en el navegador, incompatible con $\sim$8 GB \\
+\bottomrule
+\end{tabular}
+\vspace{0.5em}
+
+\small Extensión opcional si sobra tiempo tras el MVP: microestados vía \texttt{pycrostates} (no clustering propio).
+\end{frame}
+
+\begin{frame}{División del trabajo -- por vista D3.js, no por etapa}
+\begin{itemize}
+    \item \textbf{Jimena:} vista de topomap (Q1, Q2) -- preprocesamiento de potencia media/variabilidad theta + D3.js del topomap interactivo.
+    \item \textbf{Andrea:} dinámica intra-grabación y moderadores (Q6, Q7) -- preprocesamiento de variabilidad por época y covariables + D3.js/Canvas del panel temporal y filtros.
+    \item \textbf{Paolo:} vulnerabilidad individual y convergencia (Q3, Q4, Q5) -- preprocesamiento conductual (documentando $n$ pareado) + D3.js del scatter vinculado.
+    \item \textbf{Compartido:} mecanismo de \emph{linked brushing}, validación de calidad de datos, documentación.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Riesgos principales}
+\begin{itemize}
+    \item \textbf{Alcance excesivo:} MVP limitado a Q1--Q3; Q4--Q7 como incrementos sucesivos.
+    \item \textbf{$n$ pareado bajo:} Q5 compara cada marcador conductual por separado contra la variabilidad theta, nunca contra una intersección triple.
+    \item \textbf{Preprocesamiento pesado:} usar \texttt{MNE} para PSD y congelar el pipeline/JSON de salida antes de Week 6.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Gracias}
+\centering
+\Large Repositorio: \url{https://github.com/Andrea-Coa/data-visualization-project}
+
+\vspace{1em}
+\normalsize Dataset: OpenNeuro \texttt{ds004902} -- Xiang et al. (2024), \emph{Scientific Data}
+\end{frame}
+
+\end{document}

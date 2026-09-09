@@ -1,0 +1,134 @@
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage[margin=0.75in,top=0.65in,bottom=0.65in]{geometry}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{titlesec}
+\usepackage[round,authoryear]{natbib}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue}
+
+\setlist{itemsep=1pt, topsep=2pt, parsep=0pt}
+
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{6pt}{2pt}
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\bfseries}{}{0em}{}
+
+\setlength{\headheight}{14pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize Vulnerabilidad Individual a la Privación de Sueño en EEG (ds004902)}
+\fancyhead[R]{\footnotesize\thepage}
+\fancyfoot[C]{\footnotesize DS5343 -- Data Visualization, UTEC, Semestre 2026-2}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\title{\vspace{-2.5em}\Large Visualización Web Interactiva de la Vulnerabilidad Individual a la Privación de Sueño mediante Variabilidad Theta en EEG (OpenNeuro ds004902)}
+\author{\normalsize Jimena Gurbillon \and \normalsize Andrea Coa \and \normalsize Paolo Medrano \\[2pt]
+\small Universidad de Ingeniería y Tecnología (UTEC), Lima, Perú \\
+\small Correspondencia: \texttt{jimena.gurbillon@utec.edu.pe}}
+\date{\small 9 de septiembre de 2026}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{fancy}
+
+\begin{abstract}
+\noindent La vulnerabilidad a la privación de sueño es un rasgo individual: ante la misma carga de horas sin dormir, el deterioro neuroconductual varía drásticamente entre personas. Las herramientas de análisis EEG tradicionales (EEGLAB, MNE-Python) resumen esta variación en promedios grupales estáticos, diluyendo la señal de los sujetos más vulnerables. Esta propuesta describe una herramienta de visualización web interactiva, basada en D3.js, que usa la \emph{variabilidad} de la potencia theta entre épocas -- en vez de solo su media -- como biomarcador de vulnerabilidad individual, y la vincula (\emph{linked views}) con el deterioro conductual objetivo (PVT) y subjetivo (KSS/PANAS), sobre el dataset OpenNeuro \texttt{ds004902} (71 participantes, EEG en reposo, Sueño Normal vs.\ Privación de Sueño).
+\end{abstract}
+
+\section{Equipo y Título del Proyecto}
+\begin{itemize}
+    \item \textbf{Integrantes:} Jimena Gurbillon, Andrea Coa, Paolo Medrano.
+    \item \textbf{Título propuesto:} Visualización Web Interactiva de la Vulnerabilidad Individual a la Privación de Sueño mediante Variabilidad Theta en EEG.
+    \item \textbf{Repositorio:} \url{https://github.com/Andrea-Coa/data-visualization-project}
+\end{itemize}
+
+\section{Declaración del Problema y Antecedentes}
+La vulnerabilidad cognitiva y neuroconductual a la privación de sueño es un rasgo individual: \citet{vandongen2004} mostraron, en privación crónica repetida, que el deterioro conductual varía enormemente entre sujetos, es estable dentro de cada persona, y no lo explica el historial de sueño previo -- y concluyeron que sus correlatos neurobiológicos seguían sin identificarse. La práctica estándar en herramientas de análisis EEG (EEGLAB, MNE-Python) es calcular promedios grupales (\emph{grand averages}) y presentarlos en figuras estáticas. Esto tiene un problema metodológico concreto: diluye la señal de los sujetos extremadamente vulnerables con la estabilidad de los resistentes, e impide a un lector aislar visualmente qué sujetos y qué regiones concentran el riesgo, sin reprocesar los datos desde cero.
+
+El dataset ds004902 es particularmente adecuado para abordar este problema porque combina, para los mismos 71 participantes, EEG de alta densidad (61 canales) con medidas conductuales pareadas (vigilancia, ánimo, ansiedad, calidad de sueño habitual). Además, la literatura reciente que usa este mismo dataset ofrece evidencia de que medidas de \emph{variabilidad} -- no solo de magnitud media -- capturan mejor las diferencias individuales: \citet{cui2026} muestran que la variabilidad de la potencia theta entre épocas consecutivas se correlaciona con el enlentecimiento del tiempo de reacción en el PVT ($\rho=0.544$ en electrodos frontales, $\rho=0.558$ en centro-temporales, ambos $p_{FDR}=0.012$), mientras que \citet{bai2025} muestran que la privación de sueño altera la dinámica temporal de microestados de EEG asociados a somnolencia y ánimo. Ambos estudios presentan sus hallazgos como estadísticas y figuras agregadas, sin una interfaz que permita a un lector aislar visualmente a un sujeto o subgrupo vulnerable y examinar su firma espacial, temporal y conductual. Una visualización web interactiva agrega valor real frente a estos reportes estáticos al permitir esa inspección exploratoria, sujeto por sujeto, que el análisis estadístico agregado no ofrece.
+
+\section{Audiencia y Propósito}
+\begin{itemize}
+    \item \textbf{Público objetivo:} investigadores en neurociencia del sueño interesados específicamente en \emph{diferencias individuales} y resiliencia/vulnerabilidad a la privación de sueño (no solo en el efecto promedio), incluyendo estudiantes de posgrado que necesiten explorar ds004902 sin escribir código.
+    \item \textbf{Propósito:} permitir a esta audiencia identificar visualmente qué sujetos son más vulnerables a la privación de sueño (mayor aumento de variabilidad theta, mayor deterioro en PVT/KSS), dónde se concentra esa vulnerabilidad en el cuero cabelludo, y si la magnitud media de la potencia oculta patrones que la variabilidad sí revela.
+    \item \textbf{Decisiones que soporta:} priorizar qué sujetos o subgrupos (p. ej.\ por sexo) merecen seguimiento en estudios futuros de biomarcadores de riesgo, y contrastar visualmente si la métrica de variabilidad aporta señal adicional frente a la potencia media antes de invertir en análisis estadístico confirmatorio.
+\end{itemize}
+
+\section{Comprensión y Adecuación del Conjunto de Datos}
+\begin{itemize}
+    \item \textbf{Fuente:} OpenNeuro \texttt{ds004902}, \emph{``A Resting-state EEG Dataset for Sleep Deprivation''}, recolectado por el Sleep and NeuroImaging Center, Southwest University, Chongqing, China \citep{xiang2024}. Licencia CC0 (dataset) / CC BY 4.0 (artículo).
+    \item \textbf{Diseño:} 71 participantes, diseño intra-sujeto con dos condiciones -- Sueño Normal (NS) y Privación de Sueño (SD, aprox.\ 24--30 horas) -- en orden contrabalanceado (\texttt{NS->SD} / \texttt{SD->NS}), sesiones separadas entre 7 y 30 días.
+    \item \textbf{EEG:} 61 electrodos Ag/AgCl (sistema 10--20 extendido), referencia en \texttt{FCz}, 500 Hz, grabaciones en reposo de $\sim$5 minutos (300 s) con ojos abiertos (los 71 participantes) y ojos cerrados (subconjunto de 38).
+    \item \textbf{Datos conductuales/psicológicos complementarios:} PVT (lapsos, mediana y desviación estándar del tiempo de reacción), PANAS (afecto positivo/negativo), KSS y SSS (somnolencia subjetiva), SAI (ansiedad estado), ATQ (temperamento), PSQI (calidad de sueño habitual, puntaje global y 7 componentes), diario de sueño, EQ y Buss--Perry (rasgos individuales).
+    \item \textbf{Problemas de calidad identificados (EDA propio, week04):} (1) solo 218 de las 284 grabaciones EEG esperadas ($71 \times 4$ tareas) están presentes -- 66 faltantes ($\sim$23\%); (2) inconsistencias de metadata: \texttt{RecordingDuration} no siempre es exactamente 300 s y \texttt{SamplingFrequency} aparece ocasionalmente como 5000 Hz en vez de 500 Hz, posiblemente por error de digitación, y debe validarse antes de su uso; (3) missing values sustanciales y variables en las medidas conductuales, distintos por variable: de los 71 participantes, tienen dato pareado (NS \emph{y} SD) 68 en PANAS, 35 en SSS, 33 en KSS y 30 en PVT -- y solo \textbf{2} participantes tienen las tres medidas de somnolencia/vigilancia (SSS, KSS y PVT) simultáneamente pareadas, lo que descarta cualquier pregunta que dependa de cruzar las tres a la vez.
+    \item \textbf{Transformaciones esperadas:} preprocesamiento offline en Python/MNE (filtrado, control de calidad de canales). Siguiendo la metodología de \citet{cui2026}, cada grabación de 300 s se divide en 75 épocas no solapadas de 4 s; se calcula la potencia relativa theta por época y electrodo (PSD), y la \textbf{variabilidad} (desviación estándar entre épocas) de esa potencia relativa por sujeto, condición y electrodo. Verificamos que las dos ROI usadas por \citet{cui2026} (frontal: 16 electrodos; centro-temporal: 28 electrodos) están completamente contenidas en el montaje de 61 canales de ds004902. Los resúmenes por sujeto/condición/electrodo se exportan a JSON para su consumo en D3.js; los archivos EEG crudos (formato BIDS/\texttt{.set}, $\sim$8 GB vía S3) no se procesan en el navegador.
+\end{itemize}
+
+\section{Preguntas del Dominio}
+\begin{enumerate}[leftmargin=2.2em, label=\textbf{Q\arabic*.}, ref=Q\arabic*]
+    \item \textbf{(Patrón espacial de variabilidad)} ¿Cómo difiere la distribución topográfica de la \emph{variabilidad} de potencia theta entre épocas en el cuero cabelludo, entre Sueño Normal y Privación de Sueño?
+    \item \textbf{(Variabilidad vs.\ media)} ¿La variabilidad de potencia theta revela patrones espaciales de vulnerabilidad más amplios o distintos que la potencia media por banda, al alternar entre ambas vistas del mismo topomap?
+    \item \textbf{(Panorama de vulnerabilidad individual)} Al graficar a cada sujeto según su cambio de variabilidad theta (frontal/centro-temporal) frente a su cambio en tiempo de reacción del PVT, ¿se distinguen visualmente subgrupos de sujetos vulnerables y resistentes?
+    \item \textbf{(Firma espacial vinculada)} Al seleccionar un sujeto vulnerable en ese panorama, ¿su topomap muestra un patrón concentrado en las regiones frontal y centro-temporal, de forma consistente entre sujetos vulnerables?
+    \item \textbf{(Convergencia de marcadores, por pares)} ¿Los sujetos que el cambio de variabilidad theta señala como vulnerables son, por pares, los mismos que destacan en somnolencia subjetiva (KSS) o en afecto positivo (PANAS-PA)? Dado que solo 2 sujetos tienen SSS+KSS+PVT simultáneos, comparamos cada marcador contra la variabilidad theta por separado (no una intersección triple).
+    \item \textbf{(Dinámica intra-grabación)} Dentro de los 5 minutos de una misma grabación (75 épocas de 4 s), ¿la variabilidad de potencia theta crece de forma distinta a lo largo de la grabación en sujetos vulnerables frente a resistentes?
+    \item \textbf{(Moderadores)} ¿La relación entre el cambio de variabilidad theta y el deterioro en el PVT difiere según sexo, edad, calidad de sueño habitual (PSQI) o el orden de las sesiones (\texttt{NS->SD} vs.\ \texttt{SD->NS})?
+\end{enumerate}
+
+\section{Factibilidad Inicial y Alcance}
+
+\subsection*{Arquitectura de interacción}
+Las siete preguntas se responden con tres vistas D3.js coordinadas por \emph{linked brushing}: (1) un \textbf{topomap} SVG con toggle variabilidad/media (Q1, Q2); (2) un \textbf{scatter de vulnerabilidad} (cambio de variabilidad theta vs.\ cada marcador conductual por separado -- PVT, KSS, PANAS -- con \emph{brushing} y controles de moderador: sexo, edad, PSQI, orden de sesión) (Q3, Q5, Q7); y (3) un panel de \textbf{dinámica intra-grabación} en Canvas (Q6). Seleccionar un sujeto o subgrupo en el scatter resalta su firma en el topomap y en el panel temporal (Q4), sin recargar la página.
+
+\subsection*{Desafíos técnicos}
+\begin{itemize}
+    \item \textbf{Rendimiento en el navegador:} renderizar topomaps y series para 71 sujetos $\times$ 2 condiciones. \emph{Mitigación:} resúmenes agregados (media/SD por electrodo y época) precomputados en Python; el navegador solo agrega/filtra JSON pequeño, no procesa señal cruda.
+    \item \textbf{Missing data:} varias variables conductuales y hasta 66 grabaciones EEG están ausentes. \emph{Mitigación:} documentar explícitamente qué subconjunto de sujetos responde cada pregunta (p. ej.\ Q3/Q5 excluyen sujetos sin PVT o KSS), evitando imputación no justificada.
+    \item \textbf{Interpolación de topomaps:} generar mapas de cuero cabelludo suaves e interpretables en D3.js a partir de 61 puntos de electrodo (interpolación tipo IDW o \emph{contour} sobre una proyección 2D de las coordenadas \texttt{electrodes.tsv}).
+\end{itemize}
+
+\subsection*{División del trabajo}
+Repartimos el trabajo por \emph{vista D3.js} en vez de por etapa del pipeline: cada integrante es dueño de una vista completa, desde su preprocesamiento hasta su implementación en D3.js, para que los tres practiquemos la parte de visualización y no solo uno termine haciendo D3.
+\begin{itemize}
+    \item \textbf{Jimena Gurbillon:} vista de topomap (Q1, Q2) -- preprocesamiento de potencia media y variabilidad theta por electrodo, e implementación D3.js del topomap interactivo con toggle NS vs.\ SD / media vs.\ variabilidad.
+    \item \textbf{Andrea Coa:} vista de dinámica intra-grabación y moderadores (Q6, Q7) -- preprocesamiento de la serie de variabilidad por época y de las covariables (sexo, edad, PSQI, orden de sesión), e implementación D3.js/Canvas del panel temporal y de los controles de filtrado por moderador.
+    \item \textbf{Paolo Medrano:} vista de vulnerabilidad individual y convergencia (Q3, Q4, Q5) -- preprocesamiento de las medidas conductuales (PVT, KSS, PANAS) documentando su $n$ pareado por variable, e implementación D3.js del scatter vinculado (\emph{brushing}) que coordina las otras dos vistas.
+    \item \textbf{Trabajo compartido:} diseño del mecanismo de \emph{linked brushing} entre las tres vistas, validación de calidad de datos, documentación y presentación.
+\end{itemize}
+
+\subsection*{Riesgos principales}
+\begin{itemize}
+    \item \textbf{Alcance excesivo:} intentar construir una suite completa de análisis EEG en vez de un panel enfocado. \emph{Mitigación:} limitar el MVP a Q1--Q3 (topomap + scatter de vulnerabilidad básico); tratar Q4--Q7 como incrementos sucesivos.
+    \item \textbf{Microestados de EEG fuera de alcance:} el análisis de microestados de \citet{bai2025} (clustering de mapas GFP, \emph{backfitting}) es un método completo por sí mismo y no se incluye como pregunta base, precisamente para no convertir el proyecto en uno de análisis de señales. \emph{Extensión opcional} si el tiempo lo permite tras el MVP: usar una librería existente (\texttt{pycrostates}) en vez de implementar el clustering desde cero.
+    \item \textbf{Cálculo de variabilidad por época:} aunque metodológicamente simple (PSD + desviación estándar entre épocas), debe validarse sobre las 218 grabaciones reales antes de Week 6. \emph{Mitigación:} congelar el pipeline de preprocesamiento y los JSON de salida temprano, usando \texttt{MNE} para el cálculo de PSD.
+    \item \textbf{$n$ pareado bajo en algunas variables:} KSS/SSS/PVT solo tienen 30--35 sujetos con dato en ambas condiciones, y ningún sujeto tiene las tres a la vez con SSS+KSS+PVT completos ($n=2$). \emph{Mitigación:} Q5 compara la variabilidad theta contra cada marcador conductual por separado, nunca contra una intersección de los tres, y cada vista declara su $n$ efectivo visiblemente.
+\end{itemize}
+
+{\footnotesize
+\begin{thebibliography}{9}
+\setlength{\itemsep}{1pt}
+
+\bibitem[Bai et al., 2025]{bai2025}
+Bai, D., Fan, X., Xiang, C., \& Lei, X. (2025). Altering temporal dynamics of sleepiness and mood during sleep deprivation: Evidence from resting-state EEG microstates. \emph{Brain Sciences, 15}(4), 423. \url{https://doi.org/10.3390/brainsci15040423}
+
+\bibitem[Cui et al., 2026]{cui2026}
+Cui, Z., Xie, T., Zhou, Y., Gong, P., Zhang, X., \& Wang, P. (2026). Exploring the differences in neural oscillation mechanisms before and after sleep deprivation. \emph{Frontiers in Neuroscience, 20}, Article 1910878. \url{https://doi.org/10.3389/fnins.2026.1910878}
+
+\bibitem[Van Dongen et al., 2004]{vandongen2004}
+Van Dongen, H. P. A., Baynard, M. D., Maislin, G., \& Dinges, D. F. (2004). Systematic interindividual differences in neurobehavioral impairment from sleep loss: Evidence of trait-like differential vulnerability. \emph{Sleep, 27}(3), 423--433. \url{https://doi.org/10.1093/sleep/27.3.423}
+
+\bibitem[Xiang et al., 2024]{xiang2024}
+Xiang, C., Fan, X., Bai, D., Lv, K., \& Lei, X. (2024). A resting-state EEG dataset for sleep deprivation. \emph{Scientific Data, 11}, Article 427. \url{https://doi.org/10.1038/s41597-024-03268-2}
+
+\end{thebibliography}
+}
+
+\end{document}
