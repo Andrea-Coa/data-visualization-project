@@ -90,9 +90,9 @@ Full text in `ProjectProposal.pdf`, Section 5. Referenced by number (Q1-Q7) in t
 | # | Question (short) |
 |---|---|
 | Q1 | Spatial pattern of theta-power variability: topomap NS vs. SD |
-| Q2 | Variability vs. mean power: does variability reveal more? |
-| Q3 | Individual vulnerability landscape (Δvariability vs. ΔPVT) |
-| Q4 | Linked spatial signature of vulnerable subjects |
+| Q2 | Variability vs. mean power: which reveals a broader/different spatial vulnerability pattern? |
+| Q3 | How separable are vulnerable vs. resistant subjects by Δtheta-variability and ΔPVT? |
+| Q4 | Do vulnerable subjects share a consistent spatial signature (frontal/centro-temporal)? |
 | Q5 | Pairwise marker convergence (variability vs. PVT / KSS / PANAS, each checked separately) |
 | Q6 | Intra-recording dynamics (epoch-by-epoch trend) |
 | Q7 | Moderators: sex, age, PSQI, session order |
