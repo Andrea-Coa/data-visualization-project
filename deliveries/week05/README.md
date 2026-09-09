@@ -24,6 +24,65 @@ The Week 4 data package (`deliveries/week04/`) was revised after instructor feed
 - dataset size/weight stated explicitly (~8 GB, see `acquisition.md`);
 - an exploratory analysis of missing values, outliers, and metadata inconsistencies, added in `EDA.ipynb`.
 
+### Overall Repository Structure (at the end of the project)
+
+```
+data-visualization-project/
+├── README.md
+├── PresentationFinal.pptx (or .pdf)
+├── FinalPaper.pdf
+├── final_paper_source/ (e.g., .tex or .docx)
+├── final_poster.pdf
+├── source_code/ (HTML, CSS, JS, D3.js modules, required assets)
+├── preprocessing_scripts/
+├── data/ (Final data package or documented acquisition instructions)
+└── deliveries/
+    ├── week04/
+    │   ├── README.md
+    │   ├── data_dictionary.csv
+    │   ├── acquisition.md (or an acquisition script)
+    │   └── data/
+    │       └── dataset.csv (or sample.csv)
+    ├── week05/
+    │   ├── Project Proposal.pdf
+    │   ├── proposal_source/ (e.g., .tex, .docx)
+    │   ├── PresentationWeek05.pptx (or .pdf)
+    │   └── README.md
+    ├── week06/
+    │   ├── DataAnalysis.md
+    │   ├── PresentationWeek06.pptx (or .pdf)
+    │   ├── README.md
+    │   ├── code/
+    │   ├── sketches/ (exported as PDF, PNG, etc.)
+    │   ├── reviewed_papers/ (PDFs of at least 4 papers)
+    │   └── data/
+    │       └── processed/ (processed CSV files)
+    ├── week07/
+    │   ├── Delivery1Report.pdf (or .md)
+    │   ├── report_source/
+    │   ├── PresentationWeek07.pptx (or .pdf)
+    │   ├── sketches_and_architecture.pdf (or .png)
+    │   ├── data_dictionary.csv
+    │   ├── code/
+    │   └── data/
+    ├── week10/
+    │   ├── PrototypeReport.pdf (or .md)
+    │   ├── PresentationWeek10.pptx (or .pdf)
+    │   ├── README.md
+    │   ├── source_code/
+    │   └── data/ (processed data in CSV or JSON)
+    └── week12/
+        ├── Refined DraftReport.pdf (or .md)
+        ├── PresentationWeek12.pptx (or .pdf)
+        ├── PeerCritiqueResponse.pdf
+        ├── initial_paper_draft.pdf
+        ├── initial_paper_source/
+        ├── README.md
+        ├── initial_project_page/
+        ├── source_code/
+        └── data/
+```
+
 ## Domain questions
 
 Full text in `ProjectProposal.pdf`, Section 5. Referenced by number (Q1-Q7) in the responsibilities below. The core metric is the **variability** (standard deviation across epochs) of theta power, not just its mean -- following the epoching method of Cui et al. (2026): 300 s recordings split into 75 non-overlapping 4-s epochs.
