@@ -40,6 +40,18 @@ Full text in `ProjectProposal.pdf`, Section 5. Referenced by number (Q1-Q7) in t
 
 **Key EDA finding driving Q5's design:** of the 71 participants, only 68 have paired PANAS, 35 paired SSS, 33 paired KSS, and 30 paired PVT (data in both NS and SD) -- and only **2** participants have SSS+KSS+PVT all three paired simultaneously. Q5 therefore compares theta variability against each behavioral marker separately, never against a three-way intersection.
 
+## Expected data processing flow
+
+Full version in `ProjectProposal.pdf`, Section 4. Two parallel pipelines (raw &rarr; ready), joined at the end -- each tailored to its data type (EEG signal vs. tabular behavioral data):
+
+**EEG (signal):**
+`Raw (BIDS .set/.fdt, 61 channels, 500 Hz)` &rarr; **cleaning** (bad-channel detection, 1-40 Hz band-pass, 50 Hz notch) &rarr; **segmentation** (75 non-overlapping 4-s epochs per recording, per Cui et al. 2026) &rarr; **feature extraction** (PSD per epoch/electrode, relative theta power) &rarr; **aggregation** (mean and variability across epochs, per subject/condition/electrode and per ROI) &rarr; `JSON`
+
+**Behavioral (tabular):**
+`Raw (participants.tsv)` &rarr; **cleaning** (parse `n/a`, type casting) &rarr; **filtering** (keep only subjects with paired NS+SD data, documented n per variable) &rarr; **derivation** (ΔPVT, ΔKSS, ΔPANAS-PA = SD - NS) &rarr; `CSV`
+
+**Merge:** join on `participant_id` between the EEG summary and the behavioral deltas &rarr; the table that feeds all three D3.js views. Raw EEG files (~8 GB via S3) are never processed in the browser.
+
 ## Responsibilities (proposed for the implementation phase)
 
 We split the work by **D3.js view** instead of by pipeline stage, so all three of us build a full visualization end-to-end (data prep through D3.js), rather than one person being stuck only on data processing. The three views are coordinated through linked brushing (selecting a subject/subgroup in one view highlights it in the others).
