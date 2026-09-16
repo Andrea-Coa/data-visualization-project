@@ -274,9 +274,7 @@ rationale for each is already settled enough to sketch from:
   paired intersection exists (Section 4, proposal). This scatter is the
   brush *source* for Views 1 and 2.
 
-(`code/04_make_sketches.ipynb` exists in the repo as a programmatic wireframe
-generator built while drafting this rationale; its output is not included in
-this delivery in favor of real hand-drawn sketches from each owner.)
+Hand-drawn sketches from each owner will be added here before Week 7.
 
 ## 7. Reviewed papers
 

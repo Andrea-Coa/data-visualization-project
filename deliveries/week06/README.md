@@ -11,14 +11,13 @@
 | **Papers that inspired the design** | `reviewed_papers/README.md` |
 
 Sketches for the three D3.js views (hand-drawn, per the course's sketch
-requirement) are still pending -- `code/04_make_sketches.ipynb` exists as a
-programmatic wireframe generator but its output is not part of this
-delivery; see Section 6 of `DataAnalysis.md`.
+requirement) are still pending -- one per view owner. See Section 6 of
+`DataAnalysis.md`.
 
 ## Full contents
 
 - `DataAnalysis.md` -- data understanding, transformations, findings, limitations, and design rationale (the main document).
-- `code/` -- 5 notebooks, run in numeric order (see below).
+- `code/` -- 4 notebooks, run in numeric order (see below).
 - `data/processed/` -- CSV outputs of notebooks `01`-`03`.
 - `analysis_plots/` -- PNG outputs of notebook `05` (real findings charts).
 - `reviewed_papers/` -- 6 papers reviewed for design inspiration, all with PDFs included (see its own README).
@@ -43,7 +42,7 @@ delivery; see Section 6 of `DataAnalysis.md`.
    pip install -r requirements.txt
    ```
 
-3. **Open and run the 5 notebooks in `code/`, in numeric order** (Jupyter /
+3. **Open and run the 4 notebooks in `code/`, in numeric order** (Jupyter /
    VS Code / JupyterLab, same workflow as `deliveries/week04/EDA.ipynb`):
    ```
    01_behavioral_pipeline.ipynb   # cleans participants.tsv -> behavioral_deltas.csv
@@ -53,9 +52,8 @@ delivery; see Section 6 of `DataAnalysis.md`.
    ```
    `01` and `02` are independent of each other and can run in any order; `03`
    requires both of their outputs in `data/processed/` first; `05` requires
-   `01`-`03` to have run first. (`04_make_sketches.ipynb` also exists in
-   `code/` as a wireframe generator, but its output is not part of this
-   delivery -- see "Where is everything" above.)
+   `01`-`03` to have run first. (Numbering skips `04` -- that was a wireframe
+   generator, removed since sketches are being done by hand instead.)
 
    `02_eeg_pipeline.ipynb` auto-detects `../../../ds004902` (repo root); if
    it isn't there yet, it falls back to the Week 4 sample (`sub-01` only, and
