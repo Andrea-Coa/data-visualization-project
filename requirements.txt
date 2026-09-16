@@ -9,3 +9,4 @@ PyQt6
 
 # for eeg data
 mne
+pymatreader  # required by mne.io.read_raw_eeglab for MATLAB v7.3 (HDF5) .set files

@@ -1,0 +1,6 @@
+participant_id,session,task,reason
+sub-01,ses-2,eyesopen,"Incorrect number of samples (6951331 != 9150000), please report this error to MNE-Python developers"
+sub-03,ses-2,eyesclosed,"Incorrect number of samples (671375 != 9150000), please report this error to MNE-Python developers"
+sub-28,ses-1,eyesclosed,"Incorrect number of samples (7381031 != 9150000), please report this error to MNE-Python developers"
+sub-28,ses-2,eyesopen,"Incorrect number of samples (7352375 != 9150000), please report this error to MNE-Python developers"
+sub-44,ses-2,eyesopen,"Incorrect number of samples (22246652 != 24999996), please report this error to MNE-Python developers"
