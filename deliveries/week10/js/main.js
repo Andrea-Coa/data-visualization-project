@@ -1,11 +1,11 @@
 /* Arranque: carga los JSON procesados, prepara estado derivado, inicia la historia y el explorador enlazado.
    Servido por HTTP (GitHub Pages o servidor local) lee data/*.json. Abierto con doble clic (file://)
    el navegador bloquea fetch, así que cae a data/data.js, el mismo contenido empaquetado. */
-const FILES = ["participants", "topo", "coords", "subject_epochs"];
+const FILES = ["participants", "topo", "coords", "subject_epochs", "topo_by_subject"];
 
 function loadData(){
   return Promise.all(FILES.map(f => d3.json(`data/${f}.json`)))
-    .then(([p, t, c, s]) => ({participants:p, topo:t, coords:c, subEpochs:s}))
+    .then(([p, t, c, s, st]) => ({participants:p, topo:t, coords:c, subEpochs:s, subTopo:st}))
     .catch(() => new Promise((res, rej) => {
       if(window.BATIMIX_DATA) return res(window.BATIMIX_DATA);
       const sc = document.createElement("script"); sc.src = "data/data.js";
@@ -16,7 +16,7 @@ function loadData(){
 }
 
 function prepare(D){
-  P = D.participants; TOPO = D.topo; COORDS = D.coords; SUBEP = D.subEpochs;
+  P = D.participants; TOPO = D.topo; COORDS = D.coords; SUBEP = D.subEpochs; SUBTOPO = D.subTopo || {};
   EEG = P.filter(d => d.d_front_var != null); EEG_IDS = EEG.map(d => d.id);
   ELEC = Object.keys(COORDS).filter(e => TOPO[e]);
   const qv = bh(ELEC.map(e => TOPO[e].sigVar)), qm = bh(ELEC.map(e => TOPO[e].sigMean));
@@ -50,7 +50,7 @@ function observeChrome(){
   document.querySelectorAll(".reveal").forEach(n => { if(n.getBoundingClientRect().top > innerHeight) n.classList.add("pre"); rv.observe(n); });
   const links = [...document.querySelectorAll(".top nav a")];
   const nav = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) links.forEach(a => a.setAttribute("aria-current", a.dataset.sec === e.target.id)); }), {rootMargin:"-50% 0px -50% 0px"});
-  ["historia", "explorar", "metodo"].map(id => $(id)).filter(Boolean).forEach(section => nav.observe(section));
+  ["historia", "explorar", "comparar", "metodo"].map(id => $(id)).filter(Boolean).forEach(section => nav.observe(section));
 }
 
 // ---------- arranque ----------
@@ -68,7 +68,8 @@ loadData().then(D => {
 
   observeChrome();
   story.init();
-  scatter.render(false); topo.render(false); dyn.render({live:true}); updateStatus();
+  compare.init();
+  scatter.render(false); topo.render(false); dyn.render({live:true}); compare.render(false); updateStatus();
   SEGS.forEach(s => s.place(false));
   syncHeights();
   const boot = $("boot"); boot.classList.add("done"); setTimeout(() => boot.remove(), 450);
@@ -84,8 +85,8 @@ loadData().then(D => {
       lastW = innerWidth; lastH = innerHeight;
       story.resize();
       if(wChanged || hChanged){
-        scatter_h = null; scatter.rebuild(); topo.rebuild(); dyn.rebuild();
-        scatter.render(false); topo.render(false); dyn.render({live:true}); scatter.paint();
+        scatter_h = null; scatter.rebuild(); topo.rebuild(); dyn.rebuild(); compare.rebuild();
+        scatter.render(false); topo.render(false); dyn.render({live:true}); compare.render(false); scatter.paint();
         SEGS.forEach(s => s.place(false)); syncHeights();
       }
     }, 160);

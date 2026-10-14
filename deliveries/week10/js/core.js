@@ -2,7 +2,7 @@
    Todas las vistas leen de aquí; ninguna vista habla directamente con otra (todo pasa por el bus). */
 
 // ---------- datos (los asigna main.js tras cargar data/*.json) ----------
-let P = [], TOPO = {}, COORDS = {}, SUBEP = {}, EEG = [], EEG_IDS = [], ELEC = [];
+let P = [], TOPO = {}, COORDS = {}, SUBEP = {}, EEG = [], EEG_IDS = [], ELEC = [], SUBTOPO = {};
 
 const $ = id => document.getElementById(id);
 

@@ -134,7 +134,7 @@ const topo = (() => {
       if(focus && focus[k] != null) s.append("circle").attr("cx", x(focus[k])).attr("cy", 14).attr("r", 4.5).attr("fill", C.panel).attr("stroke", C.ink).attr("stroke-width", 2);
     });
     box.append("p").attr("class", "note").style("margin-top", "6px")
-      .text("El mapa promedia a los 68 participantes: los datos por electrodo no están desagregados por sujeto. Las franjas por región sí se recalculan con la selección (triángulo oscuro: todos; naranja: selección).");
+      .text("El mapa promedia a los 68 para mostrar la significancia por electrodo. Las franjas por región se recalculan con la selección (triángulo oscuro: todos; naranja: selección). Para ver el mapa de una persona, usa «Comparar».");
   }
   bus.on("select.topo", () => roiStrip()); bus.on("hover.topo", () => roiStrip()); bus.on("pin.topo", () => roiStrip());
   bus.on("theme.topo", () => render(false));

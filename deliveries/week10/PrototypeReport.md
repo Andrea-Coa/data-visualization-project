@@ -51,7 +51,18 @@ Todas las vistas usan datos reales procesados por el equipo en la Semana 6: EEG 
   - Región EEG, n activo y botón para limpiar; <kbd>Esc</kbd> limpia el grupo y la persona fijada, y puede interrumpir un lazo en curso.
   - Chips de cobertura: verde n ≥ 60, ámbar 30–59, rojo < 30.
 
-### 2. Método y límites
+### 2. Comparar sujetos (dos topomaps individuales)
+
+Vista añadida para el objetivo original del proyecto: contrastar **dos personas concretas**, no solo el promedio grupal. Usa `data/topo_by_subject.json`, potencia theta por electrodo y por sujeto reorganizada desde el CSV `eeg_theta_per_electrode.csv` que el pipeline de la Semana 6 ya producía (`tools/build_subject_topo.py`; no se reprocesa EEG crudo). Cubre los 68 sujetos con par NS+SD en ojos abiertos.
+
+- Dos selectores (A y B) y un botón para intercambiarlos. Cada mapa es una sola persona.
+- Controles compartidos de métrica (σ / μ) y condición (NS / SD / Δ).
+- **Escala de color compartida entre los dos mapas**, para que un mismo tono signifique lo mismo en ambos y la comparación visual sea honesta. Una única barra de color debajo.
+- Cada electrodo es enfocable y muestra NS, SD, Δ y Δ %; no se marca significancia porque un sujeto individual no tiene prueba estadística (no hay varianza entre sujetos).
+- Caption por sujeto con edad, sexo, orden de sesión y el Δ regional frontal y centro-temporal —tomado de `participants.json`, los mismos valores que usa el scatterplot.
+- Los dos mapas se apilan en pantallas angostas (≤ 760 px); el resto de las vistas no se ve afectado porque es una sección propia accesible desde la navegación.
+
+### 3. Método y límites
 
 Acordeón con datos, codificaciones, estadística y limitaciones, dentro de la misma página.
 
@@ -102,7 +113,7 @@ La [captura del navegador](dashboard-preview.png) documenta el resultado visual.
 
 ## Limitaciones conocidas y elementos incompletos
 
-1. El mapa por electrodo usa el promedio de los 68: los datos por electrodo no están desagregados por sujeto, así que no se recalcula con la selección. Como sustituto, las franjas por región sí siguen la selección. Conectar el mapa a la selección requiere exportar potencia por electrodo y sujeto en la Semana 6.
+1. El mapa de «Cuero cabelludo» promedia a los 68 **por diseño**: muestra significancia por electrodo (prueba t pareada NS vs SD), que requiere varios sujetos, así que no se recalcula con la selección; las franjas por región sí. Los datos por electrodo sí están desagregados por sujeto —el pipeline de la Semana 6 los exporta en `eeg_theta_per_electrode.csv`—, y la nueva vista «Comparar» los usa para contrastar dos personas en dos topomaps individuales. La comparación individual no incluye significancia porque un sujeto aislado no tiene varianza entre sujetos.
 2. Las pruebas por electrodo son t pareadas exploratorias. Con FDR de Benjamini–Hochberg ninguna sobrevive para σ ni para μ.
 3. Los grupos pequeños (como los seis vulnerables del marcador PVT inicial) pueden dar medias por época ruidosas. El gráfico temporal conserva la banda de error y el n activo; las comparaciones siguen siendo exploratorias.
 4. EEG pareado = 68 de 71: tres archivos estaban corruptos en origen (documentado en la Semana 6). PVT existe solo para 30, KSS para 32 y SSS para 33 de los 68.

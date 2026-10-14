@@ -20,6 +20,7 @@
   <span class="brand">BATIMIX</span>
   <nav aria-label="Secciones">
     <a href="#explorar" data-sec="explorar">Explorar</a>
+    <a href="#comparar" data-sec="comparar">Comparar</a>
     <a href="#metodo" data-sec="metodo">Método</a>
   </nav>
   <span class="progress" aria-hidden="true"></span>
@@ -188,6 +189,60 @@
   </div>
 </section>
 
+<!-- ============ COMPARAR SUJETOS ============ -->
+<section class="section" id="comparar" aria-labelledby="h-comparar">
+  <div class="sec-head reveal">
+    <div>
+      <h2 id="h-comparar">Compara dos personas.</h2>
+      <p>El mapa de arriba promedia a los 68. Aquí cada mapa es <b>una persona</b>, con su potencia theta por electrodo procesada individualmente (Semana 6). Elige dos sujetos y mira dónde difieren sus firmas. Los dos mapas comparten la escala de color, así que un mismo tono significa lo mismo en ambos.</p>
+    </div>
+  </div>
+
+  <div class="toolbar" role="region" aria-label="Controles de comparación">
+    <div class="tb-group">
+      <span class="tb-label" id="cmetlbl">Métrica</span>
+      <div class="seg" id="cmetseg" role="group" aria-labelledby="cmetlbl">
+        <button data-v="var" aria-pressed="true">σ variabilidad</button>
+        <button data-v="mean" aria-pressed="false">μ media</button>
+      </div>
+    </div>
+    <div class="tb-group">
+      <span class="tb-label" id="ccondlbl">Condición</span>
+      <div class="seg" id="ccondseg" role="group" aria-labelledby="ccondlbl">
+        <button data-v="NS" aria-pressed="false">NS</button>
+        <button data-v="SD" aria-pressed="false">SD</button>
+        <button data-v="D" aria-pressed="true">Δ SD − NS</button>
+      </div>
+    </div>
+    <button class="btn ghost" id="cswap" aria-label="Intercambiar los dos sujetos">⇄ Intercambiar</button>
+  </div>
+
+  <div class="compare-grid">
+    <article class="card c-cmp" aria-labelledby="h-cmpA">
+      <div class="phead">
+        <h3 id="h-cmpA" class="sr-head">Sujeto A</h3>
+        <label class="field">A <select id="csubA" aria-label="Sujeto A"></select></label>
+      </div>
+      <div class="cmpcap" id="ccapA"></div>
+      <div class="view" id="ctopoA"></div>
+    </article>
+    <article class="card c-cmp" aria-labelledby="h-cmpB">
+      <div class="phead">
+        <h3 id="h-cmpB" class="sr-head">Sujeto B</h3>
+        <label class="field">B <select id="csubB" aria-label="Sujeto B"></select></label>
+      </div>
+      <div class="cmpcap" id="ccapB"></div>
+      <div class="view" id="ctopoB"></div>
+    </article>
+  </div>
+
+  <div class="compare-scale">
+    <span id="ccbarlbl"></span>
+    <svg id="ccbar" aria-hidden="true"></svg>
+  </div>
+  <p class="note">Cada mapa es un solo sujeto: no hay prueba de significancia (una persona no tiene varianza entre sujetos). NS y SD comparten escala secuencial; Δ usa escala divergente centrada en cero. Pasa el cursor por un electrodo para ver sus valores NS, SD y Δ. 68 sujetos con par NS+SD en ojos abiertos.</p>
+</section>
+
 <!-- ============ MÉTODO ============ -->
 <section class="section" id="metodo" aria-labelledby="h-metodo">
   <div class="method">
@@ -212,7 +267,7 @@
       </details>
       <details>
         <summary>Limitaciones conocidas</summary>
-        <div class="body"><p>El mapa por electrodo usa el promedio de los 68: los datos por electrodo no están desagregados por sujeto, así que no se recalcula con la selección (las franjas por región sí).</p>
+        <div class="body"><p>El mapa de «Cuero cabelludo» promedia a los 68 porque muestra significancia por electrodo (una prueba t pareada necesita varios sujetos); por eso no se recalcula con la selección, aunque las franjas por región sí. Los datos por electrodo <b>sí</b> están desagregados por sujeto: la vista «Comparar» usa esa potencia individual para contrastar dos personas en dos mapas.</p>
         <p>Los grupos pequeños (como los vulnerables, n = 6) producen medias ruidosas; las diferencias visibles son hipótesis.</p>
         <p>Las unidades de potencia theta son las del procesamiento de la Semana 6 y no se comparan con otros estudios.</p></div>
       </details>
@@ -231,6 +286,7 @@
 <script src="js/story.js"></script>
 <script src="js/scatter.js"></script>
 <script src="js/topomap.js"></script>
+<script src="js/compare.js"></script>
 <script src="js/dynamics.js"></script>
 <script src="js/main.js"></script>
 </body>
