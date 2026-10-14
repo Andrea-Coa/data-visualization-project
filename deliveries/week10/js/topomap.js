@@ -30,16 +30,39 @@ const topo = (() => {
     front = 0;
   }
   const val = (t, cond, met) => cond === "D" ? (met === "var" ? t.dVar : t.dMean) : (t[cond] ? t[cond][met] : null);
+  // Fuente del mapa: sin selección = agregado de los 68 (TOPO, con significancia);
+  // con selección = promedio por electrodo de los sujetos elegidos (SUBTOPO), sin significancia
+  // (una t pareada sobre pocos sujetos no es confiable). Vuelve a los 68 al limpiar la selección.
+  let FILTERED = false;
+  function activeTopo(){
+    FILTERED = false;
+    if(!S.selected || !S.selected.length) return TOPO;
+    const ids = S.selected.filter(id => SUBTOPO[id]);
+    if(!ids.length) return TOPO;        // la selección no tiene datos por electrodo: se mantiene el agregado
+    FILTERED = true;
+    const out = {};
+    ELEC.forEach(e => {
+      const nm = [], nv = [], sm = [], sv = [];
+      ids.forEach(id => { const t = SUBTOPO[id] && SUBTOPO[id][e]; if(t){ nm.push(t.NS.mean); nv.push(t.NS.var); sm.push(t.SD.mean); sv.push(t.SD.var); } });
+      if(!nm.length) return;
+      const NS = {mean:d3.mean(nm), var:d3.mean(nv)}, SD = {mean:d3.mean(sm), var:d3.mean(sv)};
+      // sin prueba de significancia para el subgrupo: sig/q nulos -> no se dibujan marcas
+      out[e] = {NS, SD, dMean:SD.mean-NS.mean, dVar:SD.var-NS.var,
+        sigMean:null, sigVar:null, qMean:null, qVar:null, nPaired:nm.length};
+    });
+    return out;
+  }
   // NS y SD comparten dominio para que alternar entre ellas compare valores reales; Δ es simétrico alrededor de 0.
-  function scale(){
-    if(S.cond === "D"){ const a = d3.max(ELEC, e => Math.abs(val(TOPO[e], "D", S.met))) || 1; return {dom:[-a, a], f:v => C.div((v+a)/(2*a)), ramp:C.div, div:true}; }
-    const all = ELEC.flatMap(e => [val(TOPO[e], "NS", S.met), val(TOPO[e], "SD", S.met)]).filter(v => v != null), [lo, hi] = d3.extent(all);
+  function scale(A){
+    if(S.cond === "D"){ const a = d3.max(ELEC, e => A[e] ? Math.abs(val(A[e], "D", S.met)) : 0) || 1; return {dom:[-a, a], f:v => C.div((v+a)/(2*a)), ramp:C.div, div:true}; }
+    const all = ELEC.flatMap(e => A[e] ? [val(A[e], "NS", S.met), val(A[e], "SD", S.met)] : []).filter(v => v != null), [lo, hi] = d3.extent(all);
     return {dom:[lo, hi], f:v => C.seq((v-lo)/((hi-lo) || 1)), ramp:C.seq, div:false};
   }
   function render(animate = true){
     if(!svg) build();
-    const pts = ELEC.map(e => ({e, x:COORDS[e][0], y:COORDS[e][1], v:val(TOPO[e], S.cond, S.met), t:TOPO[e]})).filter(d => d.v != null);
-    const sc = scale(), grid = new Float64Array(GN*GN), im = ctx.createImageData(GN, GN);
+    const A = activeTopo();
+    const pts = ELEC.map(e => A[e] ? {e, x:COORDS[e][0], y:COORDS[e][1], v:val(A[e], S.cond, S.met), t:A[e]} : null).filter(d => d && d.v != null);
+    const sc = scale(A), grid = new Float64Array(GN*GN), im = ctx.createImageData(GN, GN);
     for(let iy = 0; iy < GN; iy++) for(let ix = 0; ix < GN; ix++){
       const ux = -1+(ix+.5)*2/GN, uy = 1-(iy+.5)*2/GN; let num = 0, den = 0, hit = null;
       for(const p of pts){ const d2 = (ux-p.x)**2+(uy-p.y)**2; if(d2 < 1e-9){ hit = p.v; break; } const w = 1/(d2*d2); num += w*p.v; den += w; }
@@ -59,27 +82,35 @@ const topo = (() => {
     contG.selectAll("path").data(d3.contours().size([GN, GN]).thresholds(th)(Array.from(grid))).join("path").attr("class", "contour").attr("d", d3.geoPath(proj));
 
     const met = S.met;
-    styleE = sel => sel.attr("r", d => pOf(d.t, met) < .05 ? 4.5 : 1.8)
-      .attr("fill", d => qOf(d.t, met) < .05 ? C.ink : (pOf(d.t, met) < .05 ? "none" : C.ink))
-      .attr("fill-opacity", d => pOf(d.t, met) < .05 ? 1 : .45)
-      .attr("stroke", d => qOf(d.t, met) < .05 ? C.panel : (pOf(d.t, met) < .05 ? C.ink : "none")).attr("stroke-width", 1.5);
+    // Con subgrupo (FILTERED) no hay significancia: los electrodos son puntos lisos, sin marcas ni etiquetas.
+    styleE = FILTERED
+      ? sel => sel.attr("r", 2.4).attr("fill", C.ink).attr("fill-opacity", .5).attr("stroke", "none").attr("stroke-width", 0)
+      : sel => sel.attr("r", d => pOf(d.t, met) < .05 ? 4.5 : 1.8)
+        .attr("fill", d => qOf(d.t, met) < .05 ? C.ink : (pOf(d.t, met) < .05 ? "none" : C.ink))
+        .attr("fill-opacity", d => pOf(d.t, met) < .05 ? 1 : .45)
+        .attr("stroke", d => qOf(d.t, met) < .05 ? C.panel : (pOf(d.t, met) < .05 ? C.ink : "none")).attr("stroke-width", 1.5);
     const eg = elecG.selectAll("g.e").data(pts, d => d.e).join(en => {
       const g = en.append("g").attr("class", "e");
       g.append("circle").attr("class", "hit").attr("r", 10).attr("fill", "transparent"); g.append("circle").attr("class", "pt"); return g;
     }).attr("transform", d => `translate(${cx+d.x*R},${cy-d.y*R})`).attr("tabindex", 0).attr("role", "img")
-      .attr("aria-label", d => `${d.e}: ${fr(d.v)}, p ${fp(pOf(d.t, met))}`);
+      .attr("aria-label", d => `${d.e}: ${fr(d.v)}${FILTERED ? "" : `, p ${fp(pOf(d.t, met))}`}`);
     styleE(eg.select(".pt"));
     eg.on("pointerenter focus", function(e, d){
-        d3.select(this).select(".pt").attr("r", 6).attr("fill", qOf(d.t, S.met) < .05 ? C.ink : C.panel).attr("fill-opacity", 1).attr("stroke", C.ink).attr("stroke-width", 2);
+        const hi = !FILTERED && qOf(d.t, S.met) < .05 ? C.ink : C.panel;
+        d3.select(this).select(".pt").attr("r", 6).attr("fill", hi).attr("fill-opacity", 1).attr("stroke", C.ink).attr("stroke-width", 2);
         showTip(e.clientX != null ? e : centerEvt(this), tipFor(d));
       })
       .on("pointermove", e => moveTip(e))
       .on("pointerleave blur", function(){ hideTip(); styleE(d3.select(this).select(".pt")); });
-    lblG.selectAll("text").data(pts.filter(d => pOf(d.t, met) < .05), d => d.e).join("text").attr("class", "elabel")
+    lblG.selectAll("text").data(FILTERED ? [] : pts.filter(d => pOf(d.t, met) < .05), d => d.e).join("text").attr("class", "elabel")
       .attr("x", d => cx+d.x*R).attr("y", d => cy-d.y*R-8).text(d => d.e);
     colorbar(sc);
-    const cnt = sigCount(met);
-    $("topostat").innerHTML = `<b>${cnt.p}</b> de 61 con p &lt; 0.05 · <b>${cnt.q}</b> tras FDR`;
+    if(FILTERED){
+      $("topostat").innerHTML = `promedio de <b>${S.selected.length}</b> sujetos seleccionados · sin prueba de significancia`;
+    }else{
+      const cnt = sigCount(met);
+      $("topostat").innerHTML = `<b>${cnt.p}</b> de 61 con p &lt; 0.05 · <b>${cnt.q}</b> tras FDR`;
+    }
     roiStrip();
   }
   function colorbar(sc){
@@ -107,7 +138,8 @@ const topo = (() => {
     const t = d.t, met = S.met, ns = t.NS && t.NS[met], sd = t.SD && t.SD[met], dv = met === "var" ? t.dVar : t.dMean;
     return `<div class="h">${d.e} <span class="m">· ${met === "var" ? "variabilidad σθ" : "media μθ"}</span></div>` +
       trow("NS", fr(ns), C.ns) + trow("SD", fr(sd), C.sd) + trow("Δ SD − NS", `${fsr(dv)} <span class="m">(${ns ? fpc(dv/ns) : "n/d"})</span>`) +
-      trow("p pareada", fp(pOf(t, met))) + trow("q FDR", fp(qOf(t, met))) + `<div class="m" style="margin-top:4px">n pareado = ${t.nPaired ?? 68}</div>`;
+      (FILTERED ? "" : trow("p pareada", fp(pOf(t, met))) + trow("q FDR", fp(qOf(t, met)))) +
+      `<div class="m" style="margin-top:4px">${FILTERED ? `media de ${t.nPaired} sujetos seleccionados` : `n pareado = ${t.nPaired ?? 68}`}</div>`;
   }
   // Franjas por región: los 68 como marcas, triángulo de la media de todos, triángulo de la media de la selección
   function roiStrip(){
@@ -134,9 +166,12 @@ const topo = (() => {
       if(focus && focus[k] != null) s.append("circle").attr("cx", x(focus[k])).attr("cy", 14).attr("r", 4.5).attr("fill", C.panel).attr("stroke", C.ink).attr("stroke-width", 2);
     });
     box.append("p").attr("class", "note").style("margin-top", "6px")
-      .text("El mapa promedia a los 68 para mostrar la significancia por electrodo. Las franjas por región se recalculan con la selección (triángulo oscuro: todos; naranja: selección). Para ver el mapa de una persona, usa «Comparar».");
+      .text(ss
+        ? "Con un grupo seleccionado, el mapa promedia solo a esos sujetos y oculta la significancia (una t pareada sobre pocos sujetos no es confiable). Limpia la selección para volver a los 68 con sus marcas de p/FDR."
+        : "Sin selección el mapa promedia a los 68 y marca la significancia por electrodo. Rodea un grupo en el scatter para recalcular el mapa sobre esos sujetos, o usa «Comparar» para ver a una persona.");
   }
-  bus.on("select.topo", () => roiStrip()); bus.on("hover.topo", () => roiStrip()); bus.on("pin.topo", () => roiStrip());
+  // durante el arrastre del lazo (live) solo se actualizan las franjas (barato); el campo IDW se recalcula al soltar
+  bus.on("select.topo", e => (e && e.live) ? roiStrip() : render(true)); bus.on("hover.topo", () => roiStrip()); bus.on("pin.topo", () => roiStrip());
   bus.on("theme.topo", () => render(false));
   return {render, roiStrip, rebuild:() => { svg = null; }};
 })();

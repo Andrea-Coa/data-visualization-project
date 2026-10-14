@@ -7,7 +7,7 @@ const compare = (() => {
   const GN = 90;
   const cnv = document.createElement("canvas"); cnv.width = GN; cnv.height = GN; const ctx = cnv.getContext("2d");
   const CS = {met:"var", cond:"D", a:null, b:null};  // estado local de la vista
-  let built = false;
+  let segMet, segCond, built = false;
 
   const ids = () => Object.keys(SUBTOPO);
   const meta = id => P.find(p => p.id === id) || {};
@@ -112,8 +112,8 @@ const compare = (() => {
     d3.select("#csubA").on("change", function(){ CS.a = this.value; render(); });
     d3.select("#csubB").on("change", function(){ CS.b = this.value; render(); });
     d3.select("#cswap").on("click", () => { [CS.a, CS.b] = [CS.b, CS.a]; $("csubA").value = CS.a; $("csubB").value = CS.b; render(); });
-    setupSeg("cmetseg", v => { CS.met = v; render(); });
-    setupSeg("ccondseg", v => { CS.cond = v; render(); });
+    segMet = setupSeg("cmetseg", v => { CS.met = v; segMet.set(v); render(); });
+    segCond = setupSeg("ccondseg", v => { CS.cond = v; segCond.set(v); render(); });
     built = true;
   }
 
