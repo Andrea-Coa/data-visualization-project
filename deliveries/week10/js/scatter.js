@@ -1,11 +1,11 @@
 /* Vista 1 · Panorama de vulnerabilidad (conduce).
-   Dispersión Δσθ (región activa) vs. marcador conductual. Brush = selección de grupo; clic = fijar.
+   Dispersión Δσθ (región activa) vs. marcador conductual. Lazo libre = selección de grupo; clic = fijar.
    El hover usa una triangulación de Delaunay: basta estar cerca del punto (radio 16 px), no encima. */
 let scatter_h = null;
 const scatter = (() => {
   const el = $("scatter");
-  let svg, g, sx, sy, W, H, data = [], delaunay = null, brush, brushG, ptsG, gxA, gyA, gridG, quad, quadLbl, zx, zy, mx, my, sxt, syt, pinLbl;
-  let lastSel = null, silent = false, downPt = null, brushing = false;
+  let svg, g, sx, sy, W, H, data = [], delaunay = null, lassoPath, surface, ptsG, gxA, gyA, gridG, quad, quadLbl, zx, zy, mx, my, sxt, syt, pinLbl;
+  let polygon = null, trail = [], pointerId = null, brushing = false, moved = false, beforeIds = null;
   const m = {t:16, r:18, b:50, l:60};
 
   function build(){
@@ -22,46 +22,81 @@ const scatter = (() => {
     quadLbl = g.append("text").attr("class", "quad-label").attr("text-anchor", "end");
     sxt = g.append("text").attr("class", "axis-title").attr("text-anchor", "middle");
     syt = g.append("text").attr("class", "axis-title").attr("text-anchor", "middle").attr("transform", "rotate(-90)");
-    brushG = g.append("g").attr("class", "brush");
+    surface = g.append("rect").attr("class", "lasso-surface")
+      .attr("x", m.l).attr("y", m.t).attr("width", W-m.l-m.r).attr("height", H-m.t-m.b);
+    lassoPath = g.append("path").attr("class", "lasso-selection");
     ptsG = g.append("g").attr("class", "dots");
     pinLbl = g.append("text").attr("class", "pinlabel").style("opacity", 0);
     sx = d3.scaleLinear().range([m.l, W-m.r]); sy = d3.scaleLinear().range([H-m.b, m.t]);
-    brush = d3.brush().extent([[m.l, m.t], [W-m.r, H-m.b]])
-      .on("start", ev => { if(ev.sourceEvent){ brushing = true; downPt = d3.pointer(ev.sourceEvent, svg.node()); hideTip(); } })
-      .on("brush", ev => { if(ev.sourceEvent && !silent) apply(ev.selection, true); })
-      .on("end", onEnd);
-    brushG.call(brush);
+    surface.on("pointerdown", ev => {
+      if(ev.button !== 0 || ev.isPrimary === false || brushing) return;
+      ev.preventDefault();
+      pointerId = ev.pointerId; brushing = true; moved = false;
+      trail = [plotPoint(ev)]; beforeIds = S.selected ? [...S.selected] : null;
+      surface.node().setPointerCapture(pointerId);
+      hover(null); hideTip();
+    }).on("lostpointercapture", cancelLasso);
     svg.on("pointermove", ev => {
-      if(brushing) return;
+      if(brushing){
+        if(ev.pointerId === pointerId){
+          sample(ev);
+          if(moved){ drawLasso(trail); if(trail.length >= 3) applyLasso(trail, true); }
+        }
+        return;
+      }
       const p = d3.pointer(ev, svg.node()), d = nearest(p);
       svg.style("cursor", d ? "pointer" : null); hover(d);
       if(d) showTip(ev, tipFor(d)); else hideTip();
-    }).on("pointerleave", () => { hover(null); hideTip(); svg.style("cursor", null); });
-    lastSel = null;
+    }).on("pointerup", finishLasso).on("pointercancel", cancelLasso)
+      .on("pointerleave", () => { if(!brushing){ hover(null); hideTip(); svg.style("cursor", null); } });
+    polygon = null;
   }
-  function onEnd(ev){
-    brushing = false; if(silent) return;
-    if(!ev.sourceEvent){ lastSel = ev.selection; apply(ev.selection, false); return; }
-    const up = d3.pointer(ev.sourceEvent, svg.node()), isClick = downPt && Math.hypot(up[0]-downPt[0], up[1]-downPt[1]) < 4;
-    if(isClick){
-      const hit = nearest(up);
-      // clic sobre un punto: fijarlo y conservar la selección que hubiera
-      if(hit){ pin(hit); silent = true; brushG.call(brush.move, lastSel); silent = false; return; }
-      // clic en vacío fuera de la selección: limpiar
-      if(!ev.selection){ lastSel = null; setSelected(null); if(S.pinned) pin(null); return; }
+  function plotPoint(ev){
+    const [x, y] = d3.pointer(ev, svg.node());
+    return [Math.max(m.l, Math.min(W-m.r, x)), Math.max(m.t, Math.min(H-m.b, y))];
+  }
+  function sample(ev){
+    const p = plotPoint(ev), first = trail[0], last = trail[trail.length-1];
+    if(Math.hypot(p[0]-first[0], p[1]-first[1]) >= 4) moved = true;
+    if(Math.hypot(p[0]-last[0], p[1]-last[1]) >= 2) trail.push(p);
+  }
+  function drawLasso(points){
+    lassoPath.attr("d", points && points.length > 1 ? d3.line()(points)+"Z" : null);
+  }
+  function releasePointer(){
+    const id = pointerId; pointerId = null; brushing = false;
+    if(id != null && surface.node().hasPointerCapture(id)) surface.node().releasePointerCapture(id);
+  }
+  function finishLasso(ev){
+    if(!brushing || ev.pointerId !== pointerId) return;
+    sample(ev); releasePointer();
+    if(!moved){
+      const hit = nearest(plotPoint(ev));
+      if(hit){ pin(hit); drawLasso(polygon); }
+      else { clearBrushVisual(); setSelected(null); if(S.pinned) pin(null); }
+      return;
     }
-    lastSel = ev.selection; apply(ev.selection, false);
+    polygon = trail.length >= 3 ? trail.slice() : null;
+    if(!polygon || !applyLasso(polygon, false)){ polygon = null; setSelected(null); }
+    drawLasso(polygon); trail = [];
   }
-  function apply(sel, live){
-    if(!sel){ setSelected(null, {live}); return; }
-    const [[x0, y0], [x1, y1]] = sel, xk = S.xKey(), yk = S.y;
-    setSelected(data.filter(d => { const cx = sx(d[xk]), cy = sy(d[yk]); return cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1; }).map(d => d.id), {live});
+  function cancelLasso(ev){
+    if(!brushing || ev.pointerId !== pointerId) return;
+    releasePointer(); trail = []; drawLasso(polygon); setSelected(beforeIds);
+  }
+  function applyLasso(points, live){
+    const xk = S.xKey(), yk = S.y;
+    const ids = data.filter(d => d3.polygonContains(points, [sx(d[xk]), sy(d[yk])])).map(d => d.id);
+    setSelected(ids, {live}); return ids.length;
   }
   function nearest(p){
     if(!delaunay) return null; const i = delaunay.find(p[0], p[1]); if(i < 0) return null; const d = data[i];
     return Math.hypot(sx(d[S.xKey()])-p[0], sy(d[S.y])-p[1]) <= 16 ? d : null;
   }
-  function clearBrushVisual(){ if(!brushG) return; silent = true; brushG.call(brush.move, null); silent = false; lastSel = null; }
+  function clearBrushVisual(){
+    if(!lassoPath) return;
+    releasePointer(); polygon = null; trail = []; drawLasso(null); hideTip();
+  }
   // Cuadrante vulnerable: sobre la mediana de Δσθ y peor que la mediana del marcador (PANAS+ invierte el sentido)
   function stats(){
     const xk = S.xKey(), yk = S.y, rows = P.filter(d => d[xk] != null && d[yk] != null);
@@ -157,19 +192,18 @@ const scatter = (() => {
   }
   function tableClasses(){ const ss = S.selected ? new Set(S.selected) : null; d3.select("#dtable tbody").selectAll("tr").attr("class", d => rowClass(d, ss)); }
   function selectVulnerable(){
-    const st = stats(), x0 = sx(st.xmed)+1, x1 = W-m.r;
-    const y0 = st.w > 0 ? m.t : sy(st.ymed)+1, y1 = st.w > 0 ? sy(st.ymed)-1 : H-m.b;
-    brushG.call(brush.move, [[x0, y0], [x1, y1]]);
+    clearBrushVisual(); setSelected([...stats().vuln]);
   }
   bus.on("hover.sc", () => paint()); bus.on("pin.sc", () => { paint(); tableClasses(); });
   bus.on("select.sc", () => { paint(); tableClasses(); }); bus.on("color.sc", () => { paint(); legend(); });
   bus.on("theme.sc", () => { ptsG && ptsG.selectAll("circle:not(.gone)").interrupt("paint"); paint(); legend(); });
-  return {render, paint, clearBrushVisual, selectVulnerable, stats, rebuild:() => { svg = null; }};
+  return {render, paint, clearBrushVisual, selectVulnerable, stats, rebuild:() => { clearBrushVisual(); svg = null; }};
 })();
 
 // En dos columnas, el scatter toma la altura del panel del topomapa para que ambos cierren alineados.
 function syncHeights(){
   const ps = $("p-scatter"), pt = $("p-topo"), sv = $("scatter").querySelector("svg"); if(!sv) return;
+  if(ps.closest(".dashboard-layout")) return;
   const twoCol = Math.abs(ps.offsetTop-pt.offsetTop) < 4;
   const chrome = ps.offsetHeight-sv.getBoundingClientRect().height;
   const want = twoCol ? Math.max(340, Math.min(640, pt.offsetHeight-chrome)) : null;

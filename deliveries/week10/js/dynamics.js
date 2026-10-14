@@ -9,7 +9,10 @@ const dyn = (() => {
 
   function build(){
     d3.select(el).selectAll("*").remove();
-    W = el.clientWidth || 900; H = Math.round(Math.max(220, Math.min(280, W*.26)));
+    W = el.clientWidth || 900;
+    const compact = matchMedia("(min-width: 1101px)").matches;
+    m.t = compact ? 8 : 14; m.r = 46; m.b = 40; m.l = 58;
+    H = Math.round(compact ? Math.max(100, el.clientHeight || 140) : Math.max(220, Math.min(280, W*.26)));
     svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("role", "img")
       .attr("aria-label", "Serie temporal de potencia theta por época, sueño normal y privación, media y error estándar del grupo activo");
     g = svg.append("g"); dx = d3.scaleLinear().domain([0, 300]).range([m.l, W-m.r]); dy = d3.scaleLinear().range([H-m.b, m.t]);
@@ -56,8 +59,9 @@ const dyn = (() => {
     if(!all.length) return;
     const [lo, hi] = d3.extent(all), pad = (hi-lo)*.08; dy.domain([Math.max(0, lo-pad), hi+pad]);
     const t = svg.transition("morph").duration(opts.live ? 0 : T_MOVE).ease(EASE_IN_OUT);
-    gridG.transition(t).call(d3.axisLeft(dy).ticks(5).tickSize(-(W-m.l-m.r)).tickFormat(""));
-    gyA.transition(t).call(d3.axisLeft(dy).ticks(5).tickSizeOuter(0).tickFormat(L.format(".2~f"))); gyA.select(".domain").remove();
+    const yTicks = H < 180 ? 3 : 5;
+    gridG.transition(t).call(d3.axisLeft(dy).ticks(yTicks).tickSize(-(W-m.l-m.r)).tickFormat(""));
+    gyA.transition(t).call(d3.axisLeft(dy).ticks(yTicks).tickSizeOuter(0).tickFormat(L.format(".2~f"))); gyA.select(".domain").remove();
     gxA.call(d3.axisBottom(dx).tickValues(d3.range(0, 301, W < 560 ? 60 : 30)).tickSizeOuter(0).tickFormat(d => d));
     const ln = d3.line().defined(v => v != null).x((v, i) => ex(i)).y(v => dy(v)).curve(d3.curveMonotoneX);
     ["NS", "SD"].forEach(c => {

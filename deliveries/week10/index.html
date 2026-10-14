@@ -19,14 +19,14 @@
 <header class="top">
   <span class="brand">BATIMIX</span>
   <nav aria-label="Secciones">
-    <a href="#historia" data-sec="historia">Historia</a>
     <a href="#explorar" data-sec="explorar">Explorar</a>
     <a href="#metodo" data-sec="metodo">Método</a>
   </nav>
   <span class="progress" aria-hidden="true"></span>
 </header>
 
-<!-- ============ HISTORIA ============ -->
+<!--
+  Historia temporalmente comentada para mostrar el dashboard directamente.
 <main id="historia" class="story">
   <div class="steps">
     <section class="step hero" data-scene="0">
@@ -88,13 +88,14 @@
   </div>
   <div class="stage" id="stage" aria-hidden="true"><svg id="stage-svg"></svg></div>
 </main>
+-->
 
 <!-- ============ EXPLORAR ============ -->
 <section class="section" id="explorar" aria-labelledby="h-explorar">
   <div class="sec-head reveal">
     <div>
       <h2 id="h-explorar">Explora tú.</h2>
-      <p>Las tres vistas están enlazadas. Arrastra sobre la dispersión para elegir un grupo: el mapa por región y la dinámica se recalculan con esas personas. Clic en un punto para fijarlo; <kbd>Esc</kbd> limpia todo.</p>
+      <p>Las tres vistas están enlazadas. Rodea los puntos con un lazo libre para elegir un grupo: el mapa por región y la dinámica se recalculan con esas personas. Clic en un punto para fijarlo; <kbd>Esc</kbd> limpia todo.</p>
     </div>
   </div>
 
@@ -111,7 +112,7 @@
     <div class="chips" id="covchips" aria-label="Cobertura de datos"></div>
   </div>
 
-  <div class="bento">
+  <div class="bento dashboard-layout">
     <article class="card c-scatter" id="p-scatter" aria-labelledby="h-scatter">
       <div class="phead"><h3 id="h-scatter">Vulnerabilidad</h3><span class="role drive">conduce</span><span class="pstat" id="scstat"></span></div>
       <p class="hint">Cambio de sueño normal (NS) a privación (SD), un punto por persona.</p>
@@ -128,6 +129,7 @@
         </label>
       </div>
       <div class="legend" id="sclegend"></div>
+      <p class="lasso-hint">Arrastra para rodear puntos con un lazo · clic para fijar · <kbd>Esc</kbd> para limpiar.</p>
       <div class="view" id="scatter"></div>
       <details class="tablev" id="tablev"><summary>Ver los datos en tabla</summary><div class="tscroll"><table id="dtable"></table></div></details>
     </article>
@@ -135,19 +137,26 @@
     <article class="card c-topo" id="p-topo" aria-labelledby="h-topo">
       <div class="phead"><h3 id="h-topo">Cuero cabelludo</h3><span class="role">responde</span><span class="pstat" id="topostat"></span></div>
       <p class="hint">Theta en 61 electrodos, interpolada. Pasa el cursor por un electrodo.</p>
-      <div class="controls">
-        <div class="seg" id="metseg" role="group" aria-label="Métrica">
-          <button data-v="var" aria-pressed="true">σ variabilidad</button>
-          <button data-v="mean" aria-pressed="false">μ media</button>
+      <div class="topo-layout">
+        <div class="topo-controls">
+          <div class="seg" id="metseg" role="group" aria-label="Métrica">
+            <button data-v="var" aria-pressed="true">σ variabilidad</button>
+            <button data-v="mean" aria-pressed="false">μ media</button>
+          </div>
+          <div class="seg" id="condseg" role="group" aria-label="Condición">
+            <button data-v="NS" aria-pressed="false">NS</button>
+            <button data-v="SD" aria-pressed="false">SD</button>
+            <button data-v="D" aria-pressed="true">Δ</button>
+          </div>
         </div>
-        <div class="seg" id="condseg" role="group" aria-label="Condición">
-          <button data-v="NS" aria-pressed="false">NS</button>
-          <button data-v="SD" aria-pressed="false">SD</button>
-          <button data-v="D" aria-pressed="true">Δ</button>
+        <div class="topo-visual">
+          <div class="view" id="topo"></div>
+          <div class="topo-scale">
+            <span id="cbarlbl"></span>
+            <svg id="cbar" aria-hidden="true"></svg>
+          </div>
         </div>
       </div>
-      <div class="view" id="topo"></div>
-      <div class="cbar"><span id="cbarlbl"></span><svg id="cbar" aria-hidden="true"></svg></div>
       <div class="legend" style="margin-top:4px">
         <span class="k"><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="var(--ink)" stroke-width="1.5"/></svg>p &lt; 0.05 sin corregir</span>
         <span class="k"><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="var(--ink)" stroke="var(--panel)" stroke-width="1.5"/></svg>sobrevive FDR</span>

@@ -141,11 +141,10 @@ const hideTip = () => { tipEl.style.opacity = 0; };
 const trow = (k, v, col) => `<div class="row"><span>${col ? `<i class="lk" style="background:${col}"></i>` : ""}${k}</span><b>${v}</b></div>`;
 
 // ---------- control segmentado con indicador por clip-path ----------
-// La copia "activa" se superpone y solo se revela el botón elegido: texto y fondo cambian juntos.
+// El indicador pinta solo el fondo; cada botón mantiene una única etiqueta.
 function setupSeg(id, onPick){
   const seg = $(id), btns = [...seg.querySelectorAll("button")];
   const copy = document.createElement("div"); copy.className = "seg-active"; copy.setAttribute("aria-hidden", "true");
-  btns.forEach(b => { const s = document.createElement("span"); s.textContent = b.textContent; copy.appendChild(s); });
   seg.appendChild(copy);
   function place(animate){
     const on = btns.find(b => b.getAttribute("aria-pressed") === "true"); if(!on) return;

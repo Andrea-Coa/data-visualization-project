@@ -120,12 +120,12 @@ a{color:inherit;text-underline-offset:3px;text-decoration-thickness:1px}
 
 /* control segmentado: copia activa revelada con clip-path (receta "tab indicator", skill animate) */
 .seg{position:relative;display:inline-flex;padding:2px;border-radius:8px;background:var(--well)}
-.seg button{position:relative;background:transparent;border:0;border-radius:var(--radius-sm);padding:5px 12px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--ink2);
+.seg button{position:relative;z-index:1;background:transparent;border:0;border-radius:var(--radius-sm);padding:5px 12px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--ink2);
   white-space:nowrap;transition:transform var(--t-press) var(--ease-out)}
 .seg button:active{transform:scale(.97)}
 .seg .seg-active{position:absolute;inset:2px;display:flex;pointer-events:none;border-radius:var(--radius-sm);background:var(--ink);
   clip-path:inset(0 100% 0 0 round 6px);transition:clip-path var(--t-move) var(--ease-in-out)}
-.seg .seg-active span{padding:5px 12px;font-size:12.5px;font-weight:500;color:var(--panel);white-space:nowrap}
+.seg button[aria-pressed="true"]{color:var(--panel)}
 .seg.noanim .seg-active{transition:none}
 .field{display:inline-flex;align-items:center;gap:8px}
 .field select{appearance:none;-webkit-appearance:none;border:1px solid var(--rule2);border-radius:var(--radius-sm);background-color:var(--panel);color:var(--ink);
@@ -140,7 +140,7 @@ a{color:inherit;text-underline-offset:3px;text-decoration-thickness:1px}
 .btn:disabled{opacity:.35;cursor:default}
 .btn:disabled:active{transform:none}
 @media (hover:hover) and (pointer:fine){
-  .seg button:hover{color:var(--ink)}
+  .seg button:not([aria-pressed="true"]):hover{color:var(--ink)}
   .field select:hover{border-color:var(--ink2)}
   .btn:not(:disabled):hover{background:#333333}
   .btn.ghost:not(:disabled):hover{background:var(--panel);border-color:var(--ink2)}
@@ -151,6 +151,51 @@ a{color:inherit;text-underline-offset:3px;text-decoration-thickness:1px}
 .bento{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-items:start}
 .card{background:var(--panel);border:1px solid var(--rule);border-radius:var(--radius);padding:28px;min-width:0;transition:box-shadow var(--t-ui) ease}
 .c-scatter{grid-column:span 7}.c-topo{grid-column:span 5}.c-dyn{grid-column:1 / -1}
+/* Dashboard de escritorio: dispersión principal y dos vistas apiladas. */
+@media (min-width:1101px){
+  #explorar{padding:54px 28px 20px}
+  #explorar .sec-head{display:none}
+  #explorar .toolbar{padding:8px 0;margin-bottom:10px;gap:8px 12px}
+  #explorar .bento.dashboard-layout{
+    height:calc(100svh - 134px);
+    min-height:560px;
+    grid-template-columns:minmax(0,.88fr) minmax(0,1fr);
+    grid-template-rows:minmax(0,1.82fr) minmax(0,1fr);
+    grid-template-areas:"scatter topo" "scatter dyn";
+    gap:12px 16px;
+    align-items:stretch;
+  }
+  #explorar .dashboard-layout .c-scatter{grid-area:scatter;grid-column:auto;grid-row:1 / span 2}
+  #explorar .dashboard-layout .c-topo{grid-area:topo;grid-column:auto;grid-row:1}
+  #explorar .dashboard-layout .c-dyn{grid-area:dyn;grid-column:auto;grid-row:2}
+  #explorar .dashboard-layout .card{min-height:0;padding:14px 16px;overflow:hidden}
+  #explorar .dashboard-layout .c-scatter{overflow:auto;scrollbar-width:thin}
+  #explorar .card h3{font-size:22px}
+  #explorar .hint{font-size:11.5px;margin:4px 0 8px}
+  #explorar .controls{gap:6px 8px;margin-bottom:6px}
+  #explorar .legend{font-size:10px;gap:4px 8px;min-height:18px}
+  #explorar .c-topo #roistrip{margin-top:4px!important}
+  #explorar .c-topo #roistrip>div:first-child{font-size:11px!important;line-height:1.2;margin-bottom:2px!important}
+  #explorar .c-topo #roistrip>div>div{font-size:10px!important}
+  #explorar .c-topo #roistrip svg{height:20px!important}
+  #explorar .c-topo #roistrip .note{font-size:9px;line-height:1.2;margin:3px 0 0;max-width:none}
+  #explorar .topo-layout{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:16px;align-items:center}
+  #explorar .topo-controls{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+  #explorar .topo-controls .seg button{padding:4px 9px;font-size:11px}
+  #explorar .topo-visual{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:8px;align-items:center;min-width:0}
+  #explorar .topo-visual>.view{height:170px}
+  #explorar .topo-visual>.view svg{width:100%;height:100%}
+  #explorar .topo-scale{display:grid;grid-template-columns:12px 80px;align-items:center;gap:4px}
+  #explorar .topo-scale span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px;color:var(--muted)}
+  #explorar .topo-scale svg{width:80px;height:170px;display:block;overflow:visible}
+  #explorar .c-dyn{display:flex;flex-direction:column}
+  #explorar .c-dyn>.view{flex:1;min-height:0}
+  #explorar .c-dyn>.view svg{height:100%}
+  #explorar .c-dyn .phead{margin-bottom:1px}
+  #explorar .c-dyn .hint{font-size:10px;margin:2px 0 3px}
+  #explorar .c-dyn .controls{margin-bottom:4px}
+  #explorar .c-dyn .legend{font-size:9px}
+}
 .phead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
 .card h3{margin:0;font-family:var(--serif);font-weight:400;font-size:26px;letter-spacing:-.02em;line-height:1.1}
 .role{font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
@@ -198,8 +243,9 @@ details[open].tablev summary::before{content:"\2212"}
 .quad{fill:var(--quad)}
 .quad-label{font-family:var(--mono);font-size:11px;letter-spacing:.04em;fill:var(--sd-text)}
 .dots circle{pointer-events:none}
-.brush .selection{fill:var(--ink);fill-opacity:.04;stroke:var(--ink);stroke-width:1;shape-rendering:crispEdges}
-.brush .handle{fill:none}
+.lasso-surface{fill:transparent;cursor:crosshair;touch-action:none}
+.lasso-selection{fill:var(--ns);fill-opacity:.07;stroke:var(--ns);stroke-width:1.5;stroke-dasharray:4 3;stroke-linejoin:round;pointer-events:none}
+.lasso-hint{margin:2px 0 5px;color:var(--muted);font-size:11px}
 .pinlabel{font-family:var(--mono);font-size:11px;font-weight:500;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}
 .ts-line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
 .ts-ind{fill:none;stroke-width:1;stroke-opacity:.75}
@@ -237,6 +283,16 @@ kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--rule);border-r
 /* ---------- responsive ---------- */
 @media (max-width:1100px){
   .c-scatter,.c-topo{grid-column:1 / -1}
+  #explorar .bento.dashboard-layout{height:auto;min-height:0;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:auto;grid-template-areas:none}
+  #explorar .dashboard-layout .c-scatter,#explorar .dashboard-layout .c-topo,#explorar .dashboard-layout .c-dyn{grid-area:auto;grid-column:1 / -1;grid-row:auto;overflow:visible}
+  #explorar .topo-layout{display:flex;flex-direction:column;align-items:stretch;gap:10px}
+  #explorar .topo-controls{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px}
+  #explorar .topo-visual{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+  #explorar .topo-visual>.view{height:auto}
+  #explorar .topo-visual>.view svg{height:auto}
+  #explorar .topo-scale{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center}
+  #explorar .topo-scale span{writing-mode:initial;transform:none}
+  #explorar .topo-scale svg{width:100%;height:30px}
   .method{grid-template-columns:1fr;gap:24px}
 }
 @media (max-width:900px){

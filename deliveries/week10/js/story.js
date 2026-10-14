@@ -277,6 +277,7 @@ const story = (() => {
   }
 
   function init(){
+    if(!stageEl || !document.querySelector(".step")) return;
     facts = computeFacts(); fillText(); build();
     // primera escena: los puntos llegan desde el centro, una sola vez (presupuesto de deleite: primera visita)
     dotG.selectAll("circle").attr("cx", () => F.cx+(Math.random()-.5)*40).attr("cy", () => F.cy+(Math.random()-.5)*40).attr("r", 3);

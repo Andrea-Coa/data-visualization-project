@@ -50,7 +50,7 @@ function observeChrome(){
   document.querySelectorAll(".reveal").forEach(n => { if(n.getBoundingClientRect().top > innerHeight) n.classList.add("pre"); rv.observe(n); });
   const links = [...document.querySelectorAll(".top nav a")];
   const nav = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) links.forEach(a => a.setAttribute("aria-current", a.dataset.sec === e.target.id)); }), {rootMargin:"-50% 0px -50% 0px"});
-  ["historia", "explorar", "metodo"].forEach(id => nav.observe($(id)));
+  ["historia", "explorar", "metodo"].map(id => $(id)).filter(Boolean).forEach(section => nav.observe(section));
 }
 
 // ---------- arranque ----------
@@ -79,11 +79,11 @@ loadData().then(D => {
   addEventListener("resize", () => {
     clearTimeout(rt);
     rt = setTimeout(() => {
-      const wChanged = Math.abs(innerWidth-lastW) > 1, hChanged = Math.abs(innerHeight-lastH) > 80;
+      const wChanged = Math.abs(innerWidth-lastW) > 1, hChanged = Math.abs(innerHeight-lastH) > (innerWidth > 1100 ? 1 : 80);
       if(!wChanged && !hChanged) return;     // la barra del navegador móvil cambia la altura: se ignora
       lastW = innerWidth; lastH = innerHeight;
       story.resize();
-      if(wChanged){
+      if(wChanged || hChanged){
         scatter_h = null; scatter.rebuild(); topo.rebuild(); dyn.rebuild();
         scatter.render(false); topo.render(false); dyn.render({live:true}); scatter.paint();
         SEGS.forEach(s => s.place(false)); syncHeights();

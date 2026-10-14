@@ -9,7 +9,10 @@ const topo = (() => {
 
   function build(){
     d3.select(el).selectAll("*").remove();
-    W = el.clientWidth || 420; H = Math.round(Math.max(280, Math.min(380, W*.8))); R = Math.min(W/2-30, H/2-26); cx = W/2; cy = H/2+8;
+    W = el.clientWidth || 420;
+    const compact = matchMedia("(min-width: 1101px)").matches;
+    H = Math.round(compact ? Math.max(170, Math.min(190, W*.28)) : Math.max(280, Math.min(380, W*.8)));
+    R = Math.min(W/2-30, H/2-26); cx = W/2; cy = H/2+8;
     svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("role", "img")
       .attr("aria-label", "Topomapa de potencia theta en 61 electrodos; cada electrodo es enfocable y anuncia su valor");
     svg.append("defs").append("clipPath").attr("id", "hclip").append("circle").attr("cx", cx).attr("cy", cy).attr("r", R);
@@ -80,13 +83,23 @@ const topo = (() => {
     roiStrip();
   }
   function colorbar(sc){
-    const bw = $("cbar").clientWidth || 300, cb = d3.select("#cbar").attr("viewBox", `0 0 ${bw} 30`); cb.selectAll("*").remove();
+    const vertical = matchMedia("(min-width: 1101px)").matches;
+    const bw = vertical ? 80 : ($("cbar").clientWidth || 300), bh = vertical ? 170 : 30;
+    const cb = d3.select("#cbar").attr("viewBox", `0 0 ${bw} ${bh}`); cb.selectAll("*").remove();
     const lg = cb.append("defs").append("linearGradient").attr("id", "cbg");
+    if(vertical) lg.attr("x1", "0%").attr("y1", "100%").attr("x2", "0%").attr("y2", "0%");
     d3.range(0, 1.001, .1).forEach(t => lg.append("stop").attr("offset", t).attr("stop-color", sc.ramp(t)));
-    cb.append("rect").attr("x", 0).attr("y", 2).attr("width", bw).attr("height", 9).attr("rx", 3).attr("fill", "url(#cbg)");
-    const bx = d3.scaleLinear().domain(sc.dom).range([0, bw]);
-    cb.append("g").attr("class", "axis").attr("transform", "translate(0,12)")
-      .call(d3.axisBottom(bx).ticks(5).tickSize(4).tickFormat(sc.div ? L.format("+.2~r") : L.format(".2~r"))).select(".domain").remove();
+    if(vertical){
+      cb.append("rect").attr("x", 2).attr("y", 0).attr("width", 9).attr("height", bh-8).attr("rx", 3).attr("fill", "url(#cbg)");
+      const by = d3.scaleLinear().domain(sc.dom).range([bh-8, 0]);
+      cb.append("g").attr("class", "axis").attr("transform", "translate(13,0)")
+        .call(d3.axisRight(by).ticks(5).tickSize(3).tickFormat(sc.div ? L.format("+.2~r") : L.format(".2~r"))).call(g => g.select(".domain").remove());
+    }else{
+      cb.append("rect").attr("x", 0).attr("y", 2).attr("width", bw).attr("height", 9).attr("rx", 3).attr("fill", "url(#cbg)");
+      const bx = d3.scaleLinear().domain(sc.dom).range([0, bw]);
+      cb.append("g").attr("class", "axis").attr("transform", "translate(0,12)")
+        .call(d3.axisBottom(bx).ticks(5).tickSize(4).tickFormat(sc.div ? L.format("+.2~r") : L.format(".2~r"))).select(".domain").remove();
+    }
     $("cbarlbl").textContent = (S.cond === "D" ? "Δ " : "") + (S.met === "var" ? "σθ" : "μθ") + (S.cond === "D" ? "" : " " + S.cond);
   }
   function centerEvt(node){ const r = node.getBoundingClientRect(); return {clientX:r.x+r.width/2, clientY:r.y+r.height/2}; }
