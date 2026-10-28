@@ -4,33 +4,35 @@
    leerlo, la tabla de las personas activas y su CSV. Se abre sin conexión y se puede imprimir o guardar en PDF. */
 const report = (() => {
   // estilos mínimos para que los SVG copiados se vean igual que en la app
-  const CSS = `
-:root{--bg:#0B0D12;--panel:#0F1218;--raise:#161A22;--rule:#1F2430;--rule2:#2B3140;--ink:#E8EAF0;--ink2:#B4BAC6;--muted:#8C93A1;--faint:#4A5160;
---ns:#3DD6F5;--sd:#FF5C8A;--vuln:#FFB547;--rest:#7D8494;--null:rgba(232,234,240,.08)}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Geist,"Helvetica Neue",Arial,sans-serif;font-size:14px;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  const tokens = () => { const cs = getComputedStyle(document.documentElement);
+    return ["--bg", "--panel", "--raise", "--rule", "--rule2", "--ink", "--ink2", "--muted", "--faint", "--ns", "--sd", "--vuln", "--rest", "--null", "--sans", "--mono", "--head"]
+      .map(n => `${n}:${cs.getPropertyValue(n).trim() || "inherit"}`).join(";"); };
+  const CSS = () => `
+:root{${tokens()}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 main{max-width:1120px;margin:0 auto;padding:32px 28px 48px}
-h1{font-size:26px;margin:0 0 4px;letter-spacing:-.01em}h2{font-size:17px;margin:30px 0 6px}h3{font-size:14px;margin:0 0 4px}
+h1{font-family:var(--head,var(--sans));font-size:26px;margin:0 0 4px;letter-spacing:-.01em}h2{font-size:17px;margin:30px 0 6px}h3{font-size:14px;margin:0 0 4px}
 .sub{color:var(--ink2);margin:0 0 18px}.m{color:var(--muted)}
 .state{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px 18px;padding:14px 16px;border:1px solid var(--rule2);border-radius:10px;background:var(--panel)}
-.state div{font-size:13px}.state b{display:block;font-family:"Geist Mono",monospace;font-weight:500;color:var(--ink)}
+.state div{font-size:13px}.state b{display:block;font-family:var(--mono);font-weight:500;color:var(--ink)}
 .state span{color:var(--muted);font-size:12px}
 section.fig{margin-top:22px;border:1px solid var(--rule);border-radius:10px;background:var(--panel);padding:14px 16px}
-section.fig .t{font-weight:600}section.fig .t .task{font-family:"Geist Mono",monospace;font-size:10px;color:var(--muted);border:1px solid var(--rule2);border-radius:4px;padding:0 5px;margin-right:8px}
+section.fig .t{font-weight:600}section.fig .t .task{font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--rule2);border-radius:4px;padding:0 5px;margin-right:8px}
 section.fig p{color:var(--ink2);margin:6px 0 10px;max-width:90ch}
 section.fig svg{display:block;width:100%;height:auto;max-height:520px}
 table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}th{text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--rule2);padding:5px 8px}
 td{border-bottom:1px solid var(--rule);padding:4px 8px}a{color:var(--ns)}
 .btns{display:flex;gap:10px;margin:14px 0 0}.btns a,.btns button{font:inherit;font-size:13px;background:var(--raise);color:var(--ink);border:1px solid var(--rule2);border-radius:7px;padding:6px 12px;cursor:pointer;text-decoration:none}
-.axis text{font-family:"Geist Mono",monospace;font-size:10.5px;fill:var(--muted)}.axis path,.axis line{stroke:var(--rule2)}
+.axis text{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}.axis path,.axis line{stroke:var(--rule2)}
 .gridl line{stroke:var(--rule)}.gridl path{display:none}.atitle{font-size:11px;font-weight:500;fill:var(--ink2)}
-.alab{font-family:"Geist Mono",monospace;font-size:10.5px;fill:var(--muted)}.ann{font-size:11.5px;font-weight:600;fill:var(--ink)}
+.alab{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}.ann{font-size:11.5px;font-weight:600;fill:var(--ink)}
 .zero{stroke:var(--rule2)}.median{stroke:var(--muted);stroke-dasharray:3 3;stroke-opacity:.7}.quad{fill:rgba(255,181,71,.07)}
 .lasso-surface{fill:transparent}.lasso-selection{fill:var(--ns);fill-opacity:.06;stroke:var(--ns);stroke-width:1.5;stroke-dasharray:4 3}
-.ab{font-family:"Geist Mono",monospace;font-size:12px;font-weight:500;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px}
+.ab{font-family:var(--mono);font-size:12px;font-weight:500;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px}
 .head{fill:none;stroke:#6B7489;stroke-width:1.2}.contour{fill:none;stroke:#fff;stroke-opacity:.09;stroke-width:.7}
 .colhead,.rowhead{font-size:12px;font-weight:600;fill:var(--ink);text-anchor:middle}.colhead tspan.m{fill:var(--muted);font-weight:500}
 .ts-line{fill:none;stroke-width:2}.scan{display:none}.mlabel{font-size:10.5px;fill:var(--ink2)}.mlabel.on{fill:var(--vuln);font-weight:600}
-.mdim{font-family:"Geist Mono",monospace;font-size:10px;fill:var(--muted)}.mhit{fill:transparent}.mhit.on{fill:rgba(255,181,71,.08)}
+.mdim{font-family:var(--mono);font-size:10px;fill:var(--muted)}.mhit{fill:transparent}.mhit.on{fill:rgba(255,181,71,.08)}
 .sep{stroke:var(--rule)}.null-band{fill:var(--null)}.ref-line{stroke:var(--ink2);stroke-dasharray:5 4}.ehit{fill:transparent}
 .brush .selection{fill:rgba(255,181,71,.10);stroke:var(--vuln)}.brush .overlay{fill:none}.brush .handle{display:none}
 @media print{main{padding:12px}section.fig{break-inside:avoid}.btns{display:none}}`;
@@ -80,8 +82,8 @@ td{border-bottom:1px solid var(--rule);padding:4px 8px}a{color:var(--ns)}
       rows.map(r => `<tr><td>${r.id}</td><td>${r.sexo}</td><td>${r.edad ?? ""}</td><td>${r.psqi}</td><td>${fsr(r.x)}</td><td>${r.y === "" ? "sin dato" : fsr(r.y)}</td><td>${esc(r.grupo)}</td><td>${r.vulnerable}</td><td>${r.AB}</td></tr>`).join("") + "</tbody></table>";
     return `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BATIMIX, reporte de la vista (${esc(stamp)})</title>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>${CSS}</style></head><body><main>
+${[...document.querySelectorAll('link[href*="fonts.googleapis"][rel="stylesheet"]')].map(l => l.outerHTML).join("")}
+<style>${CSS()}</style></head><body><main>
 <h1>BATIMIX: una noche sin dormir no le pasa igual a todos</h1>
 <p class="sub">Reporte de la vista generado el ${esc(stamp)}; EEG de reposo de 68 personas tras dormir normal (NS) y tras 24 a 30 horas sin dormir (SD); OpenNeuro ds004902 (Xiang et al., 2024), CC0.</p>
 <div class="state">${st}</div>

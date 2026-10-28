@@ -6,11 +6,11 @@
   --bg:#0B0D12; --panel:#0F1218; --raise:#161A22; --rule:#1F2430; --rule2:#2B3140;
   --ink:#E8EAF0; --ink2:#B4BAC6; --muted:#8C93A1; --faint:#4A5160;
   --ns:#3DD6F5; --sd:#FF5C8A; --vuln:#FFB547; --rest:#7D8494; --signeg:#9AA6FF;
-  --g1:#B79CFF; --g2:#F6C945;   /* comparación de dos grupos: lavanda y oro, distinguibles con daltonismo */
+  --g1:#B79CFF; --g2:#F6C945; --sigpos:#5EE6A8; --edot:rgba(232,234,240,.45); --halo:#9fb4ff;   /* comparación de dos grupos: lavanda y oro, distinguibles con daltonismo */
   --ramp-div:#A7EEFF,#2AA9DC,#1A1F2B,#E5457C,#FFA6C4;
   --null:rgba(232,234,240,.08);
   --sel:rgba(61,214,245,.12);
-  --sans:"Geist","Helvetica Neue",Arial,sans-serif; --mono:"Geist Mono",ui-monospace,"SFMono-Regular",monospace;
+  --sans:"Geist","Helvetica Neue",Arial,sans-serif; --mono:"Geist Mono",ui-monospace,"SFMono-Regular",monospace; --head:var(--sans);
   --bar-h:48px;
   color-scheme:dark;
 }

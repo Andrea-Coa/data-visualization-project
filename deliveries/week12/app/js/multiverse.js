@@ -8,10 +8,10 @@ const multi = (() => {
   const el = $("curve");
   let svg, W, H, specs = [], rows = [], F = {}, cx, cy, colW, curveG, guide, rowsG, built = false, cursor = -1, A;
   const ORIG = {roi:"front", met:"var", delta:"abs", marker:"pvt_rt", corr:"spearman", out:"all"};
-  const CUI = 0.55, POS = "#5EE6A8";
+  const CUI = 0.55, POS = () => C.sigpos;
   const isOrig = s => Object.keys(ORIG).every(k => s[k] === ORIG[k]);
   const match = s => Object.entries(F).every(([k, v]) => s[k] === v);
-  const colOf = s => s.p < .05 ? (s.r > 0 ? POS : C.signeg) : C.ink2;
+  const colOf = s => s.p < .05 ? (s.r > 0 ? POS() : C.signeg) : C.ink2;
   const fR = v => Math.abs(v) < .005 ? "0.00" : L.format("+.2f")(v);
   // etiquetas cortas para la columna de decisiones (la etiqueta completa va en el tooltip)
   const SHORT = {front:"frontal", ct:"c-temporal", post:"posterior", all:"global", var:"σθ", mean:"μθ", abs:"absoluto", rel:"relativo",
@@ -119,7 +119,7 @@ const multi = (() => {
       setTitle("t-multi", "T8", minP >= .05 ? "Ningún análisis rescata el efecto" : "El efecto resiste el multiverso",
         `${specs.length} análisis, p ≥ ${L.format(".2f")(minP)}`);
     }
-    d3.select("#k-multi").html(`<span class="k"><i class="dot" style="background:${POS}"></i>p &lt; 0.05, r &gt; 0</span><span class="k"><i class="dot" style="background:var(--signeg)"></i>p &lt; 0.05, r &lt; 0</span>` +
+    d3.select("#k-multi").html(`<span class="k"><i class="dot" style="background:${POS()}"></i>p &lt; 0.05, r &gt; 0</span><span class="k"><i class="dot" style="background:var(--signeg)"></i>p &lt; 0.05, r &lt; 0</span>` +
       `<span class="k"><i class="dot" style="background:var(--ink2)"></i>n.s.</span><span class="k"><i class="ln" style="background:var(--ink2)"></i>RIC</span>`);
   }
   function tipFor(s){

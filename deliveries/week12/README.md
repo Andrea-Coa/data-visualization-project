@@ -2,7 +2,7 @@
 
 Borrador refinado y respuesta a la crítica. Explorador enlazado en D3.js, **en una sola vista y con un único header**, sobre la vulnerabilidad individual a la privación de sueño en EEG de reposo (OpenNeuro ds004902, 68 personas con EEG pareado). Cuatro paneles sin espacio entre ellos: matriz 2 × 3 de topomapas (NS, SD, Δ por σθ y μθ, o por las personas A y B elegidas en la dispersión), dispersión de vulnerabilidad, cinco minutos y multiverso.
 
-- **Aplicación:** [`app/index.html`](app/index.html)
+- **Aplicación:** [`app/index.html`](app/index.html) (tema oscuro) · versión alternativa clara y clásica: [`app-clasico/index.html`](app-clasico/index.html)
 - **Despliegue (GitHub Pages):** https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/ (verificar tras el push; ver "Despliegue")
 - **Página del proyecto:** [`project/index.html`](project/index.html)
 - **Equipo:** Jimena Gurbillon, Andrea Coa, Paolo Medrano · DS5343 Data Visualization, UTEC 2026-2
@@ -19,6 +19,9 @@ deliveries/week12/
   PresentationWeek12.pptx        presentación de la semana
   paper/                         borrador inicial del paper: fuente (HTML) y PDF
   project/                       página inicial del proyecto
+  app-clasico/                   versión alternativa clara y clásica: reutiliza el código y los datos de app/ con su propia hoja de estilo
+    index.html                   misma estructura; carga ../app/js y ../app/data
+    css/clasico.css              tema claro: Source Serif 4, Source Sans 3, Source Code Pro y paletas de ColorBrewer
   app/                           código de la aplicación refinada
     index.html                   vista única: header con controles, cuatro paneles y el panel "Acerca de"
     css/styles.css               tema oscuro (tokens de color y tipografía), tablero sin espacios

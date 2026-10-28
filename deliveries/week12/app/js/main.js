@@ -4,11 +4,12 @@
 const FILES = ["participants", "topo", "coords", "subject_epochs", "topo_by_subject", "multiverse"];
 
 function loadData(){
-  return Promise.all(FILES.map(f => d3.json(`data/${f}.json`)))
+  const base = window.BATIMIX_BASE || "";
+  return Promise.all(FILES.map(f => d3.json(`${base}data/${f}.json`)))
     .then(([p, t, c, s, st, mv]) => ({participants:p, topo:t, coords:c, subEpochs:s, subTopo:st, multiverse:mv}))
     .catch(() => new Promise((res, rej) => {
       if(window.BATIMIX_DATA) return res(window.BATIMIX_DATA);
-      const sc = document.createElement("script"); sc.src = "data/data.js";
+      const sc = document.createElement("script"); sc.src = `${base}data/data.js`;
       sc.onload = () => window.BATIMIX_DATA ? res(window.BATIMIX_DATA) : rej(new Error("data.js sin contenido"));
       sc.onerror = () => rej(new Error("no se pudo leer data/"));
       document.head.appendChild(sc);

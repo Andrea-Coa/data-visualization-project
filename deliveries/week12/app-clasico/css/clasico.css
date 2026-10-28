@@ -1,0 +1,49 @@
+/* BATIMIX · versión clásica (clara).
+   Misma estructura, datos e interacciones que la versión oscura (../app/); solo cambia la piel:
+   fondo blanco, tipografía de revista científica (Source Serif 4 para títulos, Source Sans 3 para texto,
+   Source Code Pro para cifras) y paletas clásicas de ColorBrewer: NS azul, SD rojo, Δ divergente RdBu,
+   NS/SD secuencial YlGnBu, comparación de grupos púrpura y naranja (PuOr). Sin brillos ni degradados. */
+:root{
+  --bg:#FFFFFF; --panel:#FFFFFF; --raise:#F4F3EF; --rule:#E4E2DD; --rule2:#CFCCC5;
+  --ink:#1B1B1B; --ink2:#454545; --muted:#6B6B6B; --faint:#C9C6BF;
+  --ns:#2166AC; --sd:#B2182B; --vuln:#C77A12; --rest:#8A8A8A; --signeg:#7B6FB8;
+  --g1:#542788; --g2:#E66101; --sigpos:#1B7837; --edot:rgba(0,0,0,.35); --halo:#FFFFFF;
+  --ramp-div:#2166AC,#92C5DE,#F7F7F7,#F4A582,#B2182B;
+  --ramp-seq:#FFFFD9,#C7E9B4,#41B6C4,#225EA8,#081D58;
+  --null:rgba(0,0,0,.06);
+  --sel:rgba(33,102,172,.10);
+  --sans:"Source Sans 3","Helvetica Neue",Arial,sans-serif; --mono:"Source Code Pro",ui-monospace,monospace; --head:"Source Serif 4",Georgia,serif;
+  color-scheme:light;
+}
+body{font-size:13.5px}
+.bar{background:var(--bg);border-bottom:1px solid var(--rule2)}
+.logo{color:var(--ink);font-family:var(--head);font-size:12px;letter-spacing:.18em;font-weight:600}
+.logo::before{background:var(--sd);box-shadow:none;width:6px;height:6px}
+.brand h1{font-family:var(--head);font-weight:600;letter-spacing:0}
+.panel{background:var(--panel)}
+.ph h2{font-family:var(--head);font-size:13.5px;font-weight:600;letter-spacing:0}
+.ph h2 .m{font-family:var(--sans);font-weight:400}
+.ph h2 .task{background:var(--raise);border-color:var(--rule2);color:var(--ink2)}
+.seg{background:var(--raise);border-color:var(--rule2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#FFFFFF}
+.ctrls select{background-color:#FFFFFF;border-color:var(--rule2)}
+.ctrls select option{background:#FFFFFF;color:var(--ink)}
+.btn{background:#FFFFFF;border-color:var(--rule2)}
+.chip{background:rgba(199,122,18,.08);border-color:rgba(199,122,18,.6);color:#8A5208}
+@media (hover:hover) and (pointer:fine){
+  .seg button:not([aria-pressed="true"]):hover{background:rgba(0,0,0,.05)}
+  .btn:not(:disabled):hover,.ctrls select:hover{background:var(--raise);border-color:var(--ink2)}
+}
+.quad{fill:rgba(199,122,18,.08)}
+.head{stroke:#4A4A4A}
+.contour{stroke:#000;stroke-opacity:.12}
+.mhit.on{fill:rgba(199,122,18,.10)}
+.mlabel.on{fill:#8A5208}
+.brush .selection{fill:rgba(199,122,18,.10);stroke:var(--vuln)}
+.ref-line{stroke:var(--ink2)}
+#tooltip{background:#FFFFFF;border-color:var(--rule2);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.sheet{background:#FFFFFF}
+.sheet-head{background:#FFFFFF}
+.sheet-head h2,.sheet-body h3{font-family:var(--head)}
+.sheet::backdrop{background:rgba(0,0,0,.35)}
+.specbar{color:#8A5208}

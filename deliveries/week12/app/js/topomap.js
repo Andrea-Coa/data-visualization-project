@@ -67,8 +67,8 @@ const topo = (() => {
       .attr("role", "img").attr("aria-label", `Matriz de topomapas: columnas NS, SD y Δ; filas ${sp.rows.map(r => r.label).join(" y ")}`);
     const defs = svg.append("defs");
     const halo = defs.append("radialGradient").attr("id", "thalo");
-    halo.append("stop").attr("offset", "62%").attr("stop-color", "#9fb4ff").attr("stop-opacity", .10);
-    halo.append("stop").attr("offset", "100%").attr("stop-color", "#9fb4ff").attr("stop-opacity", 0);
+    halo.append("stop").attr("offset", "62%").attr("stop-color", C.halo).attr("stop-opacity", .10);
+    halo.append("stop").attr("offset", "100%").attr("stop-color", C.halo).attr("stop-opacity", 0);
     [["NS", "NS", " sueño normal"], ["SD", "SD", " privación"], ["D", "Δ", " SD − NS"]].forEach(([k, a, b]) => {
       const t = svg.append("text").attr("class", "colhead").attr("x", X[k]+s/2).attr("y", y0+14);
       t.append("tspan").text(a); t.append("tspan").attr("class", "m").text(b);
@@ -108,7 +108,7 @@ const topo = (() => {
     const pts = ELEC.filter(e => row.T[e]).map(e => ({e, t:row.T[e], px:cx+COORDS[e][0]*R, py:cy-COORDS[e][1]*R}));
     g.append("g").selectAll("circle").data(pts).join("circle").attr("cx", d => d.px).attr("cy", d => d.py)
       .attr("r", d => marks && pOf(d.t, row.met) < .05 ? 4 : 1.1)
-      .attr("fill", d => marks && qOf(d.t, row.met) < .05 ? C.ink : (marks && pOf(d.t, row.met) < .05 ? "none" : "rgba(232,234,240,.45)"))
+      .attr("fill", d => marks && qOf(d.t, row.met) < .05 ? C.ink : (marks && pOf(d.t, row.met) < .05 ? "none" : C.edot))
       .attr("stroke", d => marks && pOf(d.t, row.met) < .05 ? C.ink : "none").attr("stroke-width", 1.5).style("pointer-events", "none");
     g.append("g").selectAll("circle").data(pts).join("circle").attr("class", "ehit").attr("cx", d => d.px).attr("cy", d => d.py).attr("r", Math.max(5, R*.09))
       .on("pointerenter", (e, d) => { drawLink(d.e); showTip(e, tipFor(d.e)); }).on("pointermove", e => moveTip(e))
