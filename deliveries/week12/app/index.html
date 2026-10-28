@@ -40,12 +40,14 @@
     <button class="btn" id="resetbtn" disabled>Limpiar</button>
     <button class="btn" id="reportbtn">Reporte</button>
     <button class="btn" id="aboutbtn" aria-haspopup="dialog">Acerca de</button>
+    <button class="btn btn-icon" id="swapbtn" type="button" aria-pressed="false" aria-label="Intercambiar columnas" title="Intercambiar columnas">⇄</button>
     <button class="btn btn-icon" id="themebtn" aria-label="Cambiar a tema claro" title="Tema claro">◐</button>
   </div>
 </header>
 
 <main class="board">
   <div class="col col-l">
+  <div class="pair">
   <section class="panel p-scatter" aria-labelledby="t-sc">
     <div class="ph"><h2 id="t-sc"></h2><div class="key" id="k-sc"></div></div>
     <div class="view" id="scatter"></div>
@@ -55,14 +57,15 @@
     <div class="view" id="heat"></div>
   </section>
   </div>
-  <div class="col col-r">
-  <section class="panel p-topo" aria-labelledby="t-topo">
-    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div></div>
-    <div class="view" id="topo"></div>
-  </section>
   <section class="panel p-dyn" aria-labelledby="t-dyn">
     <div class="ph"><h2 id="t-dyn"></h2><div class="key" id="k-dyn"></div></div>
     <div class="view" id="dyn"></div>
+  </section>
+  </div>
+  <div class="col col-r">
+  <section class="panel p-topo" aria-labelledby="t-topo">
+    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div><button class="tog" id="dtog" type="button" aria-pressed="true" title="Mostrar u ocultar los mapas de diferencia">Δ SD − NS</button></div>
+    <div class="view" id="topo"></div>
   </section>
   </div>
 </main>

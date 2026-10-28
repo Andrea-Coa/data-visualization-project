@@ -51,11 +51,13 @@ button,select{font:inherit;color:inherit}
 }
 
 /* ---------- tablero: cuatro paneles sin huecos ---------- */
-/* dos columnas con repartos propios: el heatmap necesita alto abajo a la izquierda, la matriz de mapas arriba a la derecha */
-.board{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+/* la matriz de topomapas es el gráfico principal: ocupa toda la columna derecha. A la izquierda, arriba la dispersión
+   y el heatmap lado a lado; abajo la serie por época a todo el ancho */
+.board{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr)}
 .col{display:grid;min-height:0;min-width:0}
-.col-l{grid-template-rows:minmax(0,.92fr) minmax(0,1fr)}
-.col-r{grid-template-rows:minmax(0,1.5fr) minmax(0,1fr)}
+.col-l{grid-template-rows:minmax(0,1.6fr) minmax(0,1fr)}
+.col-r{grid-template-rows:minmax(0,1fr)}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:0;min-width:0}
 .panel{background:linear-gradient(180deg,#11151D 0%,var(--panel) 38%);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);display:flex;flex-direction:column;min-width:0;min-height:0;padding:9px 14px 8px}
 .col-r .panel{border-right:0}
 .ph{display:flex;align-items:baseline;justify-content:space-between;gap:4px 14px;flex:none;min-height:20px}
@@ -77,13 +79,25 @@ button,select{font:inherit;color:inherit}
 .view{position:relative;flex:1 1 0;min-height:0;min-width:0}
 .view svg{display:block;width:100%;user-select:none;-webkit-user-select:none}
 .board{position:relative;overflow:hidden}
-/* el título del heatmap y su escala de color pasan a dos líneas si no caben */
-.p-heat .ph{flex-wrap:wrap}
-.p-heat .ph h2{flex:1 1 280px}
+/* en paneles angostos, la leyenda baja a otra línea antes que apretar el título */
+.ph{flex-wrap:wrap}
+.ph h2{flex:1 1 220px}
 .btn-icon{padding:5px 9px;font-size:14px;line-height:1}
+/* interruptor de los mapas Δ en la cabecera de los topomapas */
+.tog{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule2);background:var(--raise);color:var(--ink2);border-radius:999px;padding:1px 9px 1px 4px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap}
+.tog::before{content:"";width:22px;height:12px;border-radius:6px;background:var(--rule2) radial-gradient(circle at 6px 50%,var(--ink2) 3.5px,transparent 4px)}
+.tog[aria-pressed="true"]{color:var(--ink)}
+.tog[aria-pressed="true"]::before{background:var(--ink) radial-gradient(circle at 16px 50%,var(--bg) 3.5px,transparent 4px)}
 @media (min-width:1101px){
   html,body{overflow:hidden}
   .board{height:calc(100vh - var(--bar-h));height:calc(100svh - var(--bar-h))}
+  .board.no-d{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}   /* sin Δ: dos columnas de mapas, más espacio a la izquierda */
+  /* columnas intercambiadas: los mapas pasan a la izquierda con el mismo ancho que tenían */
+  .board.swap{grid-template-columns:minmax(0,1.08fr) minmax(0,1fr)}
+  .board.swap.no-d{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr)}
+  .board.swap .col-r{order:-1}
+  .board.swap .col-r .panel{border-right:1px solid var(--rule)}
+  .board.swap .p-heat,.board.swap .p-dyn{border-right:0}
 }
 
 /* ---------- SVG ---------- */
@@ -151,7 +165,7 @@ button,select{font:inherit;color:inherit}
   .bar{height:auto;flex-wrap:wrap;padding:10px 12px;gap:8px}
   .ctrls{flex-wrap:wrap;width:100%}
   .ctrls select{min-width:0}
-  .board,.col{grid-template-columns:minmax(0,1fr);grid-template-rows:none!important}
+  .board,.col,.pair{grid-template-columns:minmax(0,1fr);grid-template-rows:none!important}
   .panel{border-right:0}
   .p-topo .view{min-height:440px}
   .p-scatter .view{min-height:380px}

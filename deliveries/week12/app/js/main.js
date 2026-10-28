@@ -66,6 +66,13 @@ function setCmp(k){
   scatter.render(); topo.render(); bus.call("axes");
 }
 const refreshGroup = () => {};   // el cuadrante vulnerable se recalcula en cada dibujo de la dispersión
+// interruptor Δ: oculta o muestra los mapas de diferencia; sin ellos la columna de mapas se angosta y la izquierda
+// se ensancha (el ResizeObserver redibuja las demás vistas con su nuevo tamaño)
+function setShowD(on){
+  S.showD = on; $("dtog").setAttribute("aria-pressed", on);
+  document.querySelector(".board").classList.toggle("no-d", !on);
+  topo.render();
+}
 function fillCmp(){
   d3.select("#cmpsel").selectAll("option").data(COMPARES).join("option").attr("value", c => c.k)
     .text(c => c.g ? `${c.name} (${c.g.map(([, f]) => EEG.filter(f).length).join(" y ")})` : (S.selected ? `Tu selección (${S.selected.length})` : `${c.name} (${EEG.length})`));
@@ -87,6 +94,12 @@ loadData().then(D => {
   $("ysel").value = S.y;
   segRoi = setupSeg("roiseg", setRoi); segMet = setupSeg("metseg", setMet);
   d3.select("#ysel").on("change", function(){ setY(this.value); });
+  d3.select("#dtog").on("click", () => setShowD(!S.showD));
+  // intercambia de lado las dos columnas; los anchos viajan con ellas, así que no hace falta redibujar
+  d3.select("#swapbtn").on("click", function(){
+    const on = document.querySelector(".board").classList.toggle("swap");
+    this.setAttribute("aria-pressed", on);
+  });
   d3.select("#cmpsel").on("change", function(){ setCmp(this.value); });
   d3.select("#resetbtn").on("click", resetAll);
   d3.select("#xchip").on("click", () => S.win ? setWin(null) : setElec(S.elec));

@@ -59,17 +59,19 @@ const topo = (() => {
     d3.select(el).selectAll("*").remove();
     const W = el.clientWidth || 600, H = Math.max(200, el.clientHeight || 400);
     const sp = spec(), sc = scalesFor(sp.rows);
+    // con el interruptor Δ apagado solo se dibujan NS y SD, con su barra de color
+    const conds = S.showD ? ["NS", "SD", "D"] : ["NS", "SD"], nC = conds.length, nB = nC-1;
     const labW = 22, barW = 54, topH = 22, rowGap = 10;
-    const s = Math.floor(Math.max(90, Math.min((W-labW-2*barW-8)/3, (H-topH-rowGap-4)/2)));
-    const usedW = labW+3*s+2*barW, x0 = Math.max(0, (W-usedW)/2), y0 = Math.max(0, (H-(topH+2*s+rowGap))/2);
+    const s = Math.floor(Math.max(90, Math.min((W-labW-nB*barW-8)/nC, (H-topH-rowGap-4)/2)));
+    const usedW = labW+nC*s+nB*barW, x0 = Math.max(0, (W-usedW)/2), y0 = Math.max(0, (H-(topH+2*s+rowGap))/2);
     const X = {lab:x0, NS:x0+labW, SD:x0+labW+s, bar1:x0+labW+2*s+6, D:x0+labW+2*s+barW, bar2:x0+labW+3*s+barW+6};
     const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
-      .attr("role", "img").attr("aria-label", `Matriz de topomapas: columnas NS, SD y Δ; filas ${sp.rows.map(r => r.label).join(" y ")}`);
+      .attr("role", "img").attr("aria-label", `Matriz de topomapas: columnas ${S.showD ? "NS, SD y Δ" : "NS y SD"}; filas ${sp.rows.map(r => r.label).join(" y ")}`);
     const defs = svg.append("defs");
     const halo = defs.append("radialGradient").attr("id", "thalo");
     halo.append("stop").attr("offset", "62%").attr("stop-color", C.halo).attr("stop-opacity", .10);
     halo.append("stop").attr("offset", "100%").attr("stop-color", C.halo).attr("stop-opacity", 0);
-    [["NS", "NS", ""], ["SD", "SD", ""], ["D", "Δ", " SD − NS"]].forEach(([k, a, b]) => {
+    [["NS", "NS", ""], ["SD", "SD", ""], ["D", "Δ", " SD − NS"]].filter(([k]) => conds.includes(k)).forEach(([k, a, b]) => {
       const t = svg.append("text").attr("class", "colhead").attr("x", X[k]+s/2).attr("y", y0+14);
       t.append("tspan").text(a); t.append("tspan").attr("class", "m").text(b);
     });
@@ -79,9 +81,9 @@ const topo = (() => {
       const y = y0+topH+ri*(s+rowGap), dom = shared || sc([row]);
       const seqF = v => C.seq((v-dom.seq[0])/((dom.seq[1]-dom.seq[0]) || 1)), divF = v => C.div((v+dom.div)/(2*dom.div));
       svg.append("text").attr("class", "rowhead").attr("transform", `translate(${X.lab+labW/2+2},${y+s/2})${row.label.length > 3 ? " rotate(-90)" : ""}`).style("fill", row.color || null).text(row.label);
-      ["NS", "SD", "D"].forEach(cond => drawMap(svg, defs, `${ri}${cond}`, X[cond], y, s, row, cond, cond === "D" ? divF : seqF, cond === "D" ? divF : seqF, sp.mode));
+      conds.forEach(cond => drawMap(svg, defs, `${ri}${cond}`, X[cond], y, s, row, cond, cond === "D" ? divF : seqF, cond === "D" ? divF : seqF, sp.mode));
       bar(svg, defs, `s${ri}`, X.bar1, y, s, dom.seq, C.seq, false);
-      bar(svg, defs, `d${ri}`, X.bar2, y, s, [-dom.div, dom.div], C.div, true);
+      if(S.showD) bar(svg, defs, `d${ri}`, X.bar2, y, s, [-dom.div, dom.div], C.div, true);
     });
     // capa de enlace: anillo del electrodo bajo el cursor (blanco) y del electrodo que manda en la dispersión (ámbar)
     linkG = svg.append("g").style("pointer-events", "none");
@@ -163,9 +165,10 @@ const topo = (() => {
       return;
     }
     const v = sigCount("var"), m = sigCount("mean");
-    setTitle("t-topo", "Topomapas θ: NS, SD y Δ", `${v.q + m.q} de 61 electrodos con q &lt; 0.05`,
+    setTitle("t-topo", S.showD ? "Topomapas θ: NS, SD y Δ" : "Topomapas θ: NS y SD", `${v.q + m.q} de 61 electrodos con q &lt; 0.05`,
       notes(...base, `Prueba t pareada por electrodo, n = 68. Anillo: p &lt; 0.05 sin corregir (σθ ${v.p}, μθ ${m.p}); punto lleno: q &lt; 0.05 tras FDR de Benjamini y Hochberg (σθ ${v.q}, μθ ${m.q}).`));
-    k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);
+    // las marcas de p y FDR solo se dibujan sobre los mapas Δ
+    if(S.showD) k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);
   }
   bus.on("select.topo", e => { if(!(e && e.live)) render(); });
   bus.on("pin.topo", () => render());

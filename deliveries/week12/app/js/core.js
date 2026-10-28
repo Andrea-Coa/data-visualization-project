@@ -48,7 +48,7 @@ const METN = {var:"σθ", mean:"μθ"};
 const bus = d3.dispatch("hover", "pin", "select", "axes");
 const S = {
   y:"d_pvt", roi:"front", met:"var",
-  hovered:null, pair:[], selected:null, group:"all", vuln:new Set(), elec:null, win:null, cmp:"none",
+  hovered:null, pair:[], selected:null, group:"all", vuln:new Set(), elec:null, win:null, cmp:"none", showD:true,
   // origen del eje x de la dispersión: ventana de tiempo > electrodo > región
   xKey(){ return this.win ? "wx" : (this.elec ? "ex" : ROI[this.roi][this.met]); },
 };
