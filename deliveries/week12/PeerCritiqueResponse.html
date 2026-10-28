@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>BATIMIX: respuesta a la crítica de diseño (Semana 12)</title>
+<style>
+  @page{size:Letter;margin:.7in .7in .75in}
+  body{font-family:Georgia,"Times New Roman",serif;color:#1F1B24;font-size:10.5pt;line-height:1.45;margin:0}
+  h1{font-size:19pt;font-weight:normal;margin:0 0 2pt;letter-spacing:-.01em}
+  h2{font-size:12.5pt;margin:16pt 0 5pt;font-weight:bold}
+  .meta{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#46414D;margin-bottom:10pt}
+  p{margin:0 0 7pt}
+  table{width:100%;table-layout:fixed;border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;font-size:8.4pt;line-height:1.35;page-break-inside:auto}
+  th{text-align:left;background:#F1EFEA;border-bottom:1px solid #B5B0B8;padding:4pt 5pt;vertical-align:bottom}
+  td{border-bottom:1px solid #E2DFDA;padding:4pt 5pt;vertical-align:top}
+  tr{page-break-inside:avoid}
+  td code{word-break:break-all;font-size:7.8pt}
+  .tag{display:inline-block;padding:0 4pt;border-radius:3pt;font-weight:bold;font-size:7.8pt;white-space:nowrap}
+  .ok{background:#EDF3EC;color:#2E5A31}.part{background:#FBF3DB;color:#7A5300}.def{background:#ECEAF8;color:#4A3796}.no{background:#FDEBEC;color:#8F2B29}
+  .note{font-family:Arial,Helvetica,sans-serif;font-size:8.6pt;color:#46414D}
+  .pending{border:1px dashed #B5B0B8;padding:6pt 8pt;font-family:Arial,Helvetica,sans-serif;font-size:8.8pt;color:#46414D}
+  .summary{display:flex;gap:16pt;font-family:Arial,Helvetica,sans-serif;font-size:9pt;margin:4pt 0 8pt}
+  .summary b{font-size:13pt;display:block;font-family:Georgia,serif;font-weight:normal}
+</style>
+</head>
+<body>
+<h1>BATIMIX: respuesta a la crítica de diseño</h1>
+<div class="meta">Peer Critique Response, Semana 12 · DS5343 Data Visualization, UTEC 2026-2 · Jimena Gurbillon, Andrea Coa, Paolo Medrano · 28 de octubre de 2026</div>
+
+<p>Este documento resume el feedback recibido en la revisión de diseño de la Semana 10 y registra qué hicimos con cada sugerencia sustantiva: <b>implementada</b>, <b>parcial</b>, <b>postergada</b> o <b>rechazada</b>, con su justificación y el lugar donde puede verificarse en la aplicación (<code>deliveries/week12/app/</code>).</p>
+
+<div class="summary">
+  <div><b>23</b>sugerencias registradas</div>
+  <div><b>18</b>implementadas</div>
+  <div><b>2</b>parciales</div>
+  <div><b>2</b>postergadas</div>
+  <div><b>1</b>rechazada</div>
+</div>
+
+<h2>1. Feedback recibido</h2>
+<p><b>Observación del profesor en la revisión de diseño.</b> No debe haber espacios en blanco entre los gráficos (ningún espacio perdido); el recorrido debe ser fluido; la interfaz debe ser amable y no generar ruido visual: ningún texto debe solaparse, y los filtros y herramientas interactivas no deben generar ruido.</p>
+<p><b>Decisiones del equipo tras la revisión.</b> Sin scrollytelling ni animaciones (motion graphics): todo el análisis debe caber en una sola vista. Un solo header con todos los controles; quitar los textos que explican qué es cada gráfico y cómo usarlo; quitar el espacio entre visualizaciones; reemplazar el topomapa con conmutadores por una matriz 2 × 3 (NS, SD, Δ por σθ y μθ, o por dos personas elegidas en la dispersión). Tras revisar un primer rediseño, el equipo pidió además un cambio visual completo (tema oscuro) y eliminar el ruido del panel del multiverso.</p>
+<p><b>Preguntas que planteamos a los revisores</b> (<code>deliveries/week10/PrototypeReport.md</code>): seis preguntas sobre la introducción, el lazo, la agregación del mapa, la distribución compacta, la comunicación de faltantes y el campo interpolado. Las respondemos abajo con lo que cambió.</p>
+<p><b>Revisión de literatura posterior</b> (<code>research/literatura_verificada.md</code> e <code>research/informe_conectividad.md</code>): sugerencias metodológicas que surgieron al verificar el estado del arte.</p>
+
+<h2>2. Registro de respuesta</h2>
+<table>
+  <thead><tr><th style="width:4%">ID</th><th style="width:16%">Fuente</th><th style="width:24%">Sugerencia</th><th style="width:11%">Decisión</th><th style="width:30%">Qué hicimos y por qué</th><th style="width:15%">Dónde verlo</th></tr></thead>
+  <tbody>
+    <tr><td>P1</td><td>Profesor</td><td>No dejar espacios en blanco entre gráficos ni espacio perdido.</td><td><span class="tag ok">Implementada</span></td><td>Cuatro paneles contiguos, separados solo por líneas de 1 px, que llenan la pantalla; cada gráfico mide su panel y se redibuja si cambia. A 1365 × 768 la página no se desplaza y ningún panel desborda.</td><td>Vista completa a 1365 × 768 y 1600 × 900</td></tr>
+    <tr><td>P2</td><td>Profesor</td><td>Recorrido fluido.</td><td><span class="tag ok">Implementada</span></td><td>Lectura en Z sin saltos: mapas y serie a la izquierda, dispersión y multiverso a la derecha; el título de cada panel es su hallazgo, así el recorrido se lee de un vistazo.</td><td>Toda la vista</td></tr>
+    <tr><td>P3</td><td>Profesor</td><td>Interfaz amable.</td><td><span class="tag ok">Implementada</span></td><td>Títulos que dicen el hallazgo con sus cifras, selector de grupos en lenguaje llano y panel <i>Acerca de</i> con introducción, glosario, tareas y método.</td><td>Títulos de panel; botón Acerca de</td></tr>
+    <tr><td>P4</td><td>Profesor</td><td>Sin ruido visual: ningún texto solapado; filtros y herramientas sin ruido.</td><td><span class="tag ok">Implementada</span></td><td>Todos los controles en un solo header; sin etiquetas de rol, chips ni botón Reproducir; sin nombres de electrodos sobre los mapas (van en el tooltip); conteos y ejes separados; títulos de eje acortados si no caben. Verificado sin solapamientos a 1365 × 768 y 1600 × 900.</td><td>Header; todos los paneles</td></tr>
+    <tr><td>E1</td><td>Equipo</td><td>Sin scrollytelling ni motion graphics; todo en una vista.</td><td><span class="tag ok">Implementada</span></td><td>Se retiró la historia con scroll y todas las transiciones de datos. La motivación, los datos y la conclusión están en <i>Acerca de</i>; los hallazgos, en los títulos.</td><td>Toda la app</td></tr>
+    <tr><td>E2</td><td>Equipo</td><td>Un solo header; sin textos explicativos ni espacio entre visualizaciones.</td><td><span class="tag ok">Implementada</span></td><td>Header único con región, métrica, grupo, marcador, Limpiar y Acerca de. Se quitaron todas las instrucciones de uso y la columna de recorrido.</td><td>Header</td></tr>
+    <tr><td>E3</td><td>Equipo</td><td>Seis topomapas en una matriz 2 × 3; filas variabilidad y media, o dos participantes elegidos en la dispersión.</td><td><span class="tag ok">Implementada</span></td><td>Columnas NS, SD y Δ; filas σθ y μθ del grupo activo. Al hacer clic en dos puntos, las filas pasan a A y B con la métrica del header y escalas compartidas. Δ se define SD menos NS en toda la app, para que positivo signifique aumento tras la privación.</td><td>Panel superior izquierdo</td></tr>
+    <tr><td>E4</td><td>Equipo</td><td>Rediseño visual completo (el primer rediseño no convenció).</td><td><span class="tag ok">Implementada</span></td><td>Tema oscuro tipo instrumento científico elegido por el equipo entre tres direcciones: los mapas se leen como campos luminosos; NS cian, SD magenta, Δ divergente con cero oscuro.</td><td>Toda la app</td></tr>
+    <tr><td>E5</td><td>Equipo</td><td>El panel del multiverso se veía desordenado y solapado.</td><td><span class="tag ok">Implementada</span></td><td>Se reemplazó la matriz de 19 filas de marcas y los 448 bigotes por una curva limpia sobre la franja del azar y un gráfico de puntos con la mediana y el rango intercuartil de r por decisión.</td><td>Panel inferior derecho</td></tr>
+    <tr><td>E6</td><td>Equipo</td><td>La forma de mostrar sexo y otros grupos no se veía bien.</td><td><span class="tag ok">Implementada</span></td><td>El filtro de un grupo se reemplazó por <i>Comparar</i>: dos grupos con dos colores propios en las cuatro vistas (filas de mapas, ρ por grupo, Δ por época de cada grupo).</td><td>Selector Comparar</td></tr>
+    <tr><td>E7</td><td>Equipo</td><td>Herramienta de reporte para descargar y entender lo seleccionado.</td><td><span class="tag ok">Implementada</span></td><td>Botón <i>Reporte</i>: HTML autocontenido con el estado de la vista, los cuatro gráficos, cómo leer cada uno, la tabla de personas y su CSV; se imprime o guarda en PDF.</td><td>Botón Reporte</td></tr>
+    <tr><td>E8</td><td>Equipo</td><td>Títulos de cada tarea mejor pensados y breves; todo interactivo.</td><td><span class="tag ok">Implementada</span></td><td>Etiqueta de tarea + titular breve calculado con los datos. Electrodos y ventana de tiempo redefinen el eje x de la dispersión; las cuatro vistas quedan enlazadas.</td><td>Títulos de panel</td></tr>
+    <tr><td>Q1</td><td>Pregunta propia</td><td>¿Abrir directo en el dashboard da contexto suficiente?</td><td><span class="tag ok">Implementada</span></td><td>No lo daba. La cabecera ahora tiene título e introducción con los datos, y el <i>Recorrido</i> aporta secuencia, hallazgos y conclusión preliminar.</td><td>Cabecera y Recorrido</td></tr>
+    <tr><td>Q2</td><td>Pregunta propia</td><td>¿Lazo libre, rectangular o selección múltiple desde la tabla?</td><td><span class="tag part">Parcial</span></td><td>Se mantiene el lazo (incluye al rectángulo) y se añadió un selector de grupos predefinidos, accesible con teclado. La tabla de Acerca de permite elegir A y B; la selección de grupos desde la tabla queda para la Semana 13.</td><td>Selector de grupo</td></tr>
+    <tr><td>Q3</td><td>Pregunta propia</td><td>¿Se entiende que el mapa queda agregado mientras otras vistas siguen la selección?</td><td><span class="tag ok">Implementada</span></td><td>Los seis mapas se recalculan con el grupo activo y el título dice cuántas personas promedian; la significancia por electrodo solo se muestra para las 68 personas.</td><td>Matriz de topomapas</td></tr>
+    <tr><td>Q4</td><td>Pregunta propia</td><td>¿La distribución compacta es legible en un portátil?</td><td><span class="tag ok">Implementada</span></td><td>Probada a 1365 × 768, 1600 × 900 y 390 px de ancho; en pantallas angostas los paneles se apilan.</td><td>Capturas en <code>assets/</code></td></tr>
+    <tr><td>Q5</td><td>Pregunta propia</td><td>¿Se comunican bien los faltantes y la cobertura?</td><td><span class="tag ok">Implementada</span></td><td>Cada título muestra su n efectivo; la franja bajo la dispersión muestra a las 68 personas, también a las que no tienen el marcador.</td><td>Títulos; franja de la dispersión</td></tr>
+    <tr><td>Q6</td><td>Pregunta propia</td><td>¿Conservar el campo interpolado o usar puntos discretos?</td><td><span class="tag part">Parcial</span></td><td>Se conservan ambos: campo IDW para el patrón espacial y electrodos como puntos, con anillo (p &lt; 0.05) y relleno (FDR) en la columna Δ. Sigue el precedente de Bai et al. (2024).</td><td>Matriz, columna Δ</td></tr>
+    <tr><td>L1</td><td>Literatura</td><td>La mediana del TR no es la mejor medida principal del PVT (Basner y Dinges, 2011).</td><td><span class="tag ok">Implementada</span></td><td>Se añadieron PVT lapsos y DE del TR al eje Y y al multiverso.</td><td>Eje Y; Multiverso</td></tr>
+    <tr><td>L2</td><td>Literatura</td><td>Explicar la no replicación de Cui et al. (2026).</td><td><span class="tag ok">Implementada</span></td><td>Multiverso de 448 análisis con inferencia por permutación: ningún estadístico conjunto supera al azar (solo σθ: p = 0.32). Se documentan las diferencias de pipeline.</td><td>Multiverso</td></tr>
+    <tr><td>L3</td><td>Literatura</td><td>Re-ejecutar el preprocesamiento con referencia promedio e ICA, como Cui et al.</td><td><span class="tag def">Postergada</span></td><td>Requiere descargar y reprocesar el EEG crudo; se programa para la Semana 13 (Jimena) como nueva dimensión del multiverso.</td><td>Plan, sección 3</td></tr>
+    <tr><td>L4</td><td>Equipo y literatura</td><td>Añadir una vista de conectividad funcional (grafo entre electrodos).</td><td><span class="tag no">Rechazada</span></td><td>Para estas tres semanas: el estudio más parecido no halló efectos con ojos abiertos, el pipeline actual no es apto (FCz, sin ICA) y 1830 aristas exigen efectos grandes. Matriz de decisión 29/40 frente a 24/40. Queda como trabajo futuro.</td><td><code>research/informe_conectividad.md</code></td></tr>
+    <tr><td>U1</td><td>Rúbrica</td><td>Evaluar con usuarios.</td><td><span class="tag def">Postergada</span></td><td>Prueba informal con 3 a 5 usuarios (tareas T1 a T8, pensamiento en voz alta) en la Semana 13.</td><td>Plan, sección 3</td></tr>
+  </tbody>
+</table>
+
+<h2>3. Tarjetas de pares (I like / I wish / What if)</h2>
+<div class="pending">Espacio para transcribir las tarjetas escritas por los compañeros en la revisión de la Semana 10, con su respuesta en la misma forma de la tabla anterior. Las sugerencias del profesor (P1 a P4) ya están registradas arriba.</div>
+
+<h2>4. Pendiente para las tres semanas finales</h2>
+<p class="note">Semana 13: pipeline con referencia promedio e ICA (Jimena), moderadores y guion del teaser (Andrea), vulnerabilidad por lapsos y Resultados (Paolo), despliegue y prueba con usuarios (todos). Semana 14: paper en plantilla IEEE VIS, póster, videos. Semana 15: pulido final, README, contribuciones, reflexión y exhibición.</p>
+</body>
+</html>

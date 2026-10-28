@@ -1,0 +1,133 @@
+/* BATIMIX · página del proyecto (Semana 12)
+   Misma identidad que la app final: tema oscuro tipo instrumento científico, NS = cian, SD = magenta,
+   cuadrante vulnerable = ámbar, tipografía Geist y Geist Mono.
+   Estática, sin animaciones ni transiciones; contraste AA; funciona desde 390 px. */
+:root{
+  --bg:#0B0D12; --panel:#0F1218; --raise:#161A22; --rule:#1F2430; --rule2:#2B3140;
+  --ink:#E8EAF0; --ink2:#B4BAC6; --muted:#8C93A1; --faint:#4A5160;
+  --ns:#3DD6F5; --sd:#FF5C8A; --vuln:#FFB547;
+  --sans:"Geist","Helvetica Neue",Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+  --wrap:1080px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+img{max-width:100%;height:auto;display:block}
+a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--faint);text-decoration-thickness:1px;text-underline-offset:3px;overflow-wrap:anywhere}
+a:hover{color:var(--ns);text-decoration-color:var(--ns)}
+:focus-visible{outline:2px solid var(--ns);outline-offset:2px;border-radius:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:var(--bg);padding:6px 10px;border-radius:6px}
+.skip:focus{left:8px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+code,.mono{font-family:var(--mono);font-size:.88em;font-variant-numeric:tabular-nums}
+
+/* ---------- barra superior (como el header de la app) ---------- */
+.bar{border-bottom:1px solid var(--rule)}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;flex-wrap:wrap}
+.logo{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--ns)}
+.bar nav{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px}
+.bar nav a{color:var(--ink2);text-decoration:none}
+.bar nav a:hover{color:var(--ns)}
+
+/* ---------- cabecera ---------- */
+.head{padding:44px 0 32px;border-bottom:1px solid var(--rule)}
+.kicker{margin:0 0 14px;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{margin:0;font-weight:600;font-size:clamp(32px,5.2vw,56px);line-height:1.06;letter-spacing:-.025em;max-width:18ch}
+h1 em{font-style:italic;color:var(--sd)}
+.team{margin:18px 0 0;font-size:18px;color:var(--ink2)}
+.team b{font-weight:600;color:var(--ink)}
+.course{margin:4px 0 0;font-size:15px;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 0;padding:0;list-style:none}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 15px;border-radius:7px;font-size:15px;font-weight:500;text-decoration:none;
+  border:1px solid var(--rule2);background:var(--raise);color:var(--ink)}
+.btn:hover{border-color:var(--ink2);color:var(--ink)}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.btn.primary:hover{background:#fff;color:var(--bg)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:22px 0 0;font-size:14px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend b{font-weight:600;color:var(--ink)}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot.ns{background:var(--ns)} .dot.sd{background:var(--sd)} .dot.vuln{background:var(--vuln)}
+
+/* ---------- figura principal ---------- */
+.hero{margin:32px 0 0}
+.hero img{border:1px solid var(--rule2);border-radius:8px;background:var(--panel)}
+.hero figcaption{margin:10px 0 0;font-size:14px;color:var(--muted)}
+
+/* ---------- secciones ---------- */
+main section{padding:40px 0;border-bottom:1px solid var(--rule)}
+main section:last-child{border-bottom:0}
+h2{margin:0 0 16px;font-weight:600;font-size:clamp(23px,3vw,30px);line-height:1.2;letter-spacing:-.015em}
+h3{margin:0 0 6px;font-size:16.5px;font-weight:600}
+p{margin:0 0 14px;max-width:70ch}
+.lead{font-size:18.5px;line-height:1.62;color:var(--ink)}
+.muted{color:var(--muted)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px 40px}
+
+/* hallazgos: los títulos de los paneles de la app */
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:0;margin:8px 0 0;padding:0;list-style:none;
+  border-top:1px solid var(--rule2)}
+.facts li{padding:16px 18px 18px 0;border-bottom:1px solid var(--rule)}
+.facts .q{display:block;font-size:14px;color:var(--ink2)}
+.facts .n{display:block;margin:4px 0 2px;font-size:32px;font-weight:500;line-height:1.1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.facts .r{display:block;font-size:14.5px;color:var(--ink2);line-height:1.45}
+
+/* paneles de la app */
+.panels{margin:6px 0 0;padding:0;list-style:none;border-top:1px solid var(--rule2)}
+.panels li{display:grid;grid-template-columns:210px 1fr;gap:4px 24px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.panels b{font-weight:600}
+.panels span{color:var(--ink2)}
+
+/* enlaces de la app */
+.linkbox{margin:18px 0 0;padding:16px 18px;background:var(--panel);border:1px solid var(--rule2);border-radius:8px}
+.linkbox p{margin:0 0 6px}
+.linkbox p:last-child{margin:0}
+.tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;border:1px solid var(--vuln);color:var(--vuln);
+  font-family:var(--mono);font-size:12px;white-space:nowrap}
+
+/* videos */
+.videos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:20px}
+.slot{margin:0}
+.frame{aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:16px;
+  background:var(--panel);border:1px dashed var(--rule2);border-radius:8px;color:var(--ink2)}
+.frame b{font-weight:600;font-size:20px;color:var(--ink)}
+.frame span{font-family:var(--mono);font-size:13.5px}
+.slot figcaption{margin:8px 0 0;font-size:14px;color:var(--muted)}
+
+/* documentos */
+.docs{margin:0;padding:0;list-style:none;border-top:1px solid var(--rule2)}
+.docs li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.docs .d{color:var(--ink2);font-size:15px}
+.docs .alt{font-size:14px;color:var(--muted)}
+.docs .alt a{color:var(--muted)}
+.docs .alt a:hover{color:var(--ns)}
+
+/* código */
+pre{margin:10px 0 16px;padding:14px 16px;background:var(--panel);border:1px solid var(--rule2);border-radius:8px;overflow-x:auto;font-size:15px;line-height:1.55}
+ol.steps{margin:0 0 10px;padding-left:22px;max-width:70ch}
+ol.steps li{margin:0 0 8px}
+
+/* créditos */
+.refs{margin:0;padding:0 0 0 18px;max-width:78ch}
+.refs li{margin:0 0 10px;color:var(--ink2);font-size:15px}
+.refs li b{color:var(--ink);font-weight:600}
+
+.foot{padding:28px 0 44px;color:var(--muted);font-size:14px;border-top:1px solid var(--rule)}
+.foot p{max-width:none}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:0 16px}
+  .head{padding:28px 0 24px}
+  main section{padding:30px 0}
+  .lead{font-size:17px}
+  .panels li{grid-template-columns:1fr}
+  .facts li{padding-right:0}
+  pre{font-size:14px}
+}
+@media print{
+  .actions,.skip,.bar nav{display:none}
+}

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BATIMIX: una noche sin dormir</title>
+<meta name="description" content="BATIMIX: visualización interactiva sobre cómo cambia el ritmo theta del EEG en reposo de cada persona tras una noche sin dormir. DS5343, UTEC 2026-2.">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="../app/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<div class="bar">
+  <div class="wrap">
+    <span class="logo">BATIMIX</span>
+    <nav aria-label="Secciones">
+      <a href="#h-resumen">Resumen</a>
+      <a href="#h-app">Aplicación</a>
+      <a href="#h-docs">Paper e informes</a>
+      <a href="#h-run">Cómo ejecutar</a>
+      <a href="#h-creditos">Créditos</a>
+    </nav>
+  </div>
+</div>
+
+<header class="head">
+  <div class="wrap">
+    <p class="kicker">Proyecto de visualización de datos · Semana 12</p>
+    <h1>Una noche sin dormir no le pasa <em>igual</em> a todos</h1>
+    <p class="team"><b>Jimena Gurbillon</b>, <b>Andrea Coa</b> y <b>Paolo Medrano</b></p>
+    <p class="course">DS5343 Data Visualization · UTEC 2026-2 · Prof. Germain García-Zanabria</p>
+    <ul class="actions">
+      <li><a class="btn primary" href="../app/index.html">Abrir la aplicación</a></li>
+      <li><a class="btn" href="../paper/FinalPaper_draft.pdf">Borrador del paper (PDF)</a></li>
+      <li><a class="btn" href="https://github.com/Andrea-Coa/data-visualization-project">Repositorio en GitHub</a></li>
+    </ul>
+    <p class="legend" aria-label="Código de color">
+      <span><i class="dot ns" aria-hidden="true"></i><b>NS</b>&nbsp;sueño normal</span>
+      <span><i class="dot sd" aria-hidden="true"></i><b>SD</b>&nbsp;24 a 30 h sin dormir</span>
+      <span><i class="dot vuln" aria-hidden="true"></i>cuadrante vulnerable</span>
+    </p>
+    <figure class="hero">
+      <img src="../assets/dashboard-1600x900.png" width="1600" height="900"
+           alt="Vista única de BATIMIX en tema oscuro: un header con el título y los controles y cuatro paneles contiguos: matriz de mapas del cuero cabelludo, dispersión de vulnerabilidad, dinámica en cinco minutos y multiverso de 448 análisis.">
+      <figcaption>La aplicación en una sola vista (captura a 1600 × 900).</figcaption>
+    </figure>
+  </div>
+</header>
+
+<main id="contenido">
+  <div class="wrap">
+
+    <section aria-labelledby="h-resumen">
+      <h2 id="h-resumen">Resumen</h2>
+      <p class="lead">BATIMIX es una visualización interactiva para explorar si una noche sin dormir cambia el ritmo theta del EEG en reposo de cada persona y si ese cambio anticipa quién se deteriora. Usa el dataset público ds004902: 68 personas con EEG tras dormir normal y tras 24 a 30 horas sin dormir. Una sola vista coordina mapas del cuero cabelludo, una dispersión de vulnerabilidad, la dinámica en cinco minutos y un multiverso de 448 análisis con inferencia por permutación. El cambio es individual (39 personas más inestables y 29 más estables), difuso y sin tendencia, y no predice el enlentecimiento en la tarea de vigilancia (ρ = −0.10, n = 30). La única pista aparece con el ánimo.</p>
+      <p class="muted">Audiencia: investigadores en fisiología del sueño que hacen screening exploratorio sobre datos públicos. La herramienta ayuda a decidir qué electrodos, regiones y covariables merecen una prueba formal; no es diagnóstica ni predictiva.</p>
+    </section>
+
+    <section aria-labelledby="h-hallazgos">
+      <h2 id="h-hallazgos">Hallazgos preliminares</h2>
+      <ul class="facts">
+        <li><span class="q">¿Todos cambian igual?</span><span class="n">39 y 29</span><span class="r">personas más inestables y más estables sin dormir; el promedio apenas sube (+0.00431).</span></li>
+        <li><span class="q">¿Dónde cambia?</span><span class="n">0 de 61</span><span class="r">electrodos tras FDR (4 sin corregir): cambio difuso, sin foco frontal.</span></li>
+        <li><span class="q">¿Cuándo, en cinco minutos?</span><span class="n">52 de 75</span><span class="r">épocas con SD sobre NS: leve y sin tendencia en el registro.</span></li>
+        <li><span class="q">¿Más inestable es más lento?</span><span class="n">ρ = −0.10</span><span class="r">[−0.44, 0.27], n = 30: no replica el 0.544 de Cui et al. (2026).</span></li>
+        <li><span class="q">¿Depende de cómo se analiza?</span><span class="n">p ≥ 0.15</span><span class="r">448 análisis: ningún estadístico conjunto supera al azar.</span></li>
+      </ul>
+      <p class="muted" style="margin-top:16px">Conclusión preliminar: sin dormir, la theta de cada persona se mueve en direcciones distintas, y ese cambio no predice de forma robusta quién se deteriora. La única pista es con el ánimo (PANAS+), no con la vigilancia (PVT).</p>
+    </section>
+
+    <section aria-labelledby="h-app">
+      <h2 id="h-app">La aplicación</h2>
+      <p>Un único header reúne el título y todos los controles: región (frontal o centro-temporal), métrica (σθ o μθ), grupo, marcador del eje Y, Limpiar y Acerca de. Debajo, cuatro paneles contiguos, separados solo por líneas de 1 px, llenan la pantalla sin desplazamiento. No hay textos de instrucciones: el título de cada panel es su hallazgo. No hay animaciones: cada cambio es inmediato.</p>
+      <ul class="panels">
+        <li><b>Mapas del cuero cabelludo</b><span>Matriz de 2 × 3: columnas NS, SD y Δ (SD menos NS); filas σθ y μθ del grupo activo, con marcas de p y FDR. Al elegir dos personas en la dispersión, las filas pasan a ser A y B, con la métrica del header y escalas compartidas.</span></li>
+        <li><b>Dispersión de vulnerabilidad</b><span>Δσθ frontal frente al marcador del eje Y, con ρ y su n; el cuadrante vulnerable va en ámbar. El lazo define un grupo y un clic en dos puntos elige a las personas A y B. Abajo, una franja con las 68 personas: 29 más estables y 39 más inestables.</span></li>
+        <li><b>Cinco minutos</b><span>Theta relativa por época de 4 s, NS frente a SD, media ± EE.</span></li>
+        <li><b>Multiverso</b><span>Curva de 448 análisis sobre la franja del azar y mediana de r por decisión; un clic (o flechas y Enter) en un análisis lo carga en la dispersión.</span></li>
+        <li><b>Acerca de</b><span>Introducción, datos, glosario, tareas, método, limitaciones, tabla de datos y créditos.</span></li>
+      </ul>
+      <div class="linkbox">
+        <p><b>En este repositorio:</b> <a href="../app/index.html">deliveries/week12/app/index.html</a></p>
+        <p><b>Publicada:</b> <a href="https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/">andrea-coa.github.io/data-visualization-project/deliveries/week12/app/</a> <span class="tag">verificar tras el despliegue</span></p>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-videos">
+      <h2 id="h-videos">Videos</h2>
+      <div class="videos">
+        <figure class="slot">
+          <div class="frame" role="img" aria-label="Espacio reservado para el teaser, disponible en la Semana 15"><b>Teaser (1 min)</b><span>Disponible en la Semana 15</span></div>
+          <figcaption>Teaser del proyecto.</figcaption>
+        </figure>
+        <figure class="slot">
+          <div class="frame" role="img" aria-label="Espacio reservado para el video de presentación, disponible en la Semana 15"><b>Video de presentación (5 min)</b><span>Disponible en la Semana 15</span></div>
+          <figcaption>Presentación grabada del proyecto.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-docs">
+      <h2 id="h-docs">Paper e informes</h2>
+      <ul class="docs">
+        <li><a href="../paper/FinalPaper_draft.pdf">Borrador del paper (PDF)</a><span class="d">en redacción; versión final en plantilla IEEE VIS en la Semana 14</span></li>
+        <li><a href="../PresentationWeek12.pptx">Presentación de la Semana 12 (PPTX)</a><span class="d">11 diapositivas con notas</span></li>
+        <li><a href="../RefinedDraftReport.md">Informe de la Semana 12</a><span class="alt">también en <a href="https://github.com/Andrea-Coa/data-visualization-project/blob/HEAD/deliveries/week12/RefinedDraftReport.md">GitHub</a></span></li>
+        <li><a href="../PeerCritiqueResponse.html">Respuesta a la crítica de diseño</a><span class="d">16 sugerencias y qué hicimos con cada una</span></li>
+        <li><a href="../research/informe_conectividad.md">Informe de decisión sobre conectividad funcional</a><span class="alt">también en <a href="https://github.com/Andrea-Coa/data-visualization-project/blob/HEAD/deliveries/week12/research/informe_conectividad.md">GitHub</a></span></li>
+        <li><a href="../research/literatura_verificada.md">Literatura verificada</a><span class="alt">también en <a href="https://github.com/Andrea-Coa/data-visualization-project/blob/HEAD/deliveries/week12/research/literatura_verificada.md">GitHub</a></span></li>
+        <li><a href="../research/hechos_clave.md">Hechos clave (fuente única de cifras)</a><span class="alt">también en <a href="https://github.com/Andrea-Coa/data-visualization-project/blob/HEAD/deliveries/week12/research/hechos_clave.md">GitHub</a></span></li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="h-run">
+      <h2 id="h-run">Cómo ejecutar la aplicación</h2>
+      <div class="cols">
+        <div>
+          <h3>Con un servidor local (recomendado)</h3>
+          <ol class="steps">
+            <li>Clona el repositorio o descárgalo como ZIP.</li>
+            <li>Desde la raíz del repositorio, sirve la carpeta de la app:
+<pre><code>cd deliveries/week12/app
+python -m http.server 8000</code></pre></li>
+            <li>Abre <code>http://localhost:8000/</code> en el navegador.</li>
+          </ol>
+        </div>
+        <div>
+          <h3>Sin servidor</h3>
+          <p>Abre <code>deliveries/week12/app/index.html</code> con doble clic. Los datos también vienen empaquetados en <code>data/data.js</code>, así que la app carga desde el disco.</p>
+          <p class="muted">Requisitos: un navegador actual. Solo se necesita Python (3.x) para la opción con servidor; no hay dependencias que instalar. Las tipografías se cargan desde Google Fonts y, sin conexión, se usan las del sistema.</p>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-creditos">
+      <h2 id="h-creditos">Datos, créditos y agradecimientos</h2>
+      <div class="cols">
+        <div>
+          <h3>Datos</h3>
+          <ul class="refs">
+            <li><b>OpenNeuro ds004902 v1.0.8</b>, <i>A resting-state EEG dataset for sleep deprivation</i>, con licencia CC0. <a href="https://doi.org/10.18112/openneuro.ds004902.v1.0.8">doi:10.18112/openneuro.ds004902.v1.0.8</a></li>
+            <li><b>Xiang, Fan, Bai, Lv y Lei (2024).</b> A resting-state EEG dataset for sleep deprivation. <i>Scientific Data</i>, 11, 427. <a href="https://doi.org/10.1038/s41597-024-03268-2">doi:10.1038/s41597-024-03268-2</a></li>
+          </ul>
+          <h3 style="margin-top:18px">Software y tipografías</h3>
+          <ul class="refs">
+            <li><b>D3.js</b>, de Mike Bostock y colaboradores, con licencia ISC. <a href="https://d3js.org/">d3js.org</a></li>
+            <li><b>Geist y Geist Mono</b>, de Vercel, servidas por Google Fonts con la SIL Open Font License 1.1. <a href="https://openfontlicense.org/">openfontlicense.org</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Inspiración y referencias</h3>
+          <ul class="refs">
+            <li><b>Cui et al. (2026)</b>, <i>Frontiers in Neuroscience</i>: la métrica de variabilidad theta y la correlación que intentamos replicar. <a href="https://doi.org/10.3389/fnins.2026.1910878">doi:10.3389/fnins.2026.1910878</a></li>
+            <li><b>Van Dongen et al. (2004)</b>, <i>Sleep</i>: la vulnerabilidad a la privación de sueño como rasgo individual. <a href="https://doi.org/10.1093/sleep/27.3.423">doi:10.1093/sleep/27.3.423</a></li>
+            <li><b>Steegen et al. (2016)</b> y <b>Simonsohn, Simmons y Nelson (2020)</b>: análisis de multiverso y curva de especificación con inferencia conjunta. <a href="https://doi.org/10.1177/1745691616658637">doi:10.1177/1745691616658637</a> · <a href="https://doi.org/10.1038/s41562-020-0912-z">doi:10.1038/s41562-020-0912-z</a></li>
+            <li><b>Dragicevic et al. (2019)</b> y <b>Liu, Kale, Althoff y Heer (2021)</b>: multiversos explorables y sus vistas. <a href="https://doi.org/10.1145/3290605.3300295">doi:10.1145/3290605.3300295</a> · <a href="https://doi.org/10.1109/TVCG.2020.3028985">doi:10.1109/TVCG.2020.3028985</a></li>
+            <li><b>Brehmer y Munzner (2013)</b>: tipología de tareas para relacionar preguntas y vistas. <a href="https://doi.org/10.1109/TVCG.2013.124">doi:10.1109/TVCG.2013.124</a></li>
+          </ul>
+          <h3 style="margin-top:18px">Agradecimientos</h3>
+          <p>Al Prof. Germain García-Zanabria y a los compañeros de DS5343 por la revisión de diseño de la Semana 10, y a los autores de ds004902 por publicar sus datos en abierto.</p>
+          <p><b>Asistencia de IA.</b> Usamos asistentes de IA generativa (Claude, de Anthropic) como apoyo en la programación, la búsqueda bibliográfica y la redacción. El equipo revisó y verificó el código, las cifras y las referencias, y asume la responsabilidad del contenido.</p>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-equipo">
+      <h2 id="h-equipo">Equipo</h2>
+      <ul class="panels">
+        <li><b>Jimena Gurbillon</b><span>Mapas del cuero cabelludo (Q1 y Q2).</span></li>
+        <li><b>Andrea Coa</b><span>Dinámica en cinco minutos y moderadores (Q6 y Q7).</span></li>
+        <li><b>Paolo Medrano</b><span>Vulnerabilidad, convergencia con la conducta y multiverso (Q3 a Q5).</span></li>
+      </ul>
+    </section>
+
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>BATIMIX · DS5343 Data Visualization, UTEC 2026-2 · Página inicial del proyecto, Semana 12 (28 de octubre de 2026). Código en <a href="https://github.com/Andrea-Coa/data-visualization-project">github.com/Andrea-Coa/data-visualization-project</a>.</p>
+  </div>
+</footer>
+</body>
+</html>
