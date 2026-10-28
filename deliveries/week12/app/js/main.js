@@ -33,7 +33,17 @@ function prepare(D){
 }
 
 // ---------- controles del header ----------
-let segRoi, segMet;
+let segRoi, segMet, segGrp;
+// panel flotante Individuos sobre la columna derecha: misma vista y mismo estado; la matriz de mapas queda a la vista
+function setIndiv(open, focus = true){
+  const d = $("drawer"); hideTip();
+  d.classList.toggle("open", open); d.setAttribute("aria-hidden", !open); d.inert = !open;
+  $("indivbtn").setAttribute("aria-pressed", open);
+  history.replaceState(null, "", open ? "#individuos" : location.pathname + location.search);   // enlace directo al panel
+  if(open){ indiv.render(); if(focus) $("drawerclose").focus({preventScroll:true}); } else indiv.stop();
+}
+const indivOpen = () => $("drawer").classList.contains("open");
+function drawAll(){ scatter.render(); topo.render(); dyn.render(); if(MULTI) multi.render(); indiv.render(); updateStatus(); }
 function setY(v){ S.y = v; $("ysel").value = v; scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 function setRoi(v){ S.roi = v; S.elec = null; segRoi.set(v); computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 function setMet(v){ S.met = v; segMet.set(v); computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
@@ -42,7 +52,7 @@ function setElec(e){ S.elec = S.elec === e ? null : e; if(S.elec) S.win = null; 
 // ventana de tiempo elegida en la serie: el eje x usa el cambio theta de cada persona dentro de la ventana
 function setWin(w){ S.win = w; if(w) S.elec = null; computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 function resetAll(){
-  scatter.clearBrushVisual(); S.pair = []; S.elec = null; S.win = null; S.cmp = "none"; computeX();
+  scatter.clearBrushVisual(); S.pair = []; S.elec = null; S.win = null; S.cmp = "none"; computeX(); indiv.release();
   setSelected(null); bus.call("pin", null, S.pair); multi.clear(); scatter.render(); topo.render(); bus.call("axes");
 }
 // comparación de dos grupos: las cuatro vistas se dibujan con los dos colores; anula el lazo
@@ -74,7 +84,7 @@ loadData().then(D => {
   prepare(D); readPalette();
   d3.select("#ysel").selectAll("option").data(Object.entries(MK)).join("option").attr("value", d => d[0]).text(d => d[1].name);
   $("ysel").value = S.y;
-  segRoi = setupSeg("roiseg", setRoi); segMet = setupSeg("metseg", setMet);
+  segRoi = setupSeg("roiseg", setRoi); segMet = setupSeg("metseg", setMet); segGrp = setupSeg("grpseg", v => { segGrp.set(v); indiv.setGrouped(v === "group"); });
   d3.select("#ysel").on("change", function(){ setY(this.value); });
   d3.select("#cmpsel").on("change", function(){ setCmp(this.value); });
   d3.select("#resetbtn").on("click", resetAll);
@@ -83,24 +93,27 @@ loadData().then(D => {
   d3.select("#aboutbtn").on("click", () => { const d = $("about"); d.showModal ? d.showModal() : d.setAttribute("open", ""); });
   document.querySelectorAll("dialog [data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
   document.querySelectorAll("dialog").forEach(d => d.addEventListener("click", e => { if(e.target === d) d.close(); }));
-  addEventListener("keydown", e => { if(e.key === "Escape" && !e.defaultPrevented && !document.querySelector("dialog[open]")) resetAll(); });
+  d3.select("#indivbtn").on("click", () => setIndiv(!indivOpen()));
+  d3.select("#drawerclose").on("click", () => { setIndiv(false); $("indivbtn").focus(); });
+  // Esc cierra primero el panel flotante; con el panel cerrado, limpia la vista
+  addEventListener("keydown", e => { if(e.key !== "Escape" || e.defaultPrevented || document.querySelector("dialog[open]")) return; if(indivOpen()){ setIndiv(false); $("indivbtn").focus(); } else resetAll(); });
   bus.on("select.status", updateStatus); bus.on("pin.status", updateStatus); bus.on("axes.status", updateStatus);
 
   $("boot").classList.add("done");   // la rejilla se muestra antes de dibujar para que cada vista mida su espacio real
-  const drawAll = () => { scatter.render(); topo.render(); dyn.render(); if(MULTI) multi.render(); updateStatus(); };
   scatter.render(); topo.render(); dyn.render();
   try{ multi.init(); }catch(err){ console.error("multiverso:", err); $("t-multi").textContent = "No se pudo dibujar el multiverso: regenera data/multiverse.json."; }
   updateStatus();
+  if(location.hash === "#individuos") setIndiv(true, false);
   if(document.fonts) document.fonts.ready.then(drawAll);
   // cada vista se redibuja cuando cambia el tamaño real de su contenedor
   const sizes = new Map(); let rt;
   const ro = new ResizeObserver(entries => {
     let changed = false;
-    entries.forEach(e => { const r = e.contentRect, old = sizes.get(e.target);
+    entries.forEach(e => { const r = e.contentRect, old = sizes.get(e.target); if(!r.width) return;   // pantalla oculta
       if(!old || Math.abs(old[0]-r.width) > 2 || Math.abs(old[1]-r.height) > 2){ sizes.set(e.target, [r.width, r.height]); if(old) changed = true; } });
     if(changed){ clearTimeout(rt); rt = setTimeout(drawAll, 120); }
   });
-  ["scatter", "topo", "dyn", "curve"].forEach(id => ro.observe($(id)));
+  ["scatter", "topo", "dyn", "curve", "heat", "graph"].forEach(id => ro.observe($(id)));
 }).catch(err => {
   console.error(err);
   const b = $("boot"); b.classList.add("err");

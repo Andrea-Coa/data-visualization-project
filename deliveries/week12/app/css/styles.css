@@ -77,6 +77,23 @@ button,select{font:inherit;color:inherit}
 .view svg{display:block;width:100%;user-select:none;-webkit-user-select:none}
 .specbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 0;padding:3px 4px 3px 9px;border-radius:6px;background:var(--raise);border:1px solid var(--rule2);font-family:var(--mono);font-size:11px;color:var(--vuln)}
 .specbar .x{border:0;background:transparent;color:var(--ink2);font-size:16px;line-height:1;cursor:pointer;padding:0 6px}
+/* panel flotante Individuos: se desliza sobre la columna derecha; la matriz de mapas sigue visible y enlazada.
+   Curva de cajón (rápida al entrar, suave al final), solo transform; sin movimiento si el sistema lo pide. */
+.board{position:relative;overflow:hidden}
+.drawer{position:absolute;top:0;right:0;bottom:0;width:50%;z-index:20;display:grid;grid-template-rows:minmax(0,1.3fr) minmax(0,1fr);
+  background:var(--panel);border-left:1px solid var(--rule2);box-shadow:-28px 0 56px -18px rgba(0,0,0,.7);
+  transform:translateX(102%);visibility:hidden;transition:transform .26s cubic-bezier(.32,.72,0,1),visibility 0s linear .26s}
+.drawer.open{transform:none;visibility:visible;transition:transform .42s cubic-bezier(.32,.72,0,1),visibility 0s}
+.drawer .panel{border-right:0}
+.drawer .ph{flex-wrap:wrap}
+.drawer .ph h2{flex:1 1 280px}
+.xbtn{flex:none;border:0;background:transparent;color:var(--ink2);font-size:18px;line-height:1;padding:0 2px 0 6px;cursor:pointer;align-self:flex-start}
+.seg-sm button{padding:1px 8px;font-size:11px}
+.key .kin{display:contents}
+.btn-toggle[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.glab{font-family:var(--mono);font-size:9px;fill:var(--muted);pointer-events:none;paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}
+@media (hover:hover) and (pointer:fine){ .xbtn:hover{color:var(--ink)} }
+@media (prefers-reduced-motion:reduce){ .drawer,.drawer.open{transition:none} }
 @media (min-width:1101px){
   html,body{overflow:hidden}
   .board{height:calc(100vh - var(--bar-h));height:calc(100svh - var(--bar-h))}
@@ -160,6 +177,11 @@ button,select{font:inherit;color:inherit}
   .p-scatter .view{min-height:380px}
   .p-dyn .view{min-height:240px}
   .p-multi .view{min-height:360px}
+  .board{overflow:visible}
+  .drawer{position:fixed;inset:0;width:auto;z-index:50;overflow:auto;display:block;border-left:0;overscroll-behavior:contain}
+  .drawer .panel{min-height:auto}
+  .p-heat .view{min-height:560px}
+  .p-graph .view{min-height:420px}
 }
 @media (max-width:560px){
   .p-multi .view{min-height:640px}

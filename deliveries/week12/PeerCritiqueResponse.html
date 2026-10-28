@@ -30,8 +30,8 @@
 <p>Este documento resume el feedback recibido en la revisión de diseño de la Semana 10 y registra qué hicimos con cada sugerencia sustantiva: <b>implementada</b>, <b>parcial</b>, <b>postergada</b> o <b>rechazada</b>, con su justificación y el lugar donde puede verificarse en la aplicación (<code>deliveries/week12/app/</code>).</p>
 
 <div class="summary">
-  <div><b>23</b>sugerencias registradas</div>
-  <div><b>18</b>implementadas</div>
+  <div><b>24</b>sugerencias registradas</div>
+  <div><b>19</b>implementadas</div>
   <div><b>2</b>parciales</div>
   <div><b>2</b>postergadas</div>
   <div><b>1</b>rechazada</div>
@@ -59,6 +59,7 @@
     <tr><td>E6</td><td>Equipo</td><td>La forma de mostrar sexo y otros grupos no se veía bien.</td><td><span class="tag ok">Implementada</span></td><td>El filtro de un grupo se reemplazó por <i>Comparar</i>: dos grupos con dos colores propios en las cuatro vistas (filas de mapas, ρ por grupo, Δ por época de cada grupo).</td><td>Selector Comparar</td></tr>
     <tr><td>E7</td><td>Equipo</td><td>Herramienta de reporte para descargar y entender lo seleccionado.</td><td><span class="tag ok">Implementada</span></td><td>Botón <i>Reporte</i>: HTML autocontenido con el estado de la vista, los cuatro gráficos, cómo leer cada uno, la tabla de personas y su CSV; se imprime o guarda en PDF.</td><td>Botón Reporte</td></tr>
     <tr><td>E8</td><td>Equipo</td><td>Títulos de cada tarea mejor pensados y breves; todo interactivo.</td><td><span class="tag ok">Implementada</span></td><td>Etiqueta de tarea + titular breve calculado con los datos. Electrodos y ventana de tiempo redefinen el eje x de la dispersión; las cuatro vistas quedan enlazadas.</td><td>Títulos de panel</td></tr>
+    <tr><td>E9</td><td>Equipo</td><td>Agregar un grafo y un heatmap sujeto × electrodo, integrados en la misma vista, con nodos que se puedan arrastrar y agrupar.</td><td><span class="tag ok">Implementada</span></td><td>Panel flotante <i>Individuos</i> que se desliza sobre la columna derecha sin salir de la vista. El heatmap usa dos grupos definidos por la conducta (no un tercer grupo sin marcador, que no respondía a ninguna tarea) con su consistencia C(e); el grafo de similitud se arrastra, se agrupa y se acerca, y está enlazado con la matriz de mapas.</td><td>Botón Individuos</td></tr>
     <tr><td>Q1</td><td>Pregunta propia</td><td>¿Abrir directo en el dashboard da contexto suficiente?</td><td><span class="tag ok">Implementada</span></td><td>No lo daba. La cabecera ahora tiene título e introducción con los datos, y el <i>Recorrido</i> aporta secuencia, hallazgos y conclusión preliminar.</td><td>Cabecera y Recorrido</td></tr>
     <tr><td>Q2</td><td>Pregunta propia</td><td>¿Lazo libre, rectangular o selección múltiple desde la tabla?</td><td><span class="tag part">Parcial</span></td><td>Se mantiene el lazo (incluye al rectángulo) y se añadió un selector de grupos predefinidos, accesible con teclado. La tabla de Acerca de permite elegir A y B; la selección de grupos desde la tabla queda para la Semana 13.</td><td>Selector de grupo</td></tr>
     <tr><td>Q3</td><td>Pregunta propia</td><td>¿Se entiende que el mapa queda agregado mientras otras vistas siguen la selección?</td><td><span class="tag ok">Implementada</span></td><td>Los seis mapas se recalculan con el grupo activo y el título dice cuántas personas promedian; la significancia por electrodo solo se muestra para las 68 personas.</td><td>Matriz de topomapas</td></tr>

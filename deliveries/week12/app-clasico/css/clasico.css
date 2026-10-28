@@ -47,3 +47,4 @@ body{font-size:13.5px}
 .sheet-head h2,.sheet-body h3{font-family:var(--head)}
 .sheet::backdrop{background:rgba(0,0,0,.35)}
 .specbar{color:#8A5208}
+.drawer{box-shadow:-18px 0 40px -18px rgba(0,0,0,.22)}

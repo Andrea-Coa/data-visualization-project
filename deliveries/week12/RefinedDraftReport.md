@@ -39,6 +39,7 @@
 | Franjas por región de 20 px | Franja de las 68 personas bajo la dispersión, con el conteo 39 / 29 | El hallazgo central necesitaba evidencia visual |
 | Selección solo con lazo; ρ fijo de los 68 | Lazo + **Comparar dos grupos** (mujeres vs hombres, orden de sesión, PSQI, vulnerables vs resto), con un color por grupo en las cuatro vistas y ρ por grupo | Tarea T7: los moderadores se ven lado a lado, no filtrados de a uno |
 | Vistas que solo mostraban | Todas enlazadas: clic en un electrodo o una ventana de tiempo redefine el eje x de la dispersión; clic en dos puntos compara a dos personas; clic en un análisis del multiverso lo carga | "Todo interactivo": cada vista es también un control |
+| Sin vista por persona | Botón **Individuos**: panel flotante que se desliza sobre la columna derecha (la matriz de mapas sigue a la vista). Heatmap persona × electrodo con dos grupos definidos solo por la conducta (se deterioran frente a resisten; o los grupos de Comparar) y su consistencia C(e); grafo de similitud entre personas que se arrastra, se agrupa y se acerca | Tareas T3 y T4 sin promedios: ¿quienes se deterioran comparten una firma? Clic en una fila o un nodo = persona A o B en la matriz de mapas |
 | Sin forma de llevarse lo visto | Botón **Reporte**: HTML autocontenido con la vista actual, cómo leer cada gráfico, la tabla de personas y su CSV | Que el investigador documente y comparta lo que encontró |
 | Títulos largos | Etiqueta de tarea + titular breve calculado con los datos + cifras en tono apagado | Cada panel transmite su mensaje en pocas palabras |
 | Marcadores: PVT mediana, KSS, SSS, PANAS | Además PVT lapsos y DE del TR | Basner y Dinges (2011) |
@@ -54,8 +55,8 @@
 |---|---|---|---|
 | T1 Localizar | ¿Dónde cambia theta? (Q1) | Matriz, columna Δ | Mapa interpolado (IDW) con anillo (p < 0.05) y relleno (FDR) |
 | T2 Comparar métricas | ¿Variabilidad o media? (Q2) | Matriz, filas σθ y μθ | Las dos métricas a la vista, una sobre otra |
-| T3 Identificar | ¿Quiénes son vulnerables? (Q3) | Dispersión | Cuadrante ámbar (sobre ambas medianas), lazo y franja de las 68 personas |
-| T4 Comparar | ¿Comparten firma espacial? (Q4) | Matriz por grupo; filas A y B | Promedio del grupo activo; dos personas con escalas compartidas |
+| T3 Identificar | ¿Quiénes son vulnerables? (Q3) | Dispersión; heatmap de Individuos | Cuadrante ámbar (sobre ambas medianas), lazo y franja de las 68 personas; una fila por persona |
+| T4 Comparar | ¿Comparten firma espacial? (Q4) | Matriz por grupo; filas A y B; heatmap y grafo de Individuos | Promedio del grupo activo; dos personas con escalas compartidas; C(e) por grupo y vecinos del mismo grupo frente al azar |
 | T5 Correlacionar | ¿Converge con cada marcador? (Q5) | Dispersión, eje Y | ρ de Spearman con IC 95 % y n en el título, recalculado por grupo |
 | T6 Describir tendencia | ¿Cambia dentro del registro? (Q6) | Cinco minutos | Media ± EE por época del grupo activo |
 | T7 Comparar grupos | ¿Influyen sexo, PSQI u orden de sesión? (Q7) | Selector Comparar | Dos grupos con dos colores en las cuatro vistas: filas de mapas, ρ por grupo, Δ por época |
@@ -91,6 +92,7 @@ Los 26 análisis significativos son todos PANAS+ con μθ: a mayor aumento de po
 3. La elevación de theta en SD es leve y sostenida a lo largo de los cinco minutos.
 4. La inestabilidad theta no predice el enlentecimiento en el PVT (ρ = −0.10, n = 30), tampoco con lapsos (ρ = −0.01).
 5. El resultado no depende de una decisión analítica: en todo el multiverso ningún estadístico conjunto supera al azar.
+6. Persona por persona tampoco aparece una firma de vulnerabilidad: con el PVT, quienes se deterioran y quienes resisten tienen consistencia media C = −0.02 y +0.10, y en el grafo 19 de 42 vecinos de quienes se deterioran son de su grupo (azar ≈ 19). La excepción vuelve a ser el ánimo: quienes pierden afecto positivo suben más theta (C = +0.28 frente a −0.01 en σθ; +0.35 frente a −0.07 en μθ), aunque sus patrones no se parecen más entre sí.
 
 ## 6. Limitaciones
 

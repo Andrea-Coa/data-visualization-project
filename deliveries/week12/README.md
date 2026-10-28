@@ -9,6 +9,8 @@ Borrador refinado y respuesta a la crítica. Explorador enlazado en D3.js, **en 
 
 ![Vista única a 1365 × 768](assets/dashboard-1365x768.png)
 
+![Panel flotante Individuos abierto sobre la columna derecha](assets/individuos-1600x900.png)
+
 ## Contenido de la carpeta
 
 ```
@@ -30,12 +32,14 @@ deliveries/week12/
     js/scatter.js                dispersión de vulnerabilidad, franja de las 68 personas, lazo, A y B, tabla
     js/dynamics.js               cinco minutos: media ± EE por época
     js/multiverse.js             curva de especificación, franja del azar y mediana de r por decisión
+    js/individuals.js            panel flotante Individuos: heatmap persona × electrodo y grafo de similitud arrastrable
     js/report.js                 reporte descargable (HTML autocontenido con la vista, lectura de cada gráfico y CSV)
     js/main.js                   carga de datos, controles y arranque
     data/*.json                  datos procesados finales (y data.js para abrir con doble clic)
     tools/build_multiverse.py    genera data/multiverse.json (448 análisis, 2000 permutaciones)
     tools/build_subject_topo.py  genera data/topo_by_subject.json
     tools/build-data.js          regenera data/data.js desde los JSON
+    tools/build_clasico.py       regenera app-clasico/index.html desde app/index.html
   data/                          los mismos resultados en CSV: multiverse_specs.csv, participants_deltas.csv
   assets/                        capturas de la aplicación
   research/                      informes: hechos_clave.md, literatura_verificada.md, informe_conectividad.md
@@ -69,6 +73,12 @@ python tools/build_multiverse.py --perms 2000
 
 ```bash
 node tools/build-data.js
+```
+
+Si cambia `app/index.html`, regenerar la versión clásica:
+
+```bash
+python tools/build_clasico.py
 ```
 
 `build_multiverse.py` necesita `numpy` y `scipy`; tarda un par de minutos. Imprime un control de consistencia (Δσθ frontal recalculado frente a `merged_summary.csv`) y los estadísticos conjuntos. `participants.json`, `topo.json`, `coords.json` y `subject_epochs.json` vienen sin cambios de la Semana 10.

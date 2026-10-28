@@ -33,6 +33,7 @@
     <button class="chip" id="xchip" hidden aria-label="Quitar el origen del eje x"></button>
     <select id="cmpsel" aria-label="Comparar dos grupos"></select>
     <select id="ysel" aria-label="Marcador conductual del eje Y"></select>
+    <button class="btn btn-toggle" id="indivbtn" aria-pressed="false" aria-controls="drawer">Individuos</button>
     <button class="btn" id="resetbtn" disabled>Limpiar</button>
     <button class="btn" id="reportbtn">Reporte</button>
     <button class="btn" id="aboutbtn" aria-haspopup="dialog">Acerca de</button>
@@ -60,6 +61,17 @@
     <div class="view" id="curve"></div>
   </section>
   </div>
+  <aside class="drawer" id="drawer" aria-label="Individuos" aria-hidden="true" inert>
+    <section class="panel p-heat" aria-labelledby="t-heat">
+      <div class="ph"><h2 id="t-heat"></h2><div class="key" id="k-heat"></div><button class="xbtn" id="drawerclose" aria-label="Cerrar Individuos">×</button></div>
+      <div class="view" id="heat"></div>
+    </section>
+    <section class="panel p-graph" aria-labelledby="t-graph">
+      <div class="ph"><h2 id="t-graph"></h2><div class="key"><span class="kin" id="k-graph"></span>
+        <div class="seg seg-sm" id="grpseg" role="group" aria-label="Disposición del grafo"><button data-v="free" aria-pressed="true">Libre</button><button data-v="group" aria-pressed="false">Agrupar</button></div></div></div>
+      <div class="view" id="graph"></div>
+    </section>
+  </aside>
 </main>
 
 <dialog class="sheet" id="about" aria-labelledby="h-about">
@@ -81,6 +93,9 @@
         <tr><td>PANAS+, PANAS−</td><td>Afecto positivo y negativo (puntos).</td></tr>
         <tr><td>Cuadrante vulnerable</td><td>Sobre la mediana del cambio theta y peor que la mediana del marcador elegido.</td></tr>
         <tr><td>FDR</td><td>Corrección de Benjamini y Hochberg para 61 pruebas t pareadas, una por electrodo.</td></tr>
+        <tr><td>C(e)</td><td>Consistencia de un grupo en el electrodo e: proporción de personas cuyo Δ sube menos la proporción cuyo Δ baja (de −1 a +1). Cerca de ±1 = el grupo cambia en la misma dirección.</td></tr>
+        <tr><td>Se deterioran, resisten</td><td>Grupos del panel Individuos, definidos solo por la conducta: peor o no que la mediana del cambio en el marcador elegido. No usan theta, para que la firma theta de cada grupo no sea circular.</td></tr>
+        <tr><td>Grafo de similitud</td><td>Cada persona se une a las 3 cuyo patrón de Δ en los 61 electrodos más se le parece (correlación de Pearson). Los nodos se arrastran y quedan donde se sueltan; la rueda acerca; Agrupar separa los grupos. Compara patrones entre personas; no es conectividad funcional entre electrodos.</td></tr>
         <tr><td>Multiverso</td><td>448 análisis = 4 regiones × 2 métricas × 2 formas de cambio × 7 marcadores × 2 correlaciones × 2 reglas de atípicos. La franja gris es el 95 % de lo que da el azar (2000 permutaciones; Simonsohn, Simmons y Nelson, 2020).</td></tr>
       </tbody>
     </table>
@@ -90,8 +105,8 @@
       <tbody>
         <tr><td>T1 Localizar</td><td>¿Dónde cambia theta? (Q1)</td><td>Matriz de topomapas, columna Δ con marcas de p y FDR</td></tr>
         <tr><td>T2 Comparar métricas</td><td>¿Variabilidad o media? (Q2)</td><td>Matriz, filas σθ y μθ</td></tr>
-        <tr><td>T3 Identificar</td><td>¿Quiénes son vulnerables? (Q3)</td><td>Dispersión con cuadrante, lazo y franja de las 68 personas</td></tr>
-        <tr><td>T4 Comparar</td><td>¿Comparten firma espacial? (Q4)</td><td>Matriz por grupo; clic en dos puntos = filas A y B</td></tr>
+        <tr><td>T3 Identificar</td><td>¿Quiénes son vulnerables? (Q3)</td><td>Dispersión con cuadrante, lazo y franja de las 68 personas; panel Individuos, una fila por persona</td></tr>
+        <tr><td>T4 Comparar</td><td>¿Comparten firma espacial? (Q4)</td><td>Matriz por grupo; clic en dos personas (puntos, filas del heatmap o nodos) = filas A y B; panel Individuos: heatmap persona × electrodo con C(e) por grupo y grafo de similitud</td></tr>
         <tr><td>T5 Correlacionar</td><td>¿Converge con cada marcador? (Q5)</td><td>Dispersión, marcador del eje Y y ρ con su n</td></tr>
         <tr><td>T6 Describir tendencia</td><td>¿Cambia dentro del registro? (Q6)</td><td>Cinco minutos, media ± EE por época</td></tr>
         <tr><td>T7 Comparar grupos</td><td>¿Influyen sexo, PSQI u orden de sesión? (Q7)</td><td>Selector Comparar: dos grupos con dos colores en las cuatro vistas</td></tr>
@@ -117,6 +132,7 @@
 <script src="js/topomap.js"></script>
 <script src="js/dynamics.js"></script>
 <script src="js/multiverse.js"></script>
+<script src="js/individuals.js"></script>
 <script src="js/report.js"></script>
 <script src="js/main.js"></script>
 </body>
