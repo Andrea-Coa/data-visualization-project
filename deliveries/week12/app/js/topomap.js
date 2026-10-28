@@ -146,23 +146,21 @@ const topo = (() => {
   }
   function header(sp){
     const k = d3.select("#k-topo"); k.selectAll("*").remove();
-    // titulares: el hallazgo de cada modo en pocas palabras
     const meanD = (T, met) => d3.mean(ELEC.filter(e => T[e]).map(e => met === "var" ? T[e].dVar : T[e].dMean));
     const up = (T, met) => ELEC.filter(e => T[e] && (met === "var" ? T[e].dVar : T[e].dMean) > 0).length;
     if(sp.mode === "pair" || sp.mode === "cmp"){
-      const [r0, r1] = sp.rows, m0 = meanD(r0.T, S.met), m1 = meanD(r1.T, S.met), same = Math.sign(m0) === Math.sign(m1);
+      const [r0, r1] = sp.rows, m0 = meanD(r0.T, S.met), m1 = meanD(r1.T, S.met);
       const n0 = sp.mode === "pair" ? `A ${S.pair[0].id}` : sp.G[0].name, n1 = sp.mode === "pair" ? `B ${S.pair[1].id}` : sp.G[1].name;
-      const verb = v => v > 0 ? "sube" : "baja";
-      setTitle("t-topo", sp.mode === "pair" ? "T4" : "T4 · T7", same ? `En ${sp.mode === "pair" ? "A y B" : "ambos grupos"} theta ${verb(m0)}` : `${n0}: theta ${verb(m0)} · ${n1}: ${verb(m1)}`,
+      setTitle("t-topo", `Topomapas θ: ${sp.mode === "pair" ? "personas A y B" : "dos grupos"}`,
         `Δ${METN[S.met]} medio: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`);
       return;
     }
     if(sp.mode === "group"){
-      setTitle("t-topo", "T4", `Tu selección: Δσθ sube en ${up(sp.rows[0].T, "var")} de 61 electrodos`, `n = ${sp.n}, sin prueba por electrodo`);
+      setTitle("t-topo", "Topomapas θ: tu selección", `Δσθ &gt; 0 en ${up(sp.rows[0].T, "var")} de 61 electrodos, n = ${sp.n}, sin prueba por electrodo`);
       return;
     }
     const v = sigCount("var"), m = sigCount("mean");
-    setTitle("t-topo", "T1 · T2", v.q + m.q === 0 ? "Sin foco: el cambio es difuso" : `Cambio en ${v.q + m.q} electrodos tras FDR`,
+    setTitle("t-topo", "Topomapas θ: NS, SD y Δ",
       `0 de 61 tras FDR; p &lt; 0.05 sin corregir: σθ ${v.p}, μθ ${m.p}`.replace(/^0/, String(v.q + m.q)));
     k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);
   }

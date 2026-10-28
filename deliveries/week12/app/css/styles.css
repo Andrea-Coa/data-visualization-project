@@ -29,7 +29,6 @@ button,select{font:inherit;color:inherit}
 .brand{display:flex;align-items:baseline;gap:14px;min-width:0}
 .logo{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--ns);display:inline-flex;align-items:center;gap:7px}
 .logo::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ns);box-shadow:0 0 8px var(--ns),0 0 2px var(--ns)}
-.brand h1{margin:0;font-size:clamp(13.5px,1.1vw,16px);font-weight:600;letter-spacing:-.01em;line-height:1.15}   /* nunca se trunca: si falta ancho, pasa a dos líneas */
 .ctrls{display:flex;align-items:center;gap:8px;flex:none}
 .seg{display:inline-flex;padding:2px;border-radius:7px;background:var(--raise);border:1px solid var(--rule)}
 .seg button{border:0;background:transparent;color:var(--ink2);padding:3px 10px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
@@ -51,17 +50,16 @@ button,select{font:inherit;color:inherit}
 }
 
 /* ---------- tablero: cuatro paneles sin huecos ---------- */
-/* dos columnas con repartos propios: la matriz de mapas necesita alto arriba a la izquierda, el multiverso abajo a la derecha */
+/* dos columnas con repartos propios: el multiverso necesita alto abajo a la izquierda, la matriz de mapas arriba a la derecha */
 .board{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 .col{display:grid;min-height:0;min-width:0}
-.col-l{grid-template-rows:minmax(0,1.5fr) minmax(0,1fr)}
-.col-r{grid-template-rows:minmax(0,.92fr) minmax(0,1fr)}
+.col-l{grid-template-rows:minmax(0,.92fr) minmax(0,1fr)}
+.col-r{grid-template-rows:minmax(0,1.5fr) minmax(0,1fr)}
 .panel{background:linear-gradient(180deg,#11151D 0%,var(--panel) 38%);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);display:flex;flex-direction:column;min-width:0;min-height:0;padding:9px 14px 8px}
 .col-r .panel{border-right:0}
 .ph{display:flex;align-items:baseline;justify-content:space-between;gap:4px 14px;flex:none;min-height:20px}
 .ph h2{margin:0;font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.005em;line-height:1.35}
 .ph h2 .m{color:var(--muted);font-weight:500}
-.ph h2 .task{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:500;color:var(--muted);border:1px solid var(--rule2);border-radius:4px;padding:0 5px;margin-right:8px;vertical-align:1px;letter-spacing:.02em}
 .ph h2 b{color:var(--ink);font-weight:600}
 .key{display:flex;align-items:center;gap:4px 12px;flex-wrap:wrap;justify-content:flex-end;font-size:11px;color:var(--ink2);flex:none}
 .key .k{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
@@ -77,12 +75,12 @@ button,select{font:inherit;color:inherit}
 .view svg{display:block;width:100%;user-select:none;-webkit-user-select:none}
 .specbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 0;padding:3px 4px 3px 9px;border-radius:6px;background:var(--raise);border:1px solid var(--rule2);font-family:var(--mono);font-size:11px;color:var(--vuln)}
 .specbar .x{border:0;background:transparent;color:var(--ink2);font-size:16px;line-height:1;cursor:pointer;padding:0 6px}
-/* panel flotante Individuos: se desliza sobre la columna derecha; la matriz de mapas sigue visible y enlazada.
+/* panel flotante Individuos: se desliza sobre la columna izquierda; la matriz de mapas sigue visible y enlazada.
    Curva de cajón (rápida al entrar, suave al final), solo transform; sin movimiento si el sistema lo pide. */
 .board{position:relative;overflow:hidden}
-.drawer{position:absolute;top:0;right:0;bottom:0;width:50%;z-index:20;display:grid;grid-template-rows:minmax(0,1.3fr) minmax(0,1fr);
-  background:var(--panel);border-left:1px solid var(--rule2);box-shadow:-28px 0 56px -18px rgba(0,0,0,.7);
-  transform:translateX(102%);visibility:hidden;transition:transform .26s cubic-bezier(.32,.72,0,1),visibility 0s linear .26s}
+.drawer{position:absolute;top:0;left:0;bottom:0;width:50%;z-index:20;display:grid;grid-template-rows:minmax(0,1.3fr) minmax(0,1fr);
+  background:var(--panel);border-right:1px solid var(--rule2);box-shadow:28px 0 56px -18px rgba(0,0,0,.7);
+  transform:translateX(-102%);visibility:hidden;transition:transform .26s cubic-bezier(.32,.72,0,1),visibility 0s linear .26s}
 .drawer.open{transform:none;visibility:visible;transition:transform .42s cubic-bezier(.32,.72,0,1),visibility 0s}
 .drawer .panel{border-right:0}
 .drawer .ph{flex-wrap:wrap}
@@ -169,7 +167,6 @@ button,select{font:inherit;color:inherit}
 /* ---------- pantallas angostas: se apila y se desplaza ---------- */
 @media (max-width:1100px){
   .bar{height:auto;flex-wrap:wrap;padding:10px 12px;gap:8px}
-  .brand h1{white-space:normal}
   .ctrls{flex-wrap:wrap;width:100%}
   .ctrls select{min-width:0}
   .board,.col{grid-template-columns:minmax(0,1fr);grid-template-rows:none!important}
@@ -179,7 +176,7 @@ button,select{font:inherit;color:inherit}
   .p-dyn .view{min-height:240px}
   .p-multi .view{min-height:360px}
   .board{overflow:visible}
-  .drawer{position:fixed;inset:0;width:auto;z-index:50;overflow:auto;display:block;border-left:0;overscroll-behavior:contain}
+  .drawer{position:fixed;inset:0;width:auto;z-index:50;overflow:auto;display:block;border-right:0;overscroll-behavior:contain}
   .drawer .panel{min-height:auto}
   .p-heat .view{min-height:560px}
   .p-graph .view{min-height:420px}
@@ -213,11 +210,9 @@ button,select{font:inherit;color:inherit}
 :root[data-theme="light"] .bar{background:var(--bg);border-bottom:1px solid var(--rule2)}
 :root[data-theme="light"] .logo{color:var(--ink);font-family:var(--head);font-size:12px;letter-spacing:.18em;font-weight:600}
 :root[data-theme="light"] .logo::before{background:var(--sd);box-shadow:none;width:6px;height:6px}
-:root[data-theme="light"] .brand h1{font-family:var(--head);font-weight:600;letter-spacing:0}
 :root[data-theme="light"] .panel{background:var(--panel)}
 :root[data-theme="light"] .ph h2{font-family:var(--head);font-size:13.5px;font-weight:600;letter-spacing:0}
 :root[data-theme="light"] .ph h2 .m{font-family:var(--sans);font-weight:400}
-:root[data-theme="light"] .ph h2 .task{background:var(--raise);border-color:var(--rule2);color:var(--ink2)}
 :root[data-theme="light"] .seg{background:var(--raise);border-color:var(--rule2)}
 :root[data-theme="light"] .seg button[aria-pressed="true"]{background:var(--ink);color:#FFFFFF}
 :root[data-theme="light"] .ctrls select{background-color:#FFFFFF;border-color:var(--rule2)}
@@ -241,5 +236,5 @@ button,select{font:inherit;color:inherit}
 :root[data-theme="light"] .sheet-head h2,:root[data-theme="light"] .sheet-body h3{font-family:var(--head)}
 :root[data-theme="light"] .sheet::backdrop{background:rgba(0,0,0,.35)}
 :root[data-theme="light"] .specbar{color:#8A5208}
-:root[data-theme="light"] .drawer{box-shadow:-18px 0 40px -18px rgba(0,0,0,.22)}
+:root[data-theme="light"] .drawer{box-shadow:18px 0 40px -18px rgba(0,0,0,.22)}
 :root[data-theme="light"] .btn-toggle[aria-pressed="true"]{background:var(--ink);color:#FFFFFF;border-color:var(--ink)}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>BATIMIX: una noche sin dormir</title>
+<title>BATIMIX</title>
 <meta name="description" content="Explorador enlazado en D3.js sobre la vulnerabilidad individual a la privación de sueño en EEG de reposo (OpenNeuro ds004902, 68 personas).">
 <meta name="theme-color" content="#0B0D12">
 <script>
@@ -24,7 +24,6 @@
 <header class="bar">
   <div class="brand">
     <span class="logo">BATIMIX</span>
-    <h1>Una noche sin dormir no le pasa igual a todos</h1>
   </div>
   <div class="ctrls" role="region" aria-label="Controles">
     <div class="seg" id="roiseg" role="group" aria-label="Región EEG">
@@ -48,16 +47,6 @@
 
 <main class="board">
   <div class="col col-l">
-  <section class="panel p-topo" aria-labelledby="t-topo">
-    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div></div>
-    <div class="view" id="topo"></div>
-  </section>
-  <section class="panel p-dyn" aria-labelledby="t-dyn">
-    <div class="ph"><h2 id="t-dyn"></h2><div class="key" id="k-dyn"></div></div>
-    <div class="view" id="dyn"></div>
-  </section>
-  </div>
-  <div class="col col-r">
   <section class="panel p-scatter" aria-labelledby="t-sc">
     <div class="ph"><h2 id="t-sc"></h2><div class="key" id="k-sc"></div></div>
     <div class="view" id="scatter"></div>
@@ -65,6 +54,16 @@
   <section class="panel p-multi" aria-labelledby="t-multi">
     <div class="ph"><h2 id="t-multi"></h2><div class="key" id="k-multi"></div></div>
     <div class="view" id="curve"></div>
+  </section>
+  </div>
+  <div class="col col-r">
+  <section class="panel p-topo" aria-labelledby="t-topo">
+    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div></div>
+    <div class="view" id="topo"></div>
+  </section>
+  <section class="panel p-dyn" aria-labelledby="t-dyn">
+    <div class="ph"><h2 id="t-dyn"></h2><div class="key" id="k-dyn"></div></div>
+    <div class="view" id="dyn"></div>
   </section>
   </div>
   <aside class="drawer" id="drawer" aria-label="Individuos" aria-hidden="true" inert>
@@ -100,7 +99,7 @@
         <tr><td>Cuadrante vulnerable</td><td>Sobre la mediana del cambio theta y peor que la mediana del marcador elegido.</td></tr>
         <tr><td>FDR</td><td>Corrección de Benjamini y Hochberg para 61 pruebas t pareadas, una por electrodo.</td></tr>
         <tr><td>C(e)</td><td>Consistencia de un grupo en el electrodo e: proporción de personas cuyo Δ sube menos la proporción cuyo Δ baja (de −1 a +1). Cerca de ±1 = el grupo cambia en la misma dirección.</td></tr>
-        <tr><td>Se deterioran, resisten</td><td>Grupos del panel Individuos, definidos solo por la conducta: peor o no que la mediana del cambio en el marcador elegido. No usan theta, para que la firma theta de cada grupo no sea circular.</td></tr>
+        <tr><td>Vulnerables, resistentes</td><td>Grupos del panel Individuos, definidos solo por la conducta: peor o no que la mediana del cambio en el marcador elegido. No usan theta, para que la firma theta de cada grupo no sea circular.</td></tr>
         <tr><td>Grafo de similitud</td><td>Cada persona se une a las 3 cuyo patrón de Δ en los 61 electrodos más se le parece (correlación de Pearson). Los nodos se arrastran y quedan donde se sueltan; la rueda acerca; Agrupar separa los grupos. Compara patrones entre personas; no es conectividad funcional entre electrodos.</td></tr>
         <tr><td>Multiverso</td><td>448 análisis = 4 regiones × 2 métricas × 2 formas de cambio × 7 marcadores × 2 correlaciones × 2 reglas de atípicos. La franja gris es el 95 % de lo que da el azar (2000 permutaciones; Simonsohn, Simmons y Nelson, 2020).</td></tr>
       </tbody>

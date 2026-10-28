@@ -1,4 +1,4 @@
-/* Individuos (tareas T3, T4 y T7): panel flotante que se desliza sobre la columna derecha, en la misma vista que
+/* Individuos (tareas T3, T4 y T7): panel flotante que se desliza sobre la columna izquierda, en la misma vista que
    la matriz de mapas. Quita el promedio y muestra a cada persona.
    Heatmap persona × electrodo con dos grupos definidos solo por la conducta, nunca por theta (si el grupo dependiera
    de theta, su firma en theta sería circular): quienes se deterioran (peor que la mediana del marcador del header)
@@ -36,7 +36,7 @@ const indiv = (() => {
     else if(S.selected){ const sel = new Set(S.selected);
       groups = [{name:"Tu selección", color:C.ns, ids:all.filter(id => sel.has(id))}, {name:"Resto con marcador", color:C.rest, ids:withY.filter(id => !sel.has(id))}]; }
     else { const w = mk.worse || 1, med = d3.median(withY, id => byId.get(id)[yk]), worse = id => w*(byId.get(id)[yk]-med) > 0;
-      groups = [{name:"Se deterioran", color:C.vuln, ids:withY.filter(worse)}, {name:"Resisten", color:C.rest, ids:withY.filter(id => !worse(id))}]; }
+      groups = [{name:"Vulnerables", color:C.vuln, ids:withY.filter(worse)}, {name:"Resistentes", color:C.rest, ids:withY.filter(id => !worse(id))}]; }
     groups = groups.filter(g => g.ids.length).map(g => {
       const ids = g.ids.slice().sort((a, b) => rowMean(b)-rowMean(a));
       const cons = E.map((e, i) => { const v = ids.map(id => D.get(id)[i]).filter(x => x != null); return v.length ? (v.filter(x => x > 0).length-v.filter(x => x < 0).length)/v.length : 0; });
@@ -57,9 +57,9 @@ const indiv = (() => {
   function drawHeat(){
     d3.select(heatEl).selectAll("*").remove();
     const W = heatEl.clientWidth || 640, H = Math.max(240, heatEl.clientHeight || 400), {E, D, groups, lim, mean} = model;
-    const labW = 44, regGap = 5, top0 = 34, gLab = 14, cS = 18, gGap = 6, nRows = model.ids.length;
+    const gW = 16, labW = 44+gW, regGap = 5, top0 = 34, cS = 18, gGap = 6, nRows = model.ids.length;
     const cw = (W-labW-2*regGap-2)/E.length;
-    const rh = Math.min(22, Math.max(3, (H-top0-groups.length*(gLab+cS)-(groups.length-1)*gGap-2)/nRows));
+    const rh = Math.min(22, Math.max(3, (H-top0-groups.length*cS-(groups.length-1)*gGap-2)/nRows));
     const colX = i => labW+i*cw+regionOf(E[i])*regGap;
     const svg = d3.select(heatEl).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").attr("role", "img")
       .attr("aria-label", `Heatmap de ${nRows} personas por 61 electrodos con su cambio ${METN[model.met]}`);
@@ -77,8 +77,10 @@ const indiv = (() => {
     const cells = svg.append("g"); let y = top0; model.rowY = new Map();
     groups.forEach((g, gi) => {
       if(gi){ y += gGap; svg.append("line").attr("x1", 2).attr("x2", W-2).attr("y1", y-gGap/2).attr("y2", y-gGap/2).attr("stroke", C.ink2).attr("stroke-width", 1.5); }
-      svg.append("text").attr("class", "mdim").attr("x", labW).attr("y", y+10).style("fill", g.color).text(`${g.name.toUpperCase()}  n = ${g.ids.length}`);
-      y += gLab;
+      // nombre del grupo a la izquierda de su bloque, rotado 90° a la izquierda y centrado en su alto
+      const gy = y+(cS+g.ids.length*rh)/2;
+      svg.append("text").attr("class", "mdim").attr("x", gW/2).attr("y", gy).attr("dy", ".35em").attr("text-anchor", "middle")
+        .attr("transform", `rotate(-90,${gW/2},${gy})`).style("fill", g.color).text(`${g.name} (${g.ids.length})`);
       svg.append("text").attr("class", "alab").attr("x", labW-5).attr("y", y+cS/2+3.5).attr("text-anchor", "end").text("C(e)");
       svg.append("line").attr("x1", labW).attr("x2", W-2).attr("y1", y+cS/2).attr("y2", y+cS/2).attr("stroke", C.rule2);
       bars(y+cS/2, g.cons); y += cS;
@@ -222,15 +224,15 @@ const indiv = (() => {
   function titles(){
     const [a, b] = model.groups, mC = g => d3.mean(g.cons), strong = g => g.cons.filter(c => Math.abs(c) >= .6).length;
     if(b){
-      const dA = mC(a), dB = mC(b), head = dA-dB >= .15 ? `${a.name}: theta sube más` : (dB-dA >= .15 ? `${b.name}: theta sube más` : "Ningún grupo tiene firma propia");
-      setTitle("t-heat", "T3 · T4", head, nb(`C medio ${fs2(dA)} vs ${fs2(dB)}`));
-    } else setTitle("t-heat", "T3 · T4", `${a.name}: ${strong(a) >= 15 ? "firma compartida" : "cada persona cambia distinto"}`, nb(`|C| ≥ 0.6 en ${strong(a)} de 61, n = ${a.ids.length}`));
+      const dA = mC(a), dB = mC(b);
+      setTitle("t-heat", "Δθ por persona y electrodo", nb(`C medio: ${a.name} ${fs2(dA)}, ${b.name} ${fs2(dB)}`));
+    } else setTitle("t-heat", "Δθ por persona y electrodo", nb(`${a.name}: |C| ≥ 0.6 en ${strong(a)} de 61, n = ${a.ids.length}`));
     d3.select("#k-heat").html(`<span class="k">Δ${METN[model.met]} SD − NS</span><span class="k"><i style="width:64px;height:7px;border-radius:2px;background:linear-gradient(90deg,${d3.range(0, 1.01, .25).map(C.div).join(",")})"></i>±${fr(model.lim)}</span>`);
     // de los K vecinos de cada persona del primer grupo, cuántos son de su grupo; por azar se esperarían K·(n−1)/(N−1)
     const N = model.ids.length, nbIn = d3.sum(a.ids, x => model.nbrs.get(x).filter(([y]) => a.ids.includes(y)).length);
-    const expct = a.ids.length*K*(a.ids.length-1)/Math.max(1, N-1), alike = b && nbIn >= 1.4*expct && nbIn-expct >= 3;
-    setTitle("t-graph", "T4", b ? `${a.name}: ${alike ? "se parecen entre sí" : "sin parecido propio"}` : `${a.ids.length} personas`,
-      b ? nb(`${nbIn}/${a.ids.length*K} vecinos de su grupo, azar ≈ ${L.format(".0f")(expct)}`) : "");
+    const expct = a.ids.length*K*(a.ids.length-1)/Math.max(1, N-1);
+    setTitle("t-graph", "Grafo de similitud de Δθ",
+      b ? nb(`${a.name}: ${nbIn}/${a.ids.length*K} vecinos de su grupo, azar ≈ ${L.format(".0f")(expct)}`) : `${a.ids.length} personas`);
     d3.select("#k-graph").html(model.groups.map(g => `<span class="k"><i class="dot" style="background:${g.color}"></i>${g.name}</span>`).join("") +
       `<span class="k m">${K} más parecidos</span>`);
   }

@@ -113,10 +113,10 @@ const multi = (() => {
     const J = MULTI.joint, minP = Math.min(J.median.p, J.sigPos.p, J.stouffer.p);
     if(any){
       const sel = specs.filter(match), sig = sel.filter(s => s.p < .05 && s.r > 0).length;
-      setTitle("t-multi", "T8", `${Object.entries(F).map(([k, v]) => short(k, v)).join(" + ")}: ${sig ? `${sig} de ${sel.length} análisis lo apoyan` : "ningún análisis lo apoya"}`, `mediana r ${fR(d3.median(sel, s => s.r))}`);
+      setTitle("t-multi", `Multiverso: ${Object.entries(F).map(([k, v]) => short(k, v)).join(" + ")}`, `${sig} de ${sel.length} análisis con p &lt; 0.05 y r &gt; 0, mediana r ${fR(d3.median(sel, s => s.r))}`);
     } else {
       const V = MULTI.jointVar;
-      setTitle("t-multi", "T8", minP >= .05 ? "Ningún análisis rescata el efecto" : "El efecto resiste el multiverso",
+      setTitle("t-multi", "Multiverso: r por análisis",
         `${specs.length} análisis, p ≥ ${L.format(".2f")(minP)}`);
     }
     d3.select("#k-multi").html(`<span class="k"><i class="dot" style="background:${POS()}"></i>p &lt; 0.05, r &gt; 0</span><span class="k"><i class="dot" style="background:var(--signeg)"></i>p &lt; 0.05, r &lt; 0</span>` +

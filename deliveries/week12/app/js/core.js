@@ -116,10 +116,8 @@ function cmpGroups(){
   return c.g.map(([name, f], i) => { const ids = EEG.filter(f).map(d => d.id); return {name, ids, set:new Set(ids), color:i ? C.g2 : C.g1}; });
 }
 const groupName = () => S.selected ? "Tu selección" : "";
-// adjetivo de deterioro por marcador, para titulares breves ("Más inestable ≠ más lento")
-const ADJ = {d_pvt:"lento", d_pvtl:"distraído", d_pvtsd:"irregular", d_kss:"somnoliento", d_sss:"somnoliento", d_panasP:"desanimado", d_panasN:"irritable"};
-// título de panel: etiqueta de tarea, titular breve y cifras de respaldo en tono apagado
-function setTitle(id, task, head, sub){ $(id).innerHTML = `<span class="task">${task}</span>${head}${sub ? ` <span class="m">${sub}</span>` : ""}`; }
+// título de panel: qué muestra, en pocas palabras, y cifras de respaldo en tono apagado
+function setTitle(id, head, sub){ $(id).innerHTML = `${head}${sub ? ` <span class="m">${sub}</span>` : ""}`; }
 const nb = s => s.replace(/ = /g, "\u00a0=\u00a0");   // "ρ = −0.10" nunca se parte en dos líneas
 
 // ---------- estadística ----------

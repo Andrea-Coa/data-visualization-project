@@ -133,24 +133,21 @@ const scatter = (() => {
     abG.selectAll("text").data(marks, d => d.id).join("text").attr("class", "ab").attr("x", d => d.x+(d.x > W-40 ? -12 : 12)).attr("y", d => d.y+4)
       .attr("text-anchor", d => d.x > W-40 ? "end" : "start").text(d => d.L);
   }
-  // titular breve: "Más inestable ≠ más lento" si el IC incluye el cero; las cifras van en tono apagado
+  // título: qué se cruza; las cifras van en tono apagado
   function title(){
-    const xk = S.xKey(), yk = yK(), adj = S.spec ? "deteriorado" : ADJ[S.y], subj = (S.met === "var" && !S.spec) ? "inestable" : "theta";
-    const head = r => isNaN(r.rho) ? "Pocos datos para concluir" : (r.lo <= 0 && r.hi >= 0 ? `Más ${subj} ≠ más ${adj}` : (r.rho > 0 ? `Más ${subj}, más ${adj}` : `Más ${subj}, menos ${adj}`));
+    const xk = S.xKey(), yk = yK(), head = "Δθ vs. Δ conductual";
     if(S.spec){
-      const s = S.spec, r = {rho:s.r, lo:s.lo, hi:s.hi};
-      setTitle("t-sc", "T8", head(r), nb(`${mvLabel("corr", s.corr)} r = ${f2(s.r)} [${f2(s.lo)}, ${f2(s.hi)}], n = ${s.n}`));
+      const s = S.spec;
+      setTitle("t-sc", head, nb(`${mvLabel("corr", s.corr)} r = ${f2(s.r)} [${f2(s.lo)}, ${f2(s.hi)}], n = ${s.n}`));
       return;
     }
     const G = cmpGroups();
     if(G){
-      const rs = G.map(g => spearman(EEG.filter(d => g.set.has(d.id)), xk, yk));
-      const none = rs.every(r => isNaN(r.rho) || (r.lo <= 0 && r.hi >= 0));
-      setTitle("t-sc", "T5 · T7", none ? `${head({rho:0, lo:-1, hi:1})} en ningún grupo` : "Los grupos se separan", "");   // el ρ de cada grupo va en su leyenda
+      setTitle("t-sc", `${head}: dos grupos`, "");   // el ρ de cada grupo va en su leyenda
       return;
     }
-    const rows = S.selected ? EEG.filter(d => S.selected.includes(d.id)) : EEG, r = spearman(rows, xk, yk), h = head(r);
-    setTitle("t-sc", "T3 · T5", S.selected ? `Tu selección: ${h.charAt(0).toLowerCase()+h.slice(1)}` : h,
+    const rows = S.selected ? EEG.filter(d => S.selected.includes(d.id)) : EEG, r = spearman(rows, xk, yk);
+    setTitle("t-sc", S.selected ? `${head}: tu selección` : head,
       nb(isNaN(r.rho) ? `n = ${r.n}` : `ρ = ${f2(r.rho)} [${f2(r.lo)}, ${f2(r.hi)}], n = ${r.n}`));
   }
   function key(){

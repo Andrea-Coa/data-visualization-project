@@ -68,19 +68,17 @@ const dyn = (() => {
     title();
   }
   function title(){
-    const rng = S.win || [0, 74], idx = d3.range(rng[0], rng[1]+1), pre = S.win ? `${winTxt(S.win)}: ` : "";
+    const rng = S.win || [0, 74], idx = d3.range(rng[0], rng[1]+1), post = S.win ? `, ${winTxt(S.win)}` : "";
     const upOf = s => idx.filter(i => s.mean[i] != null && s.mean[i] > 0).length;
     if(G){
-      const u = cur.D.map(upOf), both = u.every(k => k > idx.length*.6);
-      setTitle("t-dyn", "T6 · T7", pre+(both ? "Ambos grupos, más theta sin dormir" : (u[0] > u[1] ? `${G[0].name}: más cambio` : `${G[1].name}: más cambio`)),
+      const u = cur.D.map(upOf);
+      setTitle("t-dyn", `Δθ por época: dos grupos${post}`,
         `SD &gt; NS en ${u[0]} y ${u[1]} de ${idx.length} épocas`);
       return;
     }
-    const d = idx.map(i => cur.SD.mean[i]-cur.NS.mean[i]), up = d.filter(v => v > 0).length, frac = up/idx.length;
-    const head = frac >= .75 ? "Theta se mantiene más alta sin dormir" : (frac >= .5 ? "Theta sube poco y sin tendencia" : "Theta no sube durante el registro");
-    const who = S.selected ? "Tu selección: " : "";
-    setTitle("t-dyn", "T6", who+pre+(who || pre ? head.charAt(0).toLowerCase()+head.slice(1) : head),
-      `SD &gt; NS en ${up}/${idx.length} épocas${S.win ? `, Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : `, pendiente ${fsr(slopePerMin(cur.SD.mean))}/min`}, n = ${cur.SD.n}`);
+    const d = idx.map(i => cur.SD.mean[i]-cur.NS.mean[i]), up = d.filter(v => v > 0).length;
+    setTitle("t-dyn", `θ relativa por época: NS y SD${S.selected ? ", tu selección" : ""}${post}`,
+      nb(`SD &gt; NS en ${up}/${idx.length} épocas${S.win ? `, Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : `, pendiente ${fsr(slopePerMin(cur.SD.mean))}/min`}, n = ${cur.SD.n}`));
   }
   function tipFor(i){
     const r = s => s.mean[i] != null ? `${f3(s.mean[i])} <span class="m">± ${f3(s.sem[i])}</span>` : "n/d";
