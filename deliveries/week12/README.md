@@ -2,7 +2,7 @@
 
 Borrador refinado y respuesta a la crítica. Explorador enlazado en D3.js, **en una sola vista y con un único header**, sobre la vulnerabilidad individual a la privación de sueño en EEG de reposo (OpenNeuro ds004902, 68 personas con EEG pareado). Cuatro paneles sin espacio entre ellos: matriz 2 × 3 de topomapas (NS, SD, Δ por σθ y μθ, o por las personas A y B elegidas en la dispersión), dispersión de vulnerabilidad, cinco minutos y multiverso.
 
-- **Aplicación:** [`app/index.html`](app/index.html) (tema oscuro) · versión alternativa clara y clásica: [`app-clasico/index.html`](app-clasico/index.html)
+- **Aplicación:** [`app/index.html`](app/index.html), con tema oscuro (instrumento) o claro (clásico) desde el botón ◐ del header; enlaces directos con `?tema=oscuro` o `?tema=claro`
 - **Despliegue (GitHub Pages):** https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/ (verificar tras el push; ver "Despliegue")
 - **Página del proyecto:** [`project/index.html`](project/index.html)
 - **Equipo:** Jimena Gurbillon, Andrea Coa, Paolo Medrano · DS5343 Data Visualization, UTEC 2026-2
@@ -10,6 +10,8 @@ Borrador refinado y respuesta a la crítica. Explorador enlazado en D3.js, **en 
 ![Vista única a 1365 × 768](assets/dashboard-1365x768.png)
 
 ![Panel flotante Individuos abierto sobre la columna derecha](assets/individuos-1600x900.png)
+
+![Tema claro (clásico)](assets/dashboard-claro-1600x900.png)
 
 ## Contenido de la carpeta
 
@@ -21,12 +23,9 @@ deliveries/week12/
   PresentationWeek12.pptx        presentación de la semana
   paper/                         borrador inicial del paper: fuente (HTML) y PDF
   project/                       página inicial del proyecto
-  app-clasico/                   versión alternativa clara y clásica: reutiliza el código y los datos de app/ con su propia hoja de estilo
-    index.html                   misma estructura; carga ../app/js y ../app/data
-    css/clasico.css              tema claro: Source Serif 4, Source Sans 3, Source Code Pro y paletas de ColorBrewer
   app/                           código de la aplicación refinada
     index.html                   vista única: header con controles, cuatro paneles y el panel "Acerca de"
-    css/styles.css               tema oscuro (tokens de color y tipografía), tablero sin espacios
+    css/styles.css               temas oscuro y claro (tokens de color y tipografía; el claro con data-theme="light"), tablero sin espacios
     js/core.js                   datos, estado, bus de eventos, grupos, selección A y B, estadística
     js/topomap.js                matriz 2 × 3 de topomapas (IDW, isolíneas, p y FDR, filas σθ/μθ o A/B)
     js/scatter.js                dispersión de vulnerabilidad, franja de las 68 personas, lazo, A y B, tabla
@@ -39,7 +38,6 @@ deliveries/week12/
     tools/build_multiverse.py    genera data/multiverse.json (448 análisis, 2000 permutaciones)
     tools/build_subject_topo.py  genera data/topo_by_subject.json
     tools/build-data.js          regenera data/data.js desde los JSON
-    tools/build_clasico.py       regenera app-clasico/index.html desde app/index.html
   data/                          los mismos resultados en CSV: multiverse_specs.csv, participants_deltas.csv
   assets/                        capturas de la aplicación
   research/                      informes: hechos_clave.md, literatura_verificada.md, informe_conectividad.md
@@ -75,17 +73,11 @@ python tools/build_multiverse.py --perms 2000
 node tools/build-data.js
 ```
 
-Si cambia `app/index.html`, regenerar la versión clásica:
-
-```bash
-python tools/build_clasico.py
-```
-
 `build_multiverse.py` necesita `numpy` y `scipy`; tarda un par de minutos. Imprime un control de consistencia (Δσθ frontal recalculado frente a `merged_summary.csv`) y los estadísticos conjuntos. `participants.json`, `topo.json`, `coords.json` y `subject_epochs.json` vienen sin cambios de la Semana 10.
 
 ## Despliegue (GitHub Pages)
 
-1. En el repositorio: Settings, Pages, Source "Deploy from a branch", rama `main`, carpeta `/ (root)`.
+1. En el repositorio: Settings, Pages, Source "Deploy from a branch", rama `main`, carpeta `/ (root)`. La raíz del repositorio tiene `.nojekyll` (sirve los archivos tal cual) e `index.html` (redirige a esta aplicación).
 2. Tras el push, abrir `https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/` y comprobar que cargan los datos.
 
 Todas las rutas son relativas. Los datos son CC0.

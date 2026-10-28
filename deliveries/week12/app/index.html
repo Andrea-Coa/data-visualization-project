@@ -6,10 +6,15 @@
 <title>BATIMIX: una noche sin dormir</title>
 <meta name="description" content="Explorador enlazado en D3.js sobre la vulnerabilidad individual a la privación de sueño en EEG de reposo (OpenNeuro ds004902, 68 personas).">
 <meta name="theme-color" content="#0B0D12">
+<script>
+  // tema antes de pintar (sin parpadeo): ?tema=claro|oscuro en la URL, si no la última elección guardada
+  try{ const q = new URLSearchParams(location.search).get("tema"), t = q === "claro" ? "light" : q === "oscuro" ? "dark" : localStorage.getItem("batimix-tema");
+    if(t === "light"){ document.documentElement.dataset.theme = "light"; document.querySelector('meta[name="theme-color"]').content = "#FFFFFF"; } }catch(e){}
+</script>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Source+Sans+3:wght@400;500;600&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -37,6 +42,7 @@
     <button class="btn" id="resetbtn" disabled>Limpiar</button>
     <button class="btn" id="reportbtn">Reporte</button>
     <button class="btn" id="aboutbtn" aria-haspopup="dialog">Acerca de</button>
+    <button class="btn btn-icon" id="themebtn" aria-label="Cambiar a tema claro" title="Tema claro">◐</button>
   </div>
 </header>
 
@@ -119,10 +125,10 @@
     <p>PVT pareado para solo 30 personas (baja potencia); preprocesamiento heurístico; Cui et al. usaron referencia promedio, ICA y otro denominador, lo que puede explicar parte de la no replicación.</p>
     <h3 id="h-table">Datos de la dispersión</h3>
     <div class="tscroll"><table id="dtable"></table></div>
-    <h3>Otra versión</h3>
-    <p><a href="../app-clasico/">Versión clásica (clara)</a> con los mismos datos e interacciones.</p>
+    <h3>Tema</h3>
+    <p>Oscuro (instrumento) o claro (clásico, paletas de ColorBrewer) con el botón ◐ del header; la elección se recuerda en este navegador. Enlaces directos: <a href="?tema=oscuro">oscuro</a> y <a href="?tema=claro">claro</a>.</p>
     <h3>Créditos</h3>
-    <p>Jimena Gurbillon, Andrea Coa y Paolo Medrano, DS5343 Data Visualization, UTEC 2026-2. D3.js 7.8.5 (ISC); fuentes Geist y Geist Mono (OFL). Inspiración: Bai et al. (2024), Cui et al. (2026), Dragicevic et al. (2019), Simonsohn et al. (2020). Parte del código y de la redacción se desarrolló con asistencia de IA (Claude) y fue revisada por el equipo.</p>
+    <p>Jimena Gurbillon, Andrea Coa y Paolo Medrano, DS5343 Data Visualization, UTEC 2026-2. D3.js 7.8.5 (ISC); fuentes Geist y Geist Mono (tema oscuro), Source Serif 4, Source Sans 3 y Source Code Pro (tema claro) (OFL). Inspiración: Bai et al. (2024), Cui et al. (2026), Dragicevic et al. (2019), Simonsohn et al. (2020). Parte del código y de la redacción se desarrolló con asistencia de IA (Claude) y fue revisada por el equipo.</p>
   </div>
 </dialog>
 

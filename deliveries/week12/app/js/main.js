@@ -43,6 +43,19 @@ function setIndiv(open, focus = true){
   if(open){ indiv.render(); if(focus) $("drawerclose").focus({preventScroll:true}); } else indiv.stop();
 }
 const indivOpen = () => $("drawer").classList.contains("open");
+// tema oscuro (instrumento) o claro (clásico): cambia los tokens de color y fuente, relee la paleta y redibuja todo
+function setTheme(t){
+  const light = t === "light";
+  if(light) document.documentElement.dataset.theme = "light"; else delete document.documentElement.dataset.theme;
+  try{ localStorage.setItem("batimix-tema", t); }catch(e){}
+  document.querySelector('meta[name="theme-color"]').content = light ? "#FFFFFF" : "#0B0D12";
+  const b = $("themebtn"), next = light ? "oscuro" : "claro";
+  b.setAttribute("aria-label", `Cambiar a tema ${next}`); b.title = `Tema ${next}`;
+  if(new URLSearchParams(location.search).has("tema")) history.replaceState(null, "", location.pathname + location.hash);
+  readPalette(); drawAll();
+  if(document.fonts) document.fonts.ready.then(drawAll);   // las fuentes del otro tema cambian la medida del texto
+}
+const themeNow = () => document.documentElement.dataset.theme === "light" ? "light" : "dark";
 function drawAll(){ scatter.render(); topo.render(); dyn.render(); if(MULTI) multi.render(); indiv.render(); updateStatus(); }
 function setY(v){ S.y = v; $("ysel").value = v; scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 function setRoi(v){ S.roi = v; S.elec = null; segRoi.set(v); computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
@@ -90,6 +103,8 @@ loadData().then(D => {
   d3.select("#resetbtn").on("click", resetAll);
   d3.select("#xchip").on("click", () => S.spec ? multi.setSpec(null) : (S.win ? setWin(null) : setElec(S.elec)));
   d3.select("#reportbtn").on("click", () => report.download());
+  d3.select("#themebtn").on("click", () => setTheme(themeNow() === "light" ? "dark" : "light"));
+  if(themeNow() === "light"){ $("themebtn").setAttribute("aria-label", "Cambiar a tema oscuro"); $("themebtn").title = "Tema oscuro"; }
   d3.select("#aboutbtn").on("click", () => { const d = $("about"); d.showModal ? d.showModal() : d.setAttribute("open", ""); });
   document.querySelectorAll("dialog [data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
   document.querySelectorAll("dialog").forEach(d => d.addEventListener("click", e => { if(e.target === d) d.close(); }));
