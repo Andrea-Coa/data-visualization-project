@@ -223,18 +223,23 @@ const indiv = (() => {
   // ---------------- títulos ----------------
   function titles(){
     const [a, b] = model.groups, mC = g => d3.mean(g.cons), strong = g => g.cons.filter(c => Math.abs(c) >= .6).length;
+    const hInfo = notes(`Una fila por persona y una columna por electrodo: Δ${METN[model.met]} (SD − NS). Fila "media": promedio de todas las personas.`,
+      "C(e): proporción del grupo cuyo Δ sube menos la proporción cuyo Δ baja en el electrodo e (de −1 a +1).",
+      "Vulnerables y resistentes se definen solo por la conducta (peor o no que la mediana del cambio en el marcador elegido), no por theta.");
     if(b){
       const dA = mC(a), dB = mC(b);
-      setTitle("t-heat", "Δθ por persona y electrodo", nb(`C medio: ${a.name} ${fs2(dA)}, ${b.name} ${fs2(dB)}`));
-    } else setTitle("t-heat", "Δθ por persona y electrodo", nb(`${a.name}: |C| ≥ 0.6 en ${strong(a)} de 61, n = ${a.ids.length}`));
+      setTitle("t-heat", "Δθ por persona y electrodo", nb(`C medio: ${a.name} ${fs2(dA)}, ${b.name} ${fs2(dB)}`), hInfo);
+    } else setTitle("t-heat", "Δθ por persona y electrodo", nb(`${a.name}: |C| ≥ 0.6 en ${strong(a)} de 61, n = ${a.ids.length}`), hInfo);
     d3.select("#k-heat").html(`<span class="k">Δ${METN[model.met]} SD − NS</span><span class="k"><i style="width:64px;height:7px;border-radius:2px;background:linear-gradient(90deg,${d3.range(0, 1.01, .25).map(C.div).join(",")})"></i>±${fr(model.lim)}</span>`);
     // de los K vecinos de cada persona del primer grupo, cuántos son de su grupo; por azar se esperarían K·(n−1)/(N−1)
     const N = model.ids.length, nbIn = d3.sum(a.ids, x => model.nbrs.get(x).filter(([y]) => a.ids.includes(y)).length);
     const expct = a.ids.length*K*(a.ids.length-1)/Math.max(1, N-1);
     setTitle("t-graph", "Grafo de similitud de Δθ",
-      b ? nb(`${a.name}: ${nbIn}/${a.ids.length*K} vecinos de su grupo, azar ≈ ${L.format(".0f")(expct)}`) : `${a.ids.length} personas`);
-    d3.select("#k-graph").html(model.groups.map(g => `<span class="k"><i class="dot" style="background:${g.color}"></i>${g.name}</span>`).join("") +
-      `<span class="k m">${K} más parecidos</span>`);
+      b ? nb(`${a.name}: ${nbIn}/${a.ids.length*K} vecinos de su grupo, azar ≈ ${L.format(".0f")(expct)}`) : `${a.ids.length} personas`,
+      notes(`Cada persona se une a las ${K} cuyo patrón de Δ en los 61 electrodos más se le parece (correlación de Pearson).`,
+        "Compara patrones entre personas; no es conectividad funcional entre electrodos.",
+        "Los nodos se arrastran; la rueda acerca; Agrupar separa los grupos."));
+    d3.select("#k-graph").html(model.groups.map(g => `<span class="k"><i class="dot" style="background:${g.color}"></i>${g.name}</span>`).join(""));
   }
   function render(){
     if(!isOpen()) return;

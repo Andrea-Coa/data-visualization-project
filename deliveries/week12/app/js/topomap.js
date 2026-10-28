@@ -36,7 +36,7 @@ const topo = (() => {
       return {mode:"cmp", G, rows:G.map((gr, i) => ({label:`${gr.name} (${ts[i].n || gr.ids.length})`, met:S.met, T:ts[i].T, color:gr.color}))};
     }
     const g = groupTopo(S.selected);
-    return {mode:g.mode, n:g.n, rows:[{label:"σθ variabilidad", met:"var", T:g.T}, {label:"μθ media", met:"mean", T:g.T}]};
+    return {mode:g.mode, n:g.n, rows:[{label:"σθ", met:"var", T:g.T}, {label:"μθ", met:"mean", T:g.T}]};
   }
   function scalesFor(rows){
     const seqDom = rs => d3.extent(rs.flatMap(r => ELEC.flatMap(e => r.T[e] ? [val(r.T[e], "NS", r.met), val(r.T[e], "SD", r.met)] : [])).filter(v => v != null));
@@ -57,7 +57,7 @@ const topo = (() => {
   }
   function render(){
     d3.select(el).selectAll("*").remove();
-    const W = el.clientWidth || 600, H = Math.max(240, el.clientHeight || 400);
+    const W = el.clientWidth || 600, H = Math.max(200, el.clientHeight || 400);
     const sp = spec(), sc = scalesFor(sp.rows);
     const labW = 22, barW = 54, topH = 22, rowGap = 10;
     const s = Math.floor(Math.max(90, Math.min((W-labW-2*barW-8)/3, (H-topH-rowGap-4)/2)));
@@ -69,7 +69,7 @@ const topo = (() => {
     const halo = defs.append("radialGradient").attr("id", "thalo");
     halo.append("stop").attr("offset", "62%").attr("stop-color", C.halo).attr("stop-opacity", .10);
     halo.append("stop").attr("offset", "100%").attr("stop-color", C.halo).attr("stop-opacity", 0);
-    [["NS", "NS", " sueño normal"], ["SD", "SD", " privación"], ["D", "Δ", " SD − NS"]].forEach(([k, a, b]) => {
+    [["NS", "NS", ""], ["SD", "SD", ""], ["D", "Δ", " SD − NS"]].forEach(([k, a, b]) => {
       const t = svg.append("text").attr("class", "colhead").attr("x", X[k]+s/2).attr("y", y0+14);
       t.append("tspan").text(a); t.append("tspan").attr("class", "m").text(b);
     });
@@ -78,7 +78,7 @@ const topo = (() => {
     sp.rows.forEach((row, ri) => {
       const y = y0+topH+ri*(s+rowGap), dom = shared || sc([row]);
       const seqF = v => C.seq((v-dom.seq[0])/((dom.seq[1]-dom.seq[0]) || 1)), divF = v => C.div((v+dom.div)/(2*dom.div));
-      svg.append("text").attr("class", "rowhead").attr("transform", `translate(${X.lab+labW/2+2},${y+s/2}) rotate(-90)`).style("fill", row.color || null).text(row.label);
+      svg.append("text").attr("class", "rowhead").attr("transform", `translate(${X.lab+labW/2+2},${y+s/2})${row.label.length > 3 ? " rotate(-90)" : ""}`).style("fill", row.color || null).text(row.label);
       ["NS", "SD", "D"].forEach(cond => drawMap(svg, defs, `${ri}${cond}`, X[cond], y, s, row, cond, cond === "D" ? divF : seqF, cond === "D" ? divF : seqF, sp.mode));
       bar(svg, defs, `s${ri}`, X.bar1, y, s, dom.seq, C.seq, false);
       bar(svg, defs, `d${ri}`, X.bar2, y, s, [-dom.div, dom.div], C.div, true);
@@ -148,20 +148,23 @@ const topo = (() => {
     const k = d3.select("#k-topo"); k.selectAll("*").remove();
     const meanD = (T, met) => d3.mean(ELEC.filter(e => T[e]).map(e => met === "var" ? T[e].dVar : T[e].dMean));
     const up = (T, met) => ELEC.filter(e => T[e] && (met === "var" ? T[e].dVar : T[e].dMean) > 0).length;
+    const base = ["NS: sueño normal; SD: tras 24 a 30 h sin dormir; Δ = SD − NS. σθ: variabilidad de la potencia theta relativa entre 75 épocas de 4 s; μθ: su media.",
+      "Interpolación por distancia inversa entre 61 electrodos. NS y SD comparten una escala secuencial por fila; Δ usa una divergente centrada en 0."];
     if(sp.mode === "pair" || sp.mode === "cmp"){
       const [r0, r1] = sp.rows, m0 = meanD(r0.T, S.met), m1 = meanD(r1.T, S.met);
       const n0 = sp.mode === "pair" ? `A ${S.pair[0].id}` : sp.G[0].name, n1 = sp.mode === "pair" ? `B ${S.pair[1].id}` : sp.G[1].name;
       setTitle("t-topo", `Topomapas θ: ${sp.mode === "pair" ? "personas A y B" : "dos grupos"}`,
-        `Δ${METN[S.met]} medio: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`);
+        `Δ${METN[S.met]} medio: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`, notes(...base, "Ambas filas comparten las mismas escalas. Sin prueba por electrodo."));
       return;
     }
     if(sp.mode === "group"){
-      setTitle("t-topo", "Topomapas θ: tu selección", `Δσθ &gt; 0 en ${up(sp.rows[0].T, "var")} de 61 electrodos, n = ${sp.n}, sin prueba por electrodo`);
+      setTitle("t-topo", "Topomapas θ: tu selección", nb(`n = ${sp.n}`),
+        notes(...base, `Δσθ &gt; 0 en ${up(sp.rows[0].T, "var")} de 61 electrodos. Sin prueba por electrodo en subgrupos.`));
       return;
     }
     const v = sigCount("var"), m = sigCount("mean");
-    setTitle("t-topo", "Topomapas θ: NS, SD y Δ",
-      `0 de 61 tras FDR; p &lt; 0.05 sin corregir: σθ ${v.p}, μθ ${m.p}`.replace(/^0/, String(v.q + m.q)));
+    setTitle("t-topo", "Topomapas θ: NS, SD y Δ", `${v.q + m.q} de 61 electrodos con q &lt; 0.05`,
+      notes(...base, `Prueba t pareada por electrodo, n = 68. Anillo: p &lt; 0.05 sin corregir (σθ ${v.p}, μθ ${m.p}); punto lleno: q &lt; 0.05 tras FDR de Benjamini y Hochberg (σθ ${v.q}, μθ ${m.q}).`));
     k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);
   }
   bus.on("select.topo", e => { if(!(e && e.live)) render(); });

@@ -116,9 +116,19 @@ function cmpGroups(){
   return c.g.map(([name, f], i) => { const ids = EEG.filter(f).map(d => d.id); return {name, ids, set:new Set(ids), color:i ? C.g2 : C.g1}; });
 }
 const groupName = () => S.selected ? "Tu selección" : "";
-// título de panel: qué muestra, en pocas palabras, y cifras de respaldo en tono apagado
-function setTitle(id, head, sub){ $(id).innerHTML = `${head}${sub ? ` <span class="m">${sub}</span>` : ""}`; }
-const nb = s => s.replace(/ = /g, "\u00a0=\u00a0");   // "ρ = −0.10" nunca se parte en dos líneas
+// título de panel: qué muestra, en pocas palabras, la cifra principal en tono apagado y, en el ícono ⓘ,
+// los detalles y la lectura del gráfico (tooltip al pasar el cursor o al enfocarlo con el teclado)
+function setTitle(id, head, sub, info){
+  const h = $(id);
+  h.innerHTML = `${head}${sub ? ` <span class="m">${sub}</span>` : ""}${info ? `&nbsp;<span class="info" tabindex="0" role="button" aria-label="Detalles del gráfico">i</span>` : ""}`;
+  const i = h.querySelector(".info"); if(!i) return;
+  const at = () => { const r = i.getBoundingClientRect(); return {clientX:r.right, clientY:r.bottom}; };
+  i.onpointerenter = e => showTip(e, info); i.onpointermove = e => moveTip(e); i.onpointerleave = hideTip;
+  i.onfocus = () => showTip(at(), info); i.onblur = hideTip;
+  i.onclick = e => showTip(e, info);   // también con clic o toque (pantallas táctiles, trackpads)
+}
+const notes = (...ls) => ls.filter(Boolean).map(l => `<p class="note">${nb(l)}</p>`).join("");   // contenido del ícono ⓘ
+const nb = s => s.replace(/ (=|≥|≤|&lt;|&gt;) /g, "\u00a0$1\u00a0");   // "ρ = −0.10" o "p ≥ 0.15" nunca se parten en dos líneas
 
 // ---------- estadística ----------
 function ranks(a){

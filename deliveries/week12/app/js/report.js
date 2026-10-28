@@ -5,16 +5,16 @@
 const report = (() => {
   // estilos mínimos para que los SVG copiados se vean igual que en la app
   const tokens = () => { const cs = getComputedStyle(document.documentElement);
-    return ["--bg", "--panel", "--raise", "--rule", "--rule2", "--ink", "--ink2", "--muted", "--faint", "--ns", "--sd", "--vuln", "--rest", "--null", "--sans", "--mono", "--head"]
+    return ["--bg", "--panel", "--raise", "--rule", "--rule2", "--ink", "--ink2", "--muted", "--faint", "--ns", "--sd", "--vuln", "--rest", "--null", "--sans"]
       .map(n => `${n}:${cs.getPropertyValue(n).trim() || "inherit"}`).join(";"); };
   const CSS = () => `
 :root{${tokens()}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 main{max-width:1120px;margin:0 auto;padding:32px 28px 48px}
-h1{font-family:var(--head,var(--sans));font-size:26px;margin:0 0 4px;letter-spacing:-.01em}h2{font-size:17px;margin:30px 0 6px}h3{font-size:14px;margin:0 0 4px}
+h1{font-size:26px;margin:0 0 4px;letter-spacing:-.01em}h2{font-size:17px;margin:30px 0 6px}h3{font-size:14px;margin:0 0 4px}
 .sub{color:var(--ink2);margin:0 0 18px}.m{color:var(--muted)}
 .state{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px 18px;padding:14px 16px;border:1px solid var(--rule2);border-radius:10px;background:var(--panel)}
-.state div{font-size:13px}.state b{display:block;font-family:var(--mono);font-weight:500;color:var(--ink)}
+.state div{font-size:13px}.state b{display:block;font-weight:500;color:var(--ink)}
 .state span{color:var(--muted);font-size:12px}
 section.fig{margin-top:22px;border:1px solid var(--rule);border-radius:10px;background:var(--panel);padding:14px 16px}
 section.fig .t{font-weight:600}
@@ -23,23 +23,23 @@ section.fig svg{display:block;width:100%;height:auto;max-height:520px}
 table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}th{text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--rule2);padding:5px 8px}
 td{border-bottom:1px solid var(--rule);padding:4px 8px}a{color:var(--ns)}
 .btns{display:flex;gap:10px;margin:14px 0 0}.btns a,.btns button{font:inherit;font-size:13px;background:var(--raise);color:var(--ink);border:1px solid var(--rule2);border-radius:7px;padding:6px 12px;cursor:pointer;text-decoration:none}
-.axis text{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}.axis path,.axis line{stroke:var(--rule2)}
+.axis text{font-size:10.5px;fill:var(--muted)}.axis path,.axis line{stroke:var(--rule2)}
 .gridl line{stroke:var(--rule)}.gridl path{display:none}.atitle{font-size:11px;font-weight:500;fill:var(--ink2)}
-.alab{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}.ann{font-size:11.5px;font-weight:600;fill:var(--ink)}
+.alab{font-size:10.5px;fill:var(--muted)}
 .zero{stroke:var(--rule2)}.median{stroke:var(--muted);stroke-dasharray:3 3;stroke-opacity:.7}.quad{fill:rgba(255,181,71,.07)}
 .lasso-surface{fill:transparent}.lasso-selection{fill:var(--ns);fill-opacity:.06;stroke:var(--ns);stroke-width:1.5;stroke-dasharray:4 3}
-.ab{font-family:var(--mono);font-size:12px;font-weight:500;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px}
+.ab{font-size:12px;font-weight:500;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px}
 .head{fill:none;stroke:#6B7489;stroke-width:1.2}.contour{fill:none;stroke:#fff;stroke-opacity:.09;stroke-width:.7}
 .colhead,.rowhead{font-size:12px;font-weight:600;fill:var(--ink);text-anchor:middle}.colhead tspan.m{fill:var(--muted);font-weight:500}
 .ts-line{fill:none;stroke-width:2}.scan{display:none}.mlabel{font-size:10.5px;fill:var(--ink2)}.mlabel.on{fill:var(--vuln);font-weight:600}
-.mdim{font-family:var(--mono);font-size:10px;fill:var(--muted)}.mhit{fill:transparent}.mhit.on{fill:rgba(255,181,71,.08)}
+.mdim{font-size:10px;fill:var(--muted)}.mhit{fill:transparent}.mhit.on{fill:rgba(255,181,71,.08)}
 .sep{stroke:var(--rule)}.null-band{fill:var(--null)}.ref-line{stroke:var(--ink2);stroke-dasharray:5 4}.ehit{fill:transparent}
 .brush .selection{fill:rgba(255,181,71,.10);stroke:var(--vuln)}.brush .overlay{fill:none}.brush .handle{display:none}
 @media print{main{padding:12px}section.fig{break-inside:avoid}.btns{display:none}}`;
 
   const READ = {
     topo:"Cada círculo es la cabeza vista desde arriba (nariz arriba) con 61 electrodos interpolados. Columnas: tras dormir normal (NS), tras la privación (SD) y su diferencia Δ = SD − NS. NS y SD comparten la escala secuencial de su fila; Δ usa una escala divergente con el cero oscuro: magenta = sube tras la privación, cian = baja. Anillo = p < 0.05 sin corregir; relleno = sobrevive la corrección FDR (solo con las 68 personas). Con dos personas o dos grupos, las filas pasan a ser esas personas o grupos, con escalas compartidas.",
-    scatter:"Cada punto es una persona: en x, el cambio theta (SD − NS) de la región, el electrodo o la ventana elegidos; en y, el cambio en el marcador conductual (arriba = peor). Las líneas punteadas son las medianas y el área ámbar es el cuadrante vulnerable (sobre ambas medianas). La franja inferior muestra a las 68 personas sobre el mismo eje x, incluidas las que no tienen el marcador. ρ es la correlación de Spearman con su IC 95 %.",
+    scatter:"Cada punto es una persona: en x, el cambio theta (SD − NS) de la región, el electrodo o la ventana elegidos; en y, el cambio en el marcador conductual (arriba = peor). Las líneas punteadas son las medianas y el área ámbar es el cuadrante vulnerable (sobre ambas medianas). ρ es la correlación de Spearman con su IC 95 %.",
     dyn:"Potencia theta relativa en cada una de las 75 épocas de 4 s del registro de 5 minutos: media del grupo activo ± error estándar, tras dormir normal (NS) y tras la privación (SD). La línea punteada es la tendencia lineal. Con una comparación de grupos se muestra el cambio Δ = SD − NS de cada grupo. Un recuadro ámbar indica la ventana de tiempo elegida.",
     heat:"Cada fila es una persona y cada columna un electrodo, agrupados en frontal, centro-temporal y posterior (de adelante hacia atrás). El color es su cambio Δ = SD − NS: magenta = sube tras la privación, cian = baja, oscuro = sin cambio. Las filas forman dos grupos definidos solo por la conducta (vulnerables: peor que la mediana del marcador; resistentes: el resto), o los dos grupos de la comparación, y se ordenan por su cambio medio en la región elegida. Sobre cada bloque, C(e) es la consistencia del grupo (proporción que sube menos la que baja); arriba, la media de todos. Una firma compartida se ve como un bloque del mismo color; si el efecto lo dominan pocas personas, se ven una o dos filas muy intensas.",
     graph:"Cada nodo es una persona, con el color de su grupo. Cada una se une a las 3 personas cuyo patrón de cambio en los 61 electrodos más se le parece (correlación de Pearson); las aristas dentro de un grupo llevan su color. Si un grupo comparte firma, sus nodos quedan juntos; si están repartidos, cada persona cambia a su manera. El título cuenta cuántos de esos vecinos son del mismo grupo frente a lo esperado por azar. No es conectividad funcional entre electrodos.",
@@ -47,7 +47,7 @@ td{border-bottom:1px solid var(--rule);padding:4px 8px}a{color:var(--ns)}
   };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;"}[c]));
   const svgOf = id => { const s = document.querySelector(`#${id} svg`); if(!s) return ""; const c = s.cloneNode(true); c.removeAttribute("style"); c.setAttribute("xmlns", "http://www.w3.org/2000/svg"); return c.outerHTML; };
-  const titleOf = id => $(id).innerHTML;
+  const titleOf = id => { const n = $(id).cloneNode(true); n.querySelectorAll(".info").forEach(x => x.remove()); return n.innerHTML; };
 
   function state(){
     const c = COMPARES.find(c => c.k === S.cmp), rows = [

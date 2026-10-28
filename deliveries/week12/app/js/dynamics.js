@@ -7,18 +7,18 @@
 const dyn = (() => {
   const el = $("dyn");
   let svg, g, W, H, dx, dy, scan, heads, brush, brushG, cur = null, ln, G = null;
-  const m = {t:8, r:34, b:30, l:52};   // m.r crece en modo comparación para que quepan los nombres de grupo
+  const m = {t:8, r:18, b:30, l:52};   // las series se identifican en la leyenda del panel
   const ex = i => dx(i*4+2);   // centro de la época i, en segundos
 
   function render(){
     d3.select(el).selectAll("*").remove();
-    W = el.clientWidth || 600; H = Math.round(Math.max(150, el.clientHeight || 220));
+    W = el.clientWidth || 600; H = Math.round(Math.max(120, el.clientHeight || 220));
     svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").attr("role", "img")
       .attr("aria-label", "Potencia theta por época, NS y SD, media y error estándar del grupo activo");
     svg.append("defs").append("clipPath").attr("id", "dclip").append("rect").attr("x", m.l).attr("y", m.t).attr("width", W-m.l-m.r).attr("height", H-m.t-m.b);
     g = svg.append("g");
     const pref = ROI[S.roi].pref, ids = activeIds();
-    G = cmpGroups(); m.r = G ? 70 : 34;
+    G = cmpGroups();
     d3.select("#k-dyn").html(G ? G.map(gr => `<span class="k"><i class="ln" style="background:${gr.color}"></i>${gr.name}</span>`).join("") + `<span class="k m">Δ media ± EE</span>`
       : `<span class="k"><i class="ln ns"></i>NS</span><span class="k"><i class="ln sd"></i>SD</span><span class="k"><i class="dash"></i>tendencia</span>`);
     // con comparación: Δ (SD menos NS) por época de cada grupo; sin comparación: NS y SD del grupo activo
@@ -46,10 +46,6 @@ const dyn = (() => {
       const b = d3.sum(pts, p => (p[0]-mx)*(p[1]-my))/d3.sum(pts, p => (p[0]-mx)**2);
       plot.append("line").attr("x1", dx(0)).attr("x2", dx(300)).attr("y1", dy(my+b*(0-mx))).attr("y2", dy(my+b*(300-mx))).attr("stroke", col).attr("stroke-width", 1.5).attr("stroke-dasharray", "6 4").attr("opacity", .9);
     });
-    // etiquetas directas al final, separadas al menos 13 px
-    const ends = items.map(o => ({lab:o.lab, col:o.col, y:dy(o.s.mean[74])})).sort((a, b) => a.y-b.y);
-    for(let i = 1; i < ends.length; i++) if(ends[i].y-ends[i-1].y < 13) ends[i].y = ends[i-1].y+13;
-    ends.forEach(o => g.append("text").attr("class", "alab").attr("x", W-m.r+5).attr("y", o.y+4).style("fill", o.col).text(o.lab.length > 9 ? o.lab.slice(0, 8)+"." : o.lab));
     scan = g.append("line").attr("class", "scan").attr("y1", m.t).attr("y2", H-m.b).style("opacity", 0);
     heads = g.append("g").style("pointer-events", "none");
     brush = d3.brushX().extent([[m.l, m.t], [W-m.r, H-m.b]]).on("end", ev => {
@@ -72,13 +68,16 @@ const dyn = (() => {
     const upOf = s => idx.filter(i => s.mean[i] != null && s.mean[i] > 0).length;
     if(G){
       const u = cur.D.map(upOf);
-      setTitle("t-dyn", `Δθ por época: dos grupos${post}`,
-        `SD &gt; NS en ${u[0]} y ${u[1]} de ${idx.length} épocas`);
+      setTitle("t-dyn", `Δθ por época: dos grupos${post}`, nb(`n = ${cur.D[0].n} y ${cur.D[1].n}`),
+        notes("Δ (SD − NS) de la potencia theta relativa por época de 4 s, persona a persona; media ± error estándar de cada grupo.",
+          `Δ &gt; 0 en ${u[0]} (${G[0].name}) y ${u[1]} (${G[1].name}) de ${idx.length} épocas.`, "Arrastrar sobre el gráfico elige una ventana de tiempo para la dispersión."));
       return;
     }
     const d = idx.map(i => cur.SD.mean[i]-cur.NS.mean[i]), up = d.filter(v => v > 0).length;
-    setTitle("t-dyn", `θ relativa por época: NS y SD${S.selected ? ", tu selección" : ""}${post}`,
-      nb(`SD &gt; NS en ${up}/${idx.length} épocas${S.win ? `, Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : `, pendiente ${fsr(slopePerMin(cur.SD.mean))}/min`}, n = ${cur.SD.n}`));
+    setTitle("t-dyn", `θ relativa por época: NS y SD${S.selected ? ", tu selección" : ""}${post}`, nb(`n = ${cur.SD.n}`),
+      notes("Potencia theta relativa (4 a 8 Hz sobre 1 a 40 Hz) por época de 4 s; media ± error estándar entre personas. Líneas discontinuas: tendencia lineal.",
+        `SD &gt; NS en ${up} de ${idx.length} épocas${S.win ? `; Δ medio ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : `; pendiente de SD ${fsr(slopePerMin(cur.SD.mean))}/min`}.`,
+        "Arrastrar sobre el gráfico elige una ventana de tiempo para la dispersión."));
   }
   function tipFor(i){
     const r = s => s.mean[i] != null ? `${f3(s.mean[i])} <span class="m">± ${f3(s.sem[i])}</span>` : "n/d";

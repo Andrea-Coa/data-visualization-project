@@ -1,20 +1,20 @@
 /* Vista 2 · Vulnerabilidad (tareas T3, T5 y T7).
    Arriba: dispersión del cambio theta (región y métrica del header) frente al marcador conductual elegido.
-   Abajo: franja con las 68 personas sobre el mismo eje x, con el conteo de quienes suben y bajan (hallazgo 1),
-   incluidas las que no tienen el marcador. Lazo libre = grupo; clic en un punto = persona A, segundo clic = B.
+   Lazo libre = grupo; clic en un punto = persona A, segundo clic = B.
    Con un análisis del multiverso cargado (S.spec), los ejes vienen de ese análisis. */
 const scatter = (() => {
   const el = $("scatter");
-  let svg, g, sx, sy, W, H, data = [], all = [], hitPts = [], delaunay = null, lassoPath, surface, ptsG, stripG, abG, plotB, stripY;
+  let svg, g, sx, sy, W, H, data = [], all = [], hitPts = [], delaunay = null, lassoPath, surface, ptsG, abG, plotB;
   let polygon = null, trail = [], pointerId = null, brushing = false, moved = false, beforeIds = null;
-  const m = {t:8, r:16, l:56}, STRIP = 50;
+  const m = {t:8, r:16, l:56};
 
   function build(){
     d3.select(el).selectAll("*").remove();
-    W = el.clientWidth || 600; H = Math.round(Math.max(260, el.clientHeight || 400));
-    plotB = H-34-STRIP-26; stripY = plotB+42;   // 42 px: las marcas del eje x y el conteo nunca se tocan
+    // el SVG nunca es más alto que su panel: si no, el título del eje x invade el panel de abajo
+    W = el.clientWidth || 600; H = Math.round(Math.max(170, el.clientHeight || 400));
+    plotB = H-38;   // debajo: marcas y título del eje x
     svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").attr("role", "img")
-      .attr("aria-label", "Dispersión del cambio theta frente al marcador conductual y franja con las 68 personas; los datos están en Acerca de");
+      .attr("aria-label", "Dispersión del cambio theta frente al marcador conductual; los datos están en Acerca de");
     const glow = addGlow(svg, "sglow", 1.6);
     g = svg.append("g");
     sx = d3.scaleLinear().range([m.l, W-m.r]); sy = d3.scaleLinear().range([plotB, m.t]);
@@ -83,11 +83,10 @@ const scatter = (() => {
     g.insert("g", ":first-child").attr("class", "gridl").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(sy).ticks(5).tickSize(-(W-m.l-m.r)).tickFormat(""));
     const qy0 = st.w > 0 ? m.t : sy(st.ymed), qy1 = st.w > 0 ? sy(st.ymed) : plotB;
     g.insert("rect", ".lasso-surface").attr("class", "quad").attr("x", sx(st.xmed)).attr("width", W-m.r-sx(st.xmed)).attr("y", qy0).attr("height", Math.max(0, qy1-qy0));
-    g.insert("line", ".lasso-surface").attr("class", "zero").attr("x1", sx(0)).attr("x2", sx(0)).attr("y1", m.t).attr("y2", stripY+STRIP/2+14);
+    g.insert("line", ".lasso-surface").attr("class", "zero").attr("x1", sx(0)).attr("x2", sx(0)).attr("y1", m.t).attr("y2", plotB);
     g.insert("line", ".lasso-surface").attr("class", "zero").attr("x1", m.l).attr("x2", W-m.r).attr("y1", sy(0)).attr("y2", sy(0));
     g.insert("line", ".lasso-surface").attr("class", "median").attr("x1", sx(st.xmed)).attr("x2", sx(st.xmed)).attr("y1", m.t).attr("y2", plotB);
     g.insert("line", ".lasso-surface").attr("class", "median").attr("x1", m.l).attr("x2", W-m.r).attr("y1", sy(st.ymed)).attr("y2", sy(st.ymed));
-    g.append("text").attr("class", "alab").attr("x", m.l+4).attr("y", sy(st.ymed)-4).text("mediana").style("pointer-events", "none");
     g.append("g").attr("class", "axis").attr("transform", `translate(0,${plotB})`).call(d3.axisBottom(sx).ticks(Math.max(4, Math.round(W/110))).tickSizeOuter(0).tickFormat(fTick(L.format("~r"))));
     g.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(sy).ticks(5).tickSizeOuter(0).tickFormat(fTick(L.format("~r")))).call(a => a.select(".domain").remove());
     const yt = mkY(), plotH = plotB-m.t;
@@ -96,21 +95,10 @@ const scatter = (() => {
       .text(`${xName()}${S.spec ? ` (${mvLabel("delta", S.spec.delta)})` : ""}, SD − NS`);
     lassoPath = g.append("path").attr("class", "lasso-selection");
     ptsG = g.append("g").style("pointer-events", "none");   // puntos nítidos: el brillo solo va en las series
-    // franja de las 68 personas: enjambre sobre el mismo eje x
-    stripG = g.append("g").style("pointer-events", "none");
-    const sim = all.map(d => ({d, x:sx(d[xk]), y:stripY+STRIP/2, tx:sx(d[xk])}));
-    const fs = d3.forceSimulation(sim).force("x", d3.forceX(o => o.tx).strength(1)).force("y", d3.forceY(stripY+STRIP/2).strength(.12)).force("c", d3.forceCollide(3.6)).stop();
-    for(let i = 0; i < 200; i++) fs.tick();
-    sim.forEach(o => { o.y = Math.max(stripY+4, Math.min(stripY+STRIP-4, o.y)); });
-    const up = all.filter(d => d[xk] > 0).length, dn = all.filter(d => d[xk] < 0).length;
-    const wUp = S.met === "var" && !S.spec ? "más inestables" : "suben", wDn = S.met === "var" && !S.spec ? "más estables" : "bajan";
-    g.append("text").attr("class", "ann").attr("x", sx(0)-8).attr("y", stripY-4).attr("text-anchor", "end").text(`← ${dn} ${wDn}`);
-    g.append("text").attr("class", "ann").attr("x", sx(0)+8).attr("y", stripY-4).text(`${up} ${wUp} →`);
     abG = g.append("g").style("pointer-events", "none");
-    hitPts = data.map(d => ({d, x:sx(d[xk]), y:sy(d[yk])})).concat(sim.map(o => ({d:o.d, x:o.x, y:o.y, strip:true})));
+    hitPts = data.map(d => ({d, x:sx(d[xk]), y:sy(d[yk])}));
     delaunay = d3.Delaunay.from(hitPts, h => h.x, h => h.y);
     ptsG.selectAll("circle").data(data, d => d.id).join("circle").attr("cx", d => sx(d[xk])).attr("cy", d => sy(d[yk])).attr("r", 5.5);
-    stripG.selectAll("circle").data(sim, o => o.d.id).join("circle").attr("cx", o => o.x).attr("cy", o => o.y).attr("r", 3);
     paint();
     title(); key(); table();
   }
@@ -122,39 +110,41 @@ const scatter = (() => {
     ptsG.selectAll("circle").attr("fill", d => S.spec && d.mvout ? "none" : col(d)).attr("stroke", d => S.spec && d.mvout ? C.ink2 : C.panel).attr("stroke-width", 1)
       .attr("opacity", d => ss && !ss.has(d.id) ? .22 : .95).attr("r", d => hv && hv.id === d.id ? 7.5 : 5.5);
     ptsG.selectAll("circle").filter(d => ss && ss.has(d.id)).raise();
-    stripG.selectAll("circle").attr("fill", o => col(o.d))
-      .attr("opacity", o => ss && !ss.has(o.d.id) ? .25 : .85).attr("r", o => hv && hv.id === o.d.id ? 5 : 3);
-    // A y B: anillo y letra sobre su punto (en la dispersión si tiene marcador, si no en la franja)
+    // A y B: anillo y letra sobre su punto (solo si la persona tiene el marcador del eje y)
     const marks = S.pair.map((d, i) => {
-      const inPlot = data.find(o => o.id === d.id), h = hitPts.find(o => o.d.id === d.id && (inPlot ? !o.strip : o.strip));
+      const h = hitPts.find(o => o.d.id === d.id);
       return h ? {id:d.id, L:"AB"[i], x:h.x, y:h.y} : null;
     }).filter(Boolean);
     abG.selectAll("circle").data(marks, d => d.id).join("circle").attr("cx", d => d.x).attr("cy", d => d.y).attr("r", 8.5).attr("fill", "none").attr("stroke", C.ink).attr("stroke-width", 2);
     abG.selectAll("text").data(marks, d => d.id).join("text").attr("class", "ab").attr("x", d => d.x+(d.x > W-40 ? -12 : 12)).attr("y", d => d.y+4)
       .attr("text-anchor", d => d.x > W-40 ? "end" : "start").text(d => d.L);
   }
-  // título: qué se cruza; las cifras van en tono apagado
+  // título: qué se cruza y el estadístico principal; la lectura del gráfico va en el ícono ⓘ
   function title(){
     const xk = S.xKey(), yk = yK(), head = "Δθ vs. Δ conductual";
+    const info = notes("Cada punto es una persona con EEG y marcador conductual pareados; Δ = SD − NS.",
+      "Líneas punteadas: medianas de ambos ejes. Área sombreada: cuadrante vulnerable (Δθ sobre la mediana y marcador peor que la mediana).",
+      S.spec ? "Puntos huecos: atípicos excluidos por el análisis (|z| &gt; 2.5)." : "",
+      "ρ de Spearman con IC 95 % (transformación z de Fisher). Clic en un punto: persona A o B; arrastrar: selección con lazo.");
     if(S.spec){
       const s = S.spec;
-      setTitle("t-sc", head, nb(`${mvLabel("corr", s.corr)} r = ${f2(s.r)} [${f2(s.lo)}, ${f2(s.hi)}], n = ${s.n}`));
+      setTitle("t-sc", head, nb(`${mvLabel("corr", s.corr)} r = ${f2(s.r)} [${f2(s.lo)}, ${f2(s.hi)}], n = ${s.n}`), info);
       return;
     }
     const G = cmpGroups();
     if(G){
-      setTitle("t-sc", `${head}: dos grupos`, "");   // el ρ de cada grupo va en su leyenda
+      setTitle("t-sc", `${head}: dos grupos`, "", info);   // el ρ de cada grupo va en su leyenda
       return;
     }
     const rows = S.selected ? EEG.filter(d => S.selected.includes(d.id)) : EEG, r = spearman(rows, xk, yk);
     setTitle("t-sc", S.selected ? `${head}: tu selección` : head,
-      nb(isNaN(r.rho) ? `n = ${r.n}` : `ρ = ${f2(r.rho)} [${f2(r.lo)}, ${f2(r.hi)}], n = ${r.n}`));
+      nb(isNaN(r.rho) ? `n = ${r.n}` : `ρ = ${f2(r.rho)} [${f2(r.lo)}, ${f2(r.hi)}], n = ${r.n}`), info);
   }
   function key(){
     const G = cmpGroups();
     const rg = G ? G.map(g => spearman(EEG.filter(d => g.set.has(d.id)), S.xKey(), yK())) : [];
     d3.select("#k-sc").html(G ? G.map((g, i) => `<span class="k"><i class="dot" style="background:${g.color}"></i>${g.name} ${nb(`ρ = ${isNaN(rg[i].rho) ? "n/d" : f2(rg[i].rho)}, n = ${rg[i].n}`)}</span>`).join("")
-      : `<span class="k"><i class="dot" style="background:var(--vuln)"></i>cuadrante vulnerable</span>` + (S.selected ? `<span class="k"><i class="dot" style="background:var(--ns)"></i>tu selección</span>` : ""));
+      : `<span class="k"><i class="dot" style="background:var(--vuln)"></i>cuadrante vulnerable</span><span class="k"><i class="dash"></i>mediana</span>` + (S.selected ? `<span class="k"><i class="dot" style="background:var(--ns)"></i>tu selección</span>` : ""));
   }
   function tipFor(d){
     const xk = S.xKey(), yk = yK(), L2 = pairLetter(d);

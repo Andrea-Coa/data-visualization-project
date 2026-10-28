@@ -21,7 +21,7 @@ const multi = (() => {
   function build(){
     d3.select(el).selectAll("*").remove();
     specs = MULTI.specs;
-    W = el.clientWidth || 640; H = Math.round(Math.max(240, el.clientHeight || 320));
+    W = el.clientWidth || 640; H = Math.round(Math.max(190, el.clientHeight || 320));
     svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").attr("tabindex", 0).attr("role", "img")
       .attr("aria-label", `Curva de ${specs.length} análisis ordenados por r frente a la franja del azar, y mediana de r por decisión`);
     // escritorio: curva y decisiones lado a lado; pantalla angosta: decisiones debajo de la curva
@@ -35,14 +35,12 @@ const multi = (() => {
     const g = svg.append("g");
     g.append("g").attr("class", "gridl").attr("transform", `translate(${A.l},0)`).call(d3.axisLeft(cy).ticks(5).tickSize(-(A.r-A.l)).tickFormat(""));
     g.append("g").attr("class", "axis").attr("transform", `translate(${A.l},0)`).call(d3.axisLeft(cy).ticks(5).tickSizeOuter(0).tickFormat(fTick(L.format("+.1~f")))).call(a => a.select(".domain").remove());
-    g.append("text").attr("class", "atitle").attr("x", A.l-30).attr("y", 11).text("r de cada análisis, ↑ peor");
+    g.append("text").attr("class", "atitle").attr("x", A.l-30).attr("y", 11).text("r");
     const nb = MULTI.nullBand;
     g.append("path").attr("class", "null-band").attr("d", d3.area().x((v, i) => cx(i)).y0((v, i) => cy(nb.lo[i])).y1((v, i) => cy(nb.hi[i])).curve(d3.curveMonotoneX)(nb.lo));
     g.append("line").attr("class", "zero").attr("x1", A.l).attr("x2", A.r).attr("y1", cy(0)).attr("y2", cy(0));
     g.append("line").attr("class", "ref-line").attr("x1", A.l).attr("x2", A.r).attr("y1", cy(CUI)).attr("y2", cy(CUI));
-    g.append("text").attr("class", "alab").attr("x", A.l+6).attr("y", cy(CUI)-5).text("Cui et al. (2026): 0.55");
-    g.append("text").attr("class", "alab").attr("x", A.r-4).attr("y", cy(nb.lo[Math.round(specs.length*.62)])+14).attr("text-anchor", "end").text("franja del azar (95 %)");
-    g.append("text").attr("class", "alab").attr("x", A.r).attr("y", A.b+18).attr("text-anchor", "end").text(`${specs.length} análisis, de menor a mayor r →`);
+    g.append("text").attr("class", "alab").attr("x", A.r).attr("y", A.b+18).attr("text-anchor", "end").text("análisis ordenados por r");
     curveG = g.append("g");
     guide = g.append("line").attr("stroke", C.ink).attr("stroke-opacity", .4).attr("y1", A.t).attr("y2", A.b).style("opacity", 0).style("pointer-events", "none");
     svg.append("rect").attr("x", A.l).attr("y", A.t).attr("width", A.r-A.l).attr("height", A.b-A.t).attr("fill", "transparent").style("cursor", "pointer")
@@ -53,7 +51,7 @@ const multi = (() => {
       const rs = specs.filter(s => s[d.key] === o.key).map(s => s.r).sort(d3.ascending);
       rows.push({dim:d.key, dimLabel:d.label, opt:o.key, label:o.label, first:i === 0, med:d3.quantileSorted(rs, .5), q1:d3.quantileSorted(rs, .25), q3:d3.quantileSorted(rs, .75)});
     }));
-    const RH = (D.b-D.t-4)/rows.length;
+    const RH = (D.b-D.t-4)/rows.length, fs = Math.max(8, Math.min(10.5, RH))+"px";   // en pantallas bajas el rótulo se ajusta al alto de fila
     const dx = d3.scaleLinear().domain([Math.min(-.15, d3.min(rows, r => r.q1)), Math.max(.15, d3.max(rows, r => r.q3))]).nice().range([D.l+D.lab, D.r-4]);
     g.append("text").attr("class", "atitle").attr("x", D.l).attr("y", D.t-9).text("Mediana de r por decisión");
     g.append("g").attr("class", "axis").attr("transform", `translate(0,${D.b})`).call(d3.axisBottom(dx).ticks(3).tickSize(3).tickFormat(fTick(L.format("+.1~f")))).call(a => a.select(".domain").remove());
@@ -62,10 +60,10 @@ const multi = (() => {
     rows.forEach((r, k) => {
       r.y = D.t+2+k*RH+RH/2;
       if(r.first && k > 0) rowsG.append("line").attr("class", "sep").attr("x1", D.l).attr("x2", D.r).attr("y1", r.y-RH/2).attr("y2", r.y-RH/2);
-      if(r.first) rowsG.append("text").attr("class", "mdim").attr("x", D.l).attr("y", r.y+3.5).text(r.dimLabel);
+      if(r.first) rowsG.append("text").attr("class", "mdim").attr("x", D.l).attr("y", r.y+3.5).style("font-size", fs).text(r.dimLabel);
       r.hit = rowsG.append("rect").attr("class", "mhit").attr("x", D.l).attr("y", r.y-RH/2).attr("width", D.r-D.l).attr("height", RH)
         .attr("tabindex", 0).attr("role", "button").attr("aria-label", `Filtrar: ${r.dimLabel} ${r.label}, mediana ${fR(r.med)}`);
-      r.lab = rowsG.append("text").attr("class", "mlabel").attr("x", D.l+D.lab-8).attr("y", r.y+3.5).attr("text-anchor", "end").text(short(r.dim, r.opt)).style("pointer-events", "none");
+      r.lab = rowsG.append("text").attr("class", "mlabel").attr("x", D.l+D.lab-8).attr("y", r.y+3.5).attr("text-anchor", "end").style("font-size", fs).text(short(r.dim, r.opt)).style("pointer-events", "none");
       r.bar = rowsG.append("line").attr("x1", dx(r.q1)).attr("x2", dx(r.q3)).attr("y1", r.y).attr("y2", r.y).attr("stroke-width", 2).attr("stroke-linecap", "round").style("pointer-events", "none");
       r.dot = rowsG.append("circle").attr("cx", dx(r.med)).attr("cy", r.y).attr("r", 3.6).style("pointer-events", "none");
       const toggle = () => { F[r.dim] === r.opt ? delete F[r.dim] : (F[r.dim] = r.opt); paint(); };
@@ -96,10 +94,6 @@ const multi = (() => {
     const rings = [{s:specs.find(isOrig), c:C.ink}].concat(ch ? [{s:ch, c:C.vuln}] : []);
     curveG.selectAll("circle.ring").data(rings).join("circle").attr("class", "ring").attr("cx", d => cx(specs.indexOf(d.s))).attr("cy", d => cy(d.s.r)).attr("r", 5.5)
       .attr("fill", "none").attr("stroke", d => d.c).attr("stroke-width", 1.6).style("pointer-events", "none");
-    // "análisis inicial" se rotula por encima de la curva (zona vacía), con una guía corta hasta su anillo
-    const oi = specs.findIndex(isOrig), oy = cy(specs[oi].r), ly = Math.max(A.t+12, oy-26);
-    curveG.selectAll("line.lead").data([oi]).join("line").attr("class", "lead").attr("x1", cx(oi)).attr("x2", cx(oi)).attr("y1", oy-6).attr("y2", ly+3).attr("stroke", C.muted);
-    curveG.selectAll("text.lead").data([oi]).join("text").attr("class", "ab lead").style("font-size", "10.5px").attr("x", cx(oi)).attr("y", ly).attr("text-anchor", "middle").text("análisis inicial");
     rows.forEach(r => {
       const on = F[r.dim] === r.opt, dim = any && F[r.dim] && !on;
       r.lab.classed("on", on); r.hit.classed("on", on);
@@ -111,16 +105,20 @@ const multi = (() => {
   }
   function header(any){
     const J = MULTI.joint, minP = Math.min(J.median.p, J.sigPos.p, J.stouffer.p);
+    const info = notes(`Cada punto es un análisis: r entre Δθ y Δ conductual; los ${specs.length} análisis van ordenados de menor a mayor r. Gris: p ≥ 0.05. Los marcadores se orientan a deterioro: r &gt; 0 = más cambio theta, peor conducta.`,
+      "Franja gris: 95 % central de r bajo la hipótesis nula (2000 permutaciones de las filas conductuales). Línea discontinua: r = 0.55 de Cui et al. (2026).",
+      "Anillo blanco: análisis inicial (Semana 6); anillo ámbar: análisis cargado en la dispersión.",
+      `Inferencia conjunta (Simonsohn, Simmons y Nelson, 2020): p de la mediana de r ${fp(J.median.p)}; del número de análisis con p &lt; 0.05 y r &gt; 0, ${fp(J.sigPos.p)}; de la Z de Stouffer, ${fp(J.stouffer.p)}.`,
+      "Derecha: mediana (punto) y rango intercuartil (barra) de r por opción de cada decisión. Clic en una fila filtra la curva; clic en un análisis lo carga en la dispersión.");
     if(any){
       const sel = specs.filter(match), sig = sel.filter(s => s.p < .05 && s.r > 0).length;
-      setTitle("t-multi", `Multiverso: ${Object.entries(F).map(([k, v]) => short(k, v)).join(" + ")}`, `${sig} de ${sel.length} análisis con p &lt; 0.05 y r &gt; 0, mediana r ${fR(d3.median(sel, s => s.r))}`);
+      setTitle("t-multi", `r por análisis: ${Object.entries(F).map(([k, v]) => short(k, v)).join(" + ")}`, `${sig} de ${sel.length} análisis con p &lt; 0.05 y r &gt; 0, mediana r ${fR(d3.median(sel, s => s.r))}`, info);
     } else {
-      const V = MULTI.jointVar;
-      setTitle("t-multi", "Multiverso: r por análisis",
-        `${specs.length} análisis, p ≥ ${L.format(".2f")(minP)}`);
+      setTitle("t-multi", "r por análisis",
+        nb(`${specs.length} análisis, p ≥ ${L.format(".2f")(minP)}`), info);
     }
     d3.select("#k-multi").html(`<span class="k"><i class="dot" style="background:${POS()}"></i>p &lt; 0.05, r &gt; 0</span><span class="k"><i class="dot" style="background:var(--signeg)"></i>p &lt; 0.05, r &lt; 0</span>` +
-      `<span class="k"><i class="dot" style="background:var(--ink2)"></i>n.s.</span><span class="k"><i class="ln" style="background:var(--ink2)"></i>RIC</span>`);
+      `<span class="k"><i class="box"></i>azar 95 %</span><span class="k"><i class="dash"></i>Cui et al.</span>`);
   }
   function tipFor(s){
     return `<div class="h">r = ${fR(s.r)} <span class="m">IC [${fR(s.lo)}, ${fR(s.hi)}], n = ${s.n}, p = ${fp(s.p)}</span></div>` +
