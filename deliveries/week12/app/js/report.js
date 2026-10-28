@@ -1,6 +1,6 @@
 /* Reporte descargable: un HTML autocontenido con lo que el usuario está viendo.
-   Incluye el estado de la vista (región, métrica, marcador, comparación, personas A y B, electrodo, ventana,
-   análisis del multiverso), los cuatro gráficos tal como están en pantalla (SVG), qué muestra cada uno y cómo
+   Incluye el estado de la vista (región, métrica, marcador, comparación, personas A y B, electrodo, ventana),
+   los cuatro gráficos tal como están en pantalla (SVG), qué muestra cada uno y cómo
    leerlo, la tabla de las personas activas y su CSV. Se abre sin conexión y se puede imprimir o guardar en PDF. */
 const report = (() => {
   // estilos mínimos para que los SVG copiados se vean igual que en la app
@@ -42,8 +42,6 @@ td{border-bottom:1px solid var(--rule);padding:4px 8px}a{color:var(--ns)}
     scatter:"Cada punto es una persona: en x, el cambio theta (SD − NS) de la región, el electrodo o la ventana elegidos; en y, el cambio en el marcador conductual (arriba = peor). Las líneas punteadas son las medianas y el área ámbar es el cuadrante vulnerable (sobre ambas medianas). ρ es la correlación de Spearman con su IC 95 %.",
     dyn:"Potencia theta relativa en cada una de las 75 épocas de 4 s del registro de 5 minutos: media del grupo activo ± error estándar, tras dormir normal (NS) y tras la privación (SD). La línea punteada es la tendencia lineal. Con una comparación de grupos se muestra el cambio Δ = SD − NS de cada grupo. Un recuadro ámbar indica la ventana de tiempo elegida.",
     heat:"Cada fila es una persona y cada columna un electrodo, agrupados en frontal, centro-temporal y posterior (de adelante hacia atrás). El color es su cambio Δ = SD − NS: magenta = sube tras la privación, cian = baja, oscuro = sin cambio. Las filas forman dos grupos definidos solo por la conducta (vulnerables: peor que la mediana del marcador; resistentes: el resto), o los dos grupos de la comparación, y se ordenan por su cambio medio en la región elegida. Sobre cada bloque, C(e) es la consistencia del grupo (proporción que sube menos la que baja); arriba, la media de todos. Una firma compartida se ve como un bloque del mismo color; si el efecto lo dominan pocas personas, se ven una o dos filas muy intensas.",
-    graph:"Cada nodo es una persona, con el color de su grupo. Cada una se une a las 3 personas cuyo patrón de cambio en los 61 electrodos más se le parece (correlación de Pearson); las aristas dentro de un grupo llevan su color. Si un grupo comparte firma, sus nodos quedan juntos; si están repartidos, cada persona cambia a su manera. El título cuenta cuántos de esos vecinos son del mismo grupo frente a lo esperado por azar. No es conectividad funcional entre electrodos.",
-    multi:"Cada punto es un análisis completo de la relación entre el cambio theta y el cambio conductual, con una combinación distinta de región, métrica, forma de cambio, marcador, correlación y manejo de atípicos (448 en total), ordenados por su correlación. La franja gris es el 95 % de lo que produciría el azar (2000 permutaciones). A la derecha, la mediana y el rango intercuartil de r para cada decisión. Si theta predijera el deterioro, la curva quedaría por encima de la franja.",
   };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;"}[c]));
   const svgOf = id => { const s = document.querySelector(`#${id} svg`); if(!s) return ""; const c = s.cloneNode(true); c.removeAttribute("style"); c.setAttribute("xmlns", "http://www.w3.org/2000/svg"); return c.outerHTML; };
@@ -53,14 +51,13 @@ td{border-bottom:1px solid var(--rule);padding:4px 8px}a{color:var(--ns)}
     const c = COMPARES.find(c => c.k === S.cmp), rows = [
       ["Región EEG", ROI[S.roi].name, S.elec ? "sustituida por un electrodo" : ""],
       ["Métrica theta", S.met === "var" ? "σθ, variabilidad entre épocas" : "μθ, media", ""],
-      ["Marcador del eje Y", S.spec ? mvLabel("marker", S.spec.marker) : MK[S.y].name, ""],
-      ["Eje x", xName(), S.spec ? "definido por un análisis del multiverso" : ""],
+      ["Marcador del eje Y", MK[S.y].name, ""],
+      ["Eje x", xName(), ""],
       ["Comparación", c ? c.name : "Sin comparación", ""],
       ["Personas activas", S.selected ? `${S.selected.length} (tu selección con lazo)` : `${EEG.length} (todas con EEG pareado)`, ""],
       ["Personas A y B", S.pair.length ? S.pair.map((d, i) => `${"AB"[i]} ${d.id}`).join(", ") : "ninguna", ""],
     ];
     if(S.win) rows.push(["Ventana de tiempo", winTxt(S.win), "dentro del registro de 5 min"]);
-    if(S.spec) rows.push(["Análisis del multiverso", MULTI.dims.map(d => mvLabel(d.key, S.spec[d.key])).join(" · "), `r = ${f2(S.spec.r)} [${f2(S.spec.lo)}, ${f2(S.spec.hi)}], n = ${S.spec.n}`]);
     return rows;
   }
   function people(){
@@ -91,11 +88,10 @@ ${[...document.querySelectorAll('link[href*="fonts.googleapis"][rel="stylesheet"
 <div class="state">${st}</div>
 <div class="btns"><button onclick="print()">Imprimir o guardar como PDF</button><a download="BATIMIX_datos_vista.csv" href="${csvHref}">Descargar los datos (CSV)</a></div>
 <h2>Lo que muestra la vista</h2>
-${$("drawer").classList.contains("open") ? fig("heat", "t-heat", "heat") + fig("graph", "t-graph", "graph") : ""}
-${fig("topo", "t-topo", "topo")}
 ${fig("scatter", "t-sc", "scatter")}
+${fig("heat", "t-heat", "heat")}
+${fig("topo", "t-topo", "topo")}
 ${fig("dyn", "t-dyn", "dyn")}
-${fig("curve", "t-multi", "multi")}
 <h2>Conclusión preliminar del proyecto</h2>
 <p>Sin dormir, la theta de cada persona cambia en direcciones distintas, y ese cambio no predice de forma robusta quién se deteriora: en 448 análisis alternativos ningún estadístico conjunto supera al azar. La única pista consistente es con el ánimo (afecto positivo), no con la vigilancia. Es una herramienta de screening exploratorio, no un diagnóstico.</p>
 <h2>Personas en esta vista (${rows.length})</h2>

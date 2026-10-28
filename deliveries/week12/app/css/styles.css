@@ -51,7 +51,7 @@ button,select{font:inherit;color:inherit}
 }
 
 /* ---------- tablero: cuatro paneles sin huecos ---------- */
-/* dos columnas con repartos propios: el multiverso necesita alto abajo a la izquierda, la matriz de mapas arriba a la derecha */
+/* dos columnas con repartos propios: el heatmap necesita alto abajo a la izquierda, la matriz de mapas arriba a la derecha */
 .board{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 .col{display:grid;min-height:0;min-width:0}
 .col-l{grid-template-rows:minmax(0,.92fr) minmax(0,1fr)}
@@ -63,6 +63,7 @@ button,select{font:inherit;color:inherit}
 .ph h2 .m{color:var(--muted);font-weight:500}
 .ph h2 b{color:var(--ink);font-weight:600}
 .ph h2 .info{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;margin-left:2px;border:1px solid var(--rule2);border-radius:50%;font-size:9.5px;font-weight:600;font-style:normal;line-height:1;color:var(--muted);vertical-align:1px;cursor:help}
+.ph h2 .nw{white-space:nowrap}
 @media (hover:hover) and (pointer:fine){ .ph h2 .info:hover{color:var(--ink);border-color:var(--ink2)} }
 .key{display:flex;align-items:center;gap:4px 12px;flex-wrap:wrap;justify-content:flex-end;font-size:11px;color:var(--ink2);flex:none}
 .key .k{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
@@ -72,30 +73,14 @@ button,select{font:inherit;color:inherit}
 .key .ring{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink)}
 .key .ln{width:16px;height:2px;border-radius:1px}
 .key .ln.ns{background:var(--ns)}.key .ln.sd{background:var(--sd)}
-.key .box{width:14px;height:8px;border-radius:2px;background:var(--null)}
 .key .dash{width:16px;border-top:1.5px dashed var(--ink2)}
 .view{position:relative;flex:1 1 0;min-height:0;min-width:0}
 .view svg{display:block;width:100%;user-select:none;-webkit-user-select:none}
-.specbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 0;padding:3px 4px 3px 9px;border-radius:6px;background:var(--raise);border:1px solid var(--rule2);font-size:11px;color:var(--vuln)}
-.specbar .x{border:0;background:transparent;color:var(--ink2);font-size:16px;line-height:1;cursor:pointer;padding:0 6px}
-/* panel flotante Individuos: se desliza sobre la columna izquierda; la matriz de mapas sigue visible y enlazada.
-   Curva de cajón (rápida al entrar, suave al final), solo transform; sin movimiento si el sistema lo pide. */
 .board{position:relative;overflow:hidden}
-.drawer{position:absolute;top:0;left:0;bottom:0;width:50%;z-index:20;display:grid;grid-template-rows:minmax(0,1.3fr) minmax(0,1fr);
-  background:var(--panel);border-right:1px solid var(--rule2);box-shadow:28px 0 56px -18px rgba(0,0,0,.7);
-  transform:translateX(-102%);visibility:hidden;transition:transform .26s cubic-bezier(.32,.72,0,1),visibility 0s linear .26s}
-.drawer.open{transform:none;visibility:visible;transition:transform .42s cubic-bezier(.32,.72,0,1),visibility 0s}
-.drawer .panel{border-right:0}
-.drawer .ph{flex-wrap:wrap}
-.drawer .ph h2{flex:1 1 280px}
-.xbtn{flex:none;border:0;background:transparent;color:var(--ink2);font-size:18px;line-height:1;padding:0 2px 0 6px;cursor:pointer;align-self:flex-start}
-.seg-sm button{padding:1px 8px;font-size:11px}
-.key .kin{display:contents}
-.btn-toggle[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* el título del heatmap y su escala de color pasan a dos líneas si no caben */
+.p-heat .ph{flex-wrap:wrap}
+.p-heat .ph h2{flex:1 1 280px}
 .btn-icon{padding:5px 9px;font-size:14px;line-height:1}
-.glab{font-size:9px;fill:var(--muted);pointer-events:none;paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}
-@media (hover:hover) and (pointer:fine){ .xbtn:hover{color:var(--ink)} }
-@media (prefers-reduced-motion:reduce){ .drawer,.drawer.open{transition:none} }
 @media (min-width:1101px){
   html,body{overflow:hidden}
   .board{height:calc(100vh - var(--bar-h));height:calc(100svh - var(--bar-h))}
@@ -121,19 +106,12 @@ button,select{font:inherit;color:inherit}
 .rowhead{font-family:var(--sans);font-size:12px;font-weight:600;fill:var(--ink);text-anchor:middle}
 .ts-line{fill:none;stroke-width:2;stroke-linejoin:round}
 .scan{stroke:var(--ink);stroke-opacity:.5;pointer-events:none}
-.mlabel{font-family:var(--sans);font-size:10.5px;fill:var(--ink2);cursor:pointer}
-.mlabel.on{fill:var(--vuln);font-weight:600}
 .mdim{font-size:10px;fill:var(--muted);letter-spacing:.02em}
 .mmed{font-size:10px;fill:var(--muted);text-anchor:end}
-.mhit{fill:transparent;cursor:pointer}
-.mhit.on{fill:rgba(255,181,71,.08)}
 .ehit{fill:transparent;cursor:pointer}
 .brush .selection{fill:rgba(255,181,71,.10);stroke:var(--vuln);stroke-width:1;shape-rendering:crispEdges}
 .brush .overlay{cursor:crosshair}
 .indiv{fill:none;stroke-width:1;pointer-events:none}
-.sep{stroke:var(--rule)}
-.null-band{fill:var(--null)}
-.ref-line{stroke:var(--ink2);stroke-dasharray:5 4;stroke-width:1}
 
 #tooltip{position:fixed;left:0;top:0;pointer-events:none;background:#1B2029;border:1px solid var(--rule2);color:var(--ink);padding:7px 10px;border-radius:7px;font-size:12px;opacity:0;max-width:340px;z-index:60;line-height:1.45}
 #tooltip .note{margin:0 0 5px;color:var(--ink2)}
@@ -178,15 +156,8 @@ button,select{font:inherit;color:inherit}
   .p-topo .view{min-height:440px}
   .p-scatter .view{min-height:380px}
   .p-dyn .view{min-height:240px}
-  .p-multi .view{min-height:360px}
   .board{overflow:visible}
-  .drawer{position:fixed;inset:0;width:auto;z-index:50;overflow:auto;display:block;border-right:0;overscroll-behavior:contain}
-  .drawer .panel{min-height:auto}
   .p-heat .view{min-height:560px}
-  .p-graph .view{min-height:420px}
-}
-@media (max-width:560px){
-  .p-multi .view{min-height:640px}
 }
 @media (max-width:600px){
   .ctrls select{max-width:100%;flex:1 1 160px}
@@ -225,14 +196,8 @@ button,select{font:inherit;color:inherit}
 :root[data-theme="light"] .quad{fill:rgba(199,122,18,.08)}
 :root[data-theme="light"] .head{stroke:#4A4A4A}
 :root[data-theme="light"] .contour{stroke:#000;stroke-opacity:.12}
-:root[data-theme="light"] .mhit.on{fill:rgba(199,122,18,.10)}
-:root[data-theme="light"] .mlabel.on{fill:#8A5208}
 :root[data-theme="light"] .brush .selection{fill:rgba(199,122,18,.10);stroke:var(--vuln)}
-:root[data-theme="light"] .ref-line{stroke:var(--ink2)}
 :root[data-theme="light"] #tooltip{background:#FFFFFF;border-color:var(--rule2);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.12)}
 :root[data-theme="light"] .sheet{background:#FFFFFF}
 :root[data-theme="light"] .sheet-head{background:#FFFFFF}
 :root[data-theme="light"] .sheet::backdrop{background:rgba(0,0,0,.35)}
-:root[data-theme="light"] .specbar{color:#8A5208}
-:root[data-theme="light"] .drawer{box-shadow:18px 0 40px -18px rgba(0,0,0,.22)}
-:root[data-theme="light"] .btn-toggle[aria-pressed="true"]{background:var(--ink);color:#FFFFFF;border-color:var(--ink)}

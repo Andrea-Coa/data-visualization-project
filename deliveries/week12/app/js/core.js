@@ -48,9 +48,9 @@ const METN = {var:"σθ", mean:"μθ"};
 const bus = d3.dispatch("hover", "pin", "select", "axes");
 const S = {
   y:"d_pvt", roi:"front", met:"var",
-  hovered:null, pair:[], selected:null, group:"all", vuln:new Set(), spec:null, elec:null, win:null, cmp:"none",
-  // origen del eje x de la dispersión: análisis del multiverso > ventana de tiempo > electrodo > región
-  xKey(){ return this.spec ? "mvx" : (this.win ? "wx" : (this.elec ? "ex" : ROI[this.roi][this.met])); },
+  hovered:null, pair:[], selected:null, group:"all", vuln:new Set(), elec:null, win:null, cmp:"none",
+  // origen del eje x de la dispersión: ventana de tiempo > electrodo > región
+  xKey(){ return this.win ? "wx" : (this.elec ? "ex" : ROI[this.roi][this.met]); },
 };
 const winTxt = w => `${w[0]*4} a ${(w[1]+1)*4} s`;
 // valores por persona del electrodo elegido en un mapa, o de la ventana de tiempo elegida en la serie
@@ -72,15 +72,9 @@ function elecRho(e, met){
   const rows = activeIds().map(id => { const t = SUBTOPO[id] && SUBTOPO[id][e], p = P.find(d => d.id === id); return t && p && p[S.y] != null ? {x:met === "var" ? t.dVar : t.dMean, y:p[S.y]} : null; }).filter(Boolean);
   return spearman(rows, "x", "y");
 }
-const yK = () => S.spec ? "mvy" : S.y;
-function mvLabel(dim, key){ const d = MULTI && MULTI.dims.find(x => x.key === dim); const o = d && d.opts.find(x => x.key === key); return o ? o.label : key; }
-function mkY(){
-  if(!S.spec) return MK[S.y];
-  const lab = mvLabel("marker", S.spec.marker);
-  return {name:lab, short:lab, axis:`Δ ${lab}, ↑ peor`, ax2:`Δ ${lab}`, worse:1};
-}
+const yK = () => S.y;
+const mkY = () => MK[S.y];
 function xName(){
-  if(S.spec) return `Δ ${METN[S.spec.met]} ${mvLabel("roi", S.spec.roi)}`;
   if(S.win) return `Δ${METN[S.met]} ${ROI[S.roi].name}, ${winTxt(S.win)}`;
   if(S.elec) return `Δ${METN[S.met]} en ${S.elec}`;
   return `Δ${METN[S.met]} ${ROI[S.roi].name}`;
@@ -119,8 +113,10 @@ const groupName = () => S.selected ? "Tu selección" : "";
 // título de panel: qué muestra, en pocas palabras, la cifra principal en tono apagado y, en el ícono ⓘ,
 // los detalles y la lectura del gráfico (tooltip al pasar el cursor o al enfocarlo con el teclado)
 function setTitle(id, head, sub, info){
-  const h = $(id);
-  h.innerHTML = `${head}${sub ? ` <span class="m">${sub}</span>` : ""}${info ? `&nbsp;<span class="info" tabindex="0" role="button" aria-label="Detalles del gráfico">i</span>` : ""}`;
+  const h = $(id), icon = `<span class="info" tabindex="0" role="button" aria-label="Detalles del gráfico">i</span>`;
+  // el ícono va pegado a la última palabra (span sin cortes de línea): nunca queda solo en otra línea
+  const glue = s => { const k = s.lastIndexOf(" "); return `${s.slice(0, k+1)}<span class="nw">${s.slice(k+1)}&nbsp;${icon}</span>`; };
+  h.innerHTML = info ? (sub ? `${head} <span class="m">${glue(sub)}</span>` : glue(head)) : `${head}${sub ? ` <span class="m">${sub}</span>` : ""}`;
   const i = h.querySelector(".info"); if(!i) return;
   const at = () => { const r = i.getBoundingClientRect(); return {clientX:r.right, clientY:r.bottom}; };
   i.onpointerenter = e => showTip(e, info); i.onpointermove = e => moveTip(e); i.onpointerleave = hideTip;

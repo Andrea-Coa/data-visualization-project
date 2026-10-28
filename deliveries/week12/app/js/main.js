@@ -1,4 +1,5 @@
 /* Arranque: carga los JSON procesados, prepara estado derivado y dibuja las cuatro vistas enlazadas.
+   multiverse.json ya no tiene vista propia, pero trae los lapsos y la DE del TR del PVT (marcadores del eje y).
    Servido por HTTP (GitHub Pages o servidor local) lee data/*.json. Abierto con doble clic (file://)
    el navegador bloquea fetch, así que cae a data/data.js, el mismo contenido empaquetado. */
 const FILES = ["participants", "topo", "coords", "subject_epochs", "topo_by_subject", "multiverse"];
@@ -33,16 +34,7 @@ function prepare(D){
 }
 
 // ---------- controles del header ----------
-let segRoi, segMet, segGrp;
-// panel flotante Individuos sobre la columna derecha: misma vista y mismo estado; la matriz de mapas queda a la vista
-function setIndiv(open, focus = true){
-  const d = $("drawer"); hideTip();
-  d.classList.toggle("open", open); d.setAttribute("aria-hidden", !open); d.inert = !open;
-  $("indivbtn").setAttribute("aria-pressed", open);
-  history.replaceState(null, "", open ? "#individuos" : location.pathname + location.search);   // enlace directo al panel
-  if(open){ indiv.render(); if(focus) $("drawerclose").focus({preventScroll:true}); } else indiv.stop();
-}
-const indivOpen = () => $("drawer").classList.contains("open");
+let segRoi, segMet;
 // tema oscuro (instrumento) o claro (clásico): cambia los tokens de color y fuente, relee la paleta y redibuja todo
 function setTheme(t){
   const light = t === "light";
@@ -56,7 +48,7 @@ function setTheme(t){
   if(document.fonts) document.fonts.ready.then(drawAll);   // las fuentes del otro tema cambian la medida del texto
 }
 const themeNow = () => document.documentElement.dataset.theme === "light" ? "light" : "dark";
-function drawAll(){ scatter.render(); topo.render(); dyn.render(); if(MULTI) multi.render(); indiv.render(); updateStatus(); }
+function drawAll(){ scatter.render(); topo.render(); dyn.render(); indiv.render(); updateStatus(); }
 function setY(v){ S.y = v; $("ysel").value = v; scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 function setRoi(v){ S.roi = v; S.elec = null; segRoi.set(v); computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 function setMet(v){ S.met = v; segMet.set(v); computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
@@ -65,8 +57,8 @@ function setElec(e){ S.elec = S.elec === e ? null : e; if(S.elec) S.win = null; 
 // ventana de tiempo elegida en la serie: el eje x usa el cambio theta de cada persona dentro de la ventana
 function setWin(w){ S.win = w; if(w) S.elec = null; computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 function resetAll(){
-  scatter.clearBrushVisual(); S.pair = []; S.elec = null; S.win = null; S.cmp = "none"; computeX(); indiv.release();
-  setSelected(null); bus.call("pin", null, S.pair); multi.clear(); scatter.render(); topo.render(); bus.call("axes");
+  scatter.clearBrushVisual(); S.pair = []; S.elec = null; S.win = null; S.cmp = "none"; computeX();
+  setSelected(null); bus.call("pin", null, S.pair); scatter.render(); topo.render(); bus.call("axes");
 }
 // comparación de dos grupos: las cuatro vistas se dibujan con los dos colores; anula el lazo
 function setCmp(k){
@@ -80,45 +72,37 @@ function fillCmp(){
 }
 function updateStatus(){
   fillCmp(); $("cmpsel").value = S.cmp;
-  const filtered = typeof multi !== "undefined" && multi.isFiltered && multi.isFiltered();
-  $("resetbtn").disabled = !S.selected && !S.pair.length && !S.spec && !S.elec && !S.win && S.cmp === "none" && !filtered;
-  // un solo chip en el header dice qué manda en el eje x cuando no es la región: análisis, ventana o electrodo
-  const chip = $("xchip"), on = S.spec || S.elec || S.win;
+  $("resetbtn").disabled = !S.selected && !S.pair.length && !S.elec && !S.win && S.cmp === "none";
+  // un solo chip en el header dice qué manda en el eje x cuando no es la región: ventana o electrodo
+  const chip = $("xchip"), on = S.elec || S.win;
   chip.hidden = !on;
-  if(on){
-    chip.textContent = S.spec ? `análisis ${multi.specRank(S.spec)} de ${MULTI.specs.length}` : (S.win ? `x: ${winTxt(S.win)}` : `x: ${S.elec}`);
-    chip.title = S.spec ? MULTI.dims.map(d => `${d.label}: ${mvLabel(d.key, S.spec[d.key])}`).join("\n") : "";
-  }
-  document.querySelectorAll("#roiseg button").forEach(b => b.setAttribute("aria-pressed", !S.elec && !S.spec && b.dataset.v === S.roi));
-  document.querySelectorAll("#metseg button").forEach(b => b.setAttribute("aria-pressed", !S.spec && b.dataset.v === S.met));
+  if(on) chip.textContent = S.win ? `x: ${winTxt(S.win)}` : `x: ${S.elec}`;
+  document.querySelectorAll("#roiseg button").forEach(b => b.setAttribute("aria-pressed", !S.elec && b.dataset.v === S.roi));
+  document.querySelectorAll("#metseg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === S.met));
 }
 
 loadData().then(D => {
   prepare(D); readPalette();
   d3.select("#ysel").selectAll("option").data(Object.entries(MK)).join("option").attr("value", d => d[0]).text(d => d[1].name);
   $("ysel").value = S.y;
-  segRoi = setupSeg("roiseg", setRoi); segMet = setupSeg("metseg", setMet); segGrp = setupSeg("grpseg", v => { segGrp.set(v); indiv.setGrouped(v === "group"); });
+  segRoi = setupSeg("roiseg", setRoi); segMet = setupSeg("metseg", setMet);
   d3.select("#ysel").on("change", function(){ setY(this.value); });
   d3.select("#cmpsel").on("change", function(){ setCmp(this.value); });
   d3.select("#resetbtn").on("click", resetAll);
-  d3.select("#xchip").on("click", () => S.spec ? multi.setSpec(null) : (S.win ? setWin(null) : setElec(S.elec)));
+  d3.select("#xchip").on("click", () => S.win ? setWin(null) : setElec(S.elec));
   d3.select("#reportbtn").on("click", () => report.download());
   d3.select("#themebtn").on("click", () => setTheme(themeNow() === "light" ? "dark" : "light"));
   if(themeNow() === "light"){ $("themebtn").setAttribute("aria-label", "Cambiar a tema oscuro"); $("themebtn").title = "Tema oscuro"; }
   d3.select("#aboutbtn").on("click", () => { const d = $("about"); d.showModal ? d.showModal() : d.setAttribute("open", ""); });
   document.querySelectorAll("dialog [data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
   document.querySelectorAll("dialog").forEach(d => d.addEventListener("click", e => { if(e.target === d) d.close(); }));
-  d3.select("#indivbtn").on("click", () => setIndiv(!indivOpen()));
-  d3.select("#drawerclose").on("click", () => { setIndiv(false); $("indivbtn").focus(); });
-  // Esc cierra primero el panel flotante; con el panel cerrado, limpia la vista
-  addEventListener("keydown", e => { if(e.key !== "Escape" || e.defaultPrevented || document.querySelector("dialog[open]")) return; if(indivOpen()){ setIndiv(false); $("indivbtn").focus(); } else resetAll(); });
+  // Esc limpia la vista
+  addEventListener("keydown", e => { if(e.key !== "Escape" || e.defaultPrevented || document.querySelector("dialog[open]")) return; resetAll(); });
   bus.on("select.status", updateStatus); bus.on("pin.status", updateStatus); bus.on("axes.status", updateStatus);
 
   $("boot").classList.add("done");   // la rejilla se muestra antes de dibujar para que cada vista mida su espacio real
-  scatter.render(); topo.render(); dyn.render();
-  try{ multi.init(); }catch(err){ console.error("multiverso:", err); $("t-multi").textContent = "No se pudo dibujar el multiverso: regenera data/multiverse.json."; }
+  scatter.render(); topo.render(); dyn.render(); indiv.render();
   updateStatus();
-  if(location.hash === "#individuos") setIndiv(true, false);
   if(document.fonts) document.fonts.ready.then(drawAll);
   // cada vista se redibuja cuando cambia el tamaño real de su contenedor
   const sizes = new Map(); let rt;
@@ -128,7 +112,7 @@ loadData().then(D => {
       if(!old || Math.abs(old[0]-r.width) > 2 || Math.abs(old[1]-r.height) > 2){ sizes.set(e.target, [r.width, r.height]); if(old) changed = true; } });
     if(changed){ clearTimeout(rt); rt = setTimeout(drawAll, 120); }
   });
-  ["scatter", "topo", "dyn", "curve", "heat", "graph"].forEach(id => ro.observe($(id)));
+  ["scatter", "topo", "dyn", "heat"].forEach(id => ro.observe($(id)));
 }).catch(err => {
   console.error(err);
   const b = $("boot"); b.classList.add("err");

@@ -1,7 +1,6 @@
 /* Vista 2 · Vulnerabilidad (tareas T3, T5 y T7).
    Arriba: dispersión del cambio theta (región y métrica del header) frente al marcador conductual elegido.
-   Lazo libre = grupo; clic en un punto = persona A, segundo clic = B.
-   Con un análisis del multiverso cargado (S.spec), los ejes vienen de ese análisis. */
+   Lazo libre = grupo; clic en un punto = persona A, segundo clic = B. */
 const scatter = (() => {
   const el = $("scatter");
   let svg, g, sx, sy, W, H, data = [], all = [], hitPts = [], delaunay = null, lassoPath, surface, ptsG, abG, plotB;
@@ -92,7 +91,7 @@ const scatter = (() => {
     const yt = mkY(), plotH = plotB-m.t;
     g.append("text").attr("class", "atitle").attr("text-anchor", "middle").attr("transform", "rotate(-90)").attr("x", -(m.t+plotB)/2).attr("y", 14).text(yt.axis.length*6.2 < plotH ? yt.axis : yt.ax2);
     g.append("text").attr("class", "atitle").attr("text-anchor", "middle").attr("x", (m.l+W-m.r)/2).attr("y", H-4)
-      .text(`${xName()}${S.spec ? ` (${mvLabel("delta", S.spec.delta)})` : ""}, SD − NS`);
+      .text(`${xName()}, SD − NS`);
     lassoPath = g.append("path").attr("class", "lasso-selection");
     ptsG = g.append("g").style("pointer-events", "none");   // puntos nítidos: el brillo solo va en las series
     abG = g.append("g").style("pointer-events", "none");
@@ -107,7 +106,7 @@ const scatter = (() => {
     const ss = S.selected ? new Set(S.selected) : null, hv = S.hovered, xk = S.xKey(), yk = yK(), G = cmpGroups();
     // color: grupos de la comparación > selección con lazo (cian) > cuadrante vulnerable (ámbar) > resto
     const col = d => G ? (G[0].set.has(d.id) ? C.g1 : (G[1].set.has(d.id) ? C.g2 : C.faint)) : (ss && ss.has(d.id) ? C.ns : (S.vuln.has(d.id) ? C.vuln : C.rest));
-    ptsG.selectAll("circle").attr("fill", d => S.spec && d.mvout ? "none" : col(d)).attr("stroke", d => S.spec && d.mvout ? C.ink2 : C.panel).attr("stroke-width", 1)
+    ptsG.selectAll("circle").attr("fill", col).attr("stroke", C.panel).attr("stroke-width", 1)
       .attr("opacity", d => ss && !ss.has(d.id) ? .22 : .95).attr("r", d => hv && hv.id === d.id ? 7.5 : 5.5);
     ptsG.selectAll("circle").filter(d => ss && ss.has(d.id)).raise();
     // A y B: anillo y letra sobre su punto (solo si la persona tiene el marcador del eje y)
@@ -124,13 +123,7 @@ const scatter = (() => {
     const xk = S.xKey(), yk = yK(), head = "Δθ vs. Δ conductual";
     const info = notes("Cada punto es una persona con EEG y marcador conductual pareados; Δ = SD − NS.",
       "Líneas punteadas: medianas de ambos ejes. Área sombreada: cuadrante vulnerable (Δθ sobre la mediana y marcador peor que la mediana).",
-      S.spec ? "Puntos huecos: atípicos excluidos por el análisis (|z| &gt; 2.5)." : "",
       "ρ de Spearman con IC 95 % (transformación z de Fisher). Clic en un punto: persona A o B; arrastrar: selección con lazo.");
-    if(S.spec){
-      const s = S.spec;
-      setTitle("t-sc", head, nb(`${mvLabel("corr", s.corr)} r = ${f2(s.r)} [${f2(s.lo)}, ${f2(s.hi)}], n = ${s.n}`), info);
-      return;
-    }
     const G = cmpGroups();
     if(G){
       setTitle("t-sc", `${head}: dos grupos`, "", info);   // el ρ de cada grupo va en su leyenda
@@ -162,6 +155,6 @@ const scatter = (() => {
   }
   bus.on("hover.sc", () => paint());
   bus.on("pin.sc", () => { paint(); key(); table(); });
-  bus.on("select.sc", () => { paint(); key(); if(!S.spec) title(); table(); });
+  bus.on("select.sc", () => { paint(); key(); title(); table(); });
   return {render, paint, clearBrushVisual, stats, rebuild(){ clearBrushVisual(); }};
 })();
