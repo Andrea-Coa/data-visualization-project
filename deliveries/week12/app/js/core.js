@@ -219,8 +219,8 @@ const hideTip = () => { tipEl.style.opacity = 0; };
 // calidad del EEG de una persona (tools/build_quality.py): épocas usadas, canales interpolados y parpadeos, NS y SD
 function qualRows(id){
   const q = QUAL && QUAL.persons[id]; if(!q) return "";
-  const one = c => q[c] ? `${q[c].epochs ?? "?"} ep · ${q[c].interpolated.length ? `interp. ${q[c].interpolated.join(", ")}` : "no interp."}${q[c].blinks_per_min != null ? ` · ${q[c].blinks_per_min} blinks/min` : ""}` : "excluded";
-  return `<div class="m" style="margin-top:4px">EEG quality</div>` + trow("NS", one("NS")) + trow("SD", one("SD"));
+  const one = c => q[c] ? `${q[c].epochs ?? "?"} ep${q[c].ica_removed != null ? ` · ${q[c].ica_removed} ICA` : ""} · ${q[c].interpolated.length ? `interp. ${q[c].interpolated.join(", ")}` : "no interp."}${q[c].blinks_per_min != null ? ` · ${q[c].blinks_per_min} blinks/min` : ""}` : "excluded";
+  return `<div class="m" style="margin-top:4px">EEG quality</div>` + trow("Normal Sleep", one("NS")) + trow("Sleep Deprivation", one("SD"));
 }
 const trow = (k, v, col) => `<div class="row"><span>${col ? `<i class="lk" style="background:${col}"></i>` : ""}${k}</span><b>${v}</b></div>`;
 

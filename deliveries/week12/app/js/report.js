@@ -94,11 +94,11 @@ ${fig("heat", "t-heat", "heat")}
 ${fig("topo", "t-topo", "topo")}
 ${fig("dyn", "t-dyn", "dyn")}
 <h2>Preliminary conclusion of the project</h2>
-<p>Without sleep, each person\'s theta changes in different directions, and that change does not robustly predict who deteriorates: across 448 alternative analyses no joint statistic exceeds chance. The only consistent hint is with mood (positive affect), not with vigilance. This is an exploratory screening tool, not a diagnosis.</p>
+<p>Without sleep, each person\'s theta changes in different directions, and that change does not robustly predict who deteriorates: across 896 alternative analyses (two preprocessing pipelines) no joint statistic exceeds chance. The only consistent hint is with mood (positive affect), not with vigilance. This is an exploratory screening tool, not a diagnosis.</p>
 <h2>People in this view (${rows.length})</h2>
 ${tbl}
 <h2>Method in brief</h2>
-<p class="m">Relative theta power (4–8 Hz divided by 1–40 Hz, Welch) in 75 4-s epochs per recording, eyes open, 61 electrodes, FCz reference, no ICA. σθ = standard deviation across epochs; μθ = mean; Δ = SD − NS. Electrodes: paired t-test with Benjamini–Hochberg FDR correction. Associations: Spearman with 95% CI (Fisher). Multiverse: 448 specifications with joint permutation inference (Simonsohn, Simmons and Nelson, 2020). Team: Jimena Gurbillon, Andrea Coa and Paolo Medrano, DS5343 Data Visualization, UTEC 2026-2.</p>
+<p class="m">Relative theta power (4–8 Hz divided by 1–40 Hz, Welch) in 75 4-s epochs per recording, eyes open, 61 electrodes, average reference, ICA (ocular and muscle components removed), epochs above 200 µV rejected. σθ = standard deviation across epochs; μθ = mean; Δ = SD − NS. Electrodes: paired t-test with Benjamini–Hochberg FDR correction. Associations: Spearman with 95% CI (Fisher). Multiverse: 896 specifications (two preprocessing pipelines) with joint permutation inference (Simonsohn, Simmons and Nelson, 2020). Team: Jimena Gurbillon, Andrea Coa and Paolo Medrano, DS5343 Data Visualization, UTEC 2026-2.</p>
 </main></body></html>`;
   }
   function download(){

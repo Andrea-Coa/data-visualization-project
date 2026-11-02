@@ -1,18 +1,20 @@
 """Genera data/multiverse.json: análisis de multiverso (curva de especificación) de la
 asociación entre el cambio theta (SD - NS) y el cambio conductual.
 
-Fuentes (salidas de la Semana 6, no se reprocesa EEG crudo):
-  deliveries/week06/data/processed/eeg_theta_per_electrode.csv  (μθ y σθ por electrodo, sujeto y condición)
-  deliveries/week06/data/processed/behavioral_deltas.csv        (Δ conductuales SD - NS)
+Fuentes (no se reprocesa EEG crudo):
+  deliveries/week12/data/processed_ica/eeg_theta_per_electrode.csv  (pipeline principal: referencia promedio + ICA)
+  deliveries/week06/data/processed/eeg_theta_per_electrode.csv      (pipeline de la Semana 6: referencia FCz, sin ICA)
+  deliveries/week06/data/processed/behavioral_deltas.csv            (Δ conductuales SD - NS)
 
 Decisiones analíticas que forman el multiverso (todas defendibles a priori):
+  pipeline     referencia promedio + ICA | referencia FCz sin ICA
   región       frontal (16) | centro-temporal (28) | posterior (17) | global (61)
   métrica      σθ variabilidad entre épocas | μθ media
   cambio       absoluto (SD - NS) | relativo ((SD - NS) / NS)
   marcador     PVT mediana TR | PVT lapsos | PVT DE del TR | KSS | SSS | PANAS+ | PANAS-
   correlación  Spearman | Pearson
   atípicos     todos | excluir |z| > 2.5 en x o en y
-  => 4 x 2 x 2 x 7 x 2 x 2 = 448 especificaciones.
+  => 2 x 4 x 2 x 2 x 7 x 2 x 2 = 896 especificaciones.
 
 Todos los marcadores se orientan a "deterioro" (PANAS+ cambia de signo), así la hipótesis
 de Cui et al. (2026) predice r > 0 en todas las especificaciones.
@@ -40,6 +42,8 @@ def longpath(p):
 HERE = longpath(Path(__file__).parent)
 APP = HERE.parent
 W6 = APP.parent.parent / "week06" / "data" / "processed"
+ICA = APP.parent / "data" / "processed_ica"
+PIPES = {"ica": ICA, "w6": W6}
 
 FRONTAL = ["Fp1", "Fp2", "Fpz", "AF3", "AF4", "AF7", "AF8", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "Fz"]
 CENTROTEMPORAL = ["FC1", "FC2", "FC3", "FC4", "FC5", "FC6", "FT7", "FT8", "C1", "C2", "C3", "C4", "C5", "C6", "Cz", "T7", "T8",
@@ -55,6 +59,7 @@ MARKERS = [  # clave, columna, signo para orientar a deterioro, etiqueta
     ("panasN", "delta_PANAS_N", 1, "PANAS−"),
 ]
 DIMS = {
+    "pipe": [("ica", "promedio + ICA"), ("w6", "FCz sin ICA")],
     "roi": [("front", "frontal"), ("ct", "centro-temporal"), ("post", "posterior"), ("all", "global")],
     "met": [("var", "σθ variabilidad"), ("mean", "μθ media")],
     "delta": [("abs", "absoluto"), ("rel", "relativo")],
@@ -62,7 +67,7 @@ DIMS = {
     "corr": [("spearman", "Spearman"), ("pearson", "Pearson")],
     "out": [("all", "todos"), ("z25", "sin |z| > 2.5")],
 }
-DIM_LABEL = {"roi": "Región", "met": "Métrica", "delta": "Cambio", "marker": "Marcador", "corr": "Correlación", "out": "Atípicos"}
+DIM_LABEL = {"pipe": "Pipeline", "roi": "Región", "met": "Métrica", "delta": "Cambio", "marker": "Marcador", "corr": "Correlación", "out": "Atípicos"}
 
 
 def fnum(s):
@@ -73,10 +78,10 @@ def fnum(s):
         return None
 
 
-def load_eeg():
+def load_eeg(folder):
     """{sujeto: {cond: {electrodo: (media, sd)}}} solo ojos abiertos."""
     out = {}
-    with open(W6 / "eeg_theta_per_electrode.csv", newline="", encoding="utf-8") as fh:
+    with open(folder / "eeg_theta_per_electrode.csv", newline="", encoding="utf-8") as fh:
         for r in csv.DictReader(fh):
             if r["task"] != "eyesopen":
                 continue
@@ -94,15 +99,16 @@ def roi_value(cond_map, elecs, which):
     return float(np.mean(vals)) if vals else None
 
 
-def build_x(eeg, subjects, all_elecs):
+def build_x(eegs, subjects, all_elecs):
     rois = {"front": FRONTAL, "ct": CENTROTEMPORAL, "post": [e for e in all_elecs if e not in FRONTAL and e not in CENTROTEMPORAL], "all": all_elecs}
     X = {}
-    for roi, elecs in rois.items():
-        for met, idx in (("mean", 0), ("var", 1)):
-            ns = np.array([roi_value(eeg[s]["NS"], elecs, idx) for s in subjects], float)
-            sd = np.array([roi_value(eeg[s]["SD"], elecs, idx) for s in subjects], float)
-            X[(roi, met, "abs")] = sd - ns
-            X[(roi, met, "rel")] = (sd - ns) / ns
+    for pipe, eeg in eegs.items():
+        for roi, elecs in rois.items():
+            for met, idx in (("mean", 0), ("var", 1)):
+                ns = np.array([roi_value(eeg[s]["NS"], elecs, idx) for s in subjects], float)
+                sd = np.array([roi_value(eeg[s]["SD"], elecs, idx) for s in subjects], float)
+                X[(pipe, roi, met, "abs")] = sd - ns
+                X[(pipe, roi, met, "rel")] = (sd - ns) / ns
     return X, rois
 
 
@@ -124,7 +130,7 @@ def corr(x, y, kind):
 def spec_rows(X, Y, specs):
     res = []
     for sp in specs:
-        x = X[(sp["roi"], sp["met"], sp["delta"])]
+        x = X[(sp["pipe"], sp["roi"], sp["met"], sp["delta"])]
         y = Y[sp["marker"]]
         ok = np.isfinite(x) & np.isfinite(y)
         if sp["out"] == "z25" and ok.sum() > 3:
@@ -152,21 +158,23 @@ def main():
     ap.add_argument("--seed", type=int, default=20261028)
     a = ap.parse_args()
 
-    eeg, beh = load_eeg(), load_beh()
-    subjects = sorted(s for s in eeg if "NS" in eeg[s] and "SD" in eeg[s])
-    all_elecs = sorted(set(eeg[subjects[0]]["NS"]) & set(eeg[subjects[0]]["SD"]))
-    X, rois = build_x(eeg, subjects, all_elecs)
+    eegs, beh = {k: load_eeg(f) for k, f in PIPES.items()}, load_beh()
+    subjects = sorted(s for s in eegs["ica"] if all("NS" in e.get(s, {}) and "SD" in e.get(s, {}) for e in eegs.values()))
+    all_elecs = sorted(set(eegs["ica"][subjects[0]]["NS"]) & set(eegs["ica"][subjects[0]]["SD"]))
+    X, rois = build_x(eegs, subjects, all_elecs)
     Y = {k: np.array([(fnum(beh.get(s, {}).get(col)) if fnum(beh.get(s, {}).get(col)) is not None else np.nan) * sign for s in subjects], float)
          for k, col, sign, _ in MARKERS}
 
-    # control de consistencia: Δσθ frontal recalculado frente a merged_summary.csv
-    with open(W6 / "merged_summary.csv", newline="", encoding="utf-8") as fh:
-        ms = {r["participant_id"]: fnum(r["delta_frontal_theta_variability"]) for r in csv.DictReader(fh)}
-    ref = np.array([ms.get(s) if ms.get(s) is not None else np.nan for s in subjects])
-    gap = float(np.nanmax(np.abs(ref - X[("front", "var", "abs")])))
+    # control de consistencia: Δσθ frontal recalculado frente a merged_summary.csv de cada pipeline
+    gap = 0.0
+    for pipe, folder in PIPES.items():
+        with open(folder / "merged_summary.csv", newline="", encoding="utf-8") as fh:
+            ms = {r["participant_id"]: fnum(r["delta_frontal_theta_variability"]) for r in csv.DictReader(fh)}
+        ref = np.array([ms.get(s) if ms.get(s) is not None else np.nan for s in subjects])
+        gap = max(gap, float(np.nanmax(np.abs(ref - X[(pipe, "front", "var", "abs")]))))
 
-    specs = [dict(roi=r, met=m, delta=d, marker=k, corr=c, out=o)
-             for r, _ in DIMS["roi"] for m, _ in DIMS["met"] for d, _ in DIMS["delta"]
+    specs = [dict(pipe=pp, roi=r, met=m, delta=d, marker=k, corr=c, out=o)
+             for pp, _ in DIMS["pipe"] for r, _ in DIMS["roi"] for m, _ in DIMS["met"] for d, _ in DIMS["delta"]
              for k, _ in DIMS["marker"] for c, _ in DIMS["corr"] for o, _ in DIMS["out"]]
     obs = spec_rows(X, Y, specs)
     med, nsig, stouffer, rs = joint_stats(obs)
@@ -199,7 +207,7 @@ def main():
 
     payload = {
         "meta": {
-            "source": "deliveries/week06/data/processed (eeg_theta_per_electrode.csv, behavioral_deltas.csv), ojos abiertos",
+            "source": "deliveries/week12/data/processed_ica and deliveries/week06/data/processed (eeg_theta_per_electrode.csv), week06 behavioral_deltas.csv; eyes open",
             "nSubjectsEEG": len(subjects), "nSpecs": len(specs), "perms": a.perms, "seed": a.seed,
             "checkMaxAbsDiffFrontVar": gap,
             "hypothesis": "Cui et al. (2026): mayor aumento de theta se asocia a mayor deterioro (r > 0)",
@@ -220,9 +228,16 @@ def main():
             "stouffer": {"obs": round(stouffer_v, 3), "p": pv(stouffer_v, nv_z), "null": q3(nv_z, 3)},
         },
         "subjects": subjects,
-        "x": {f"{r}|{m}|{d}": [None if not np.isfinite(v) else round(float(v), 6) for v in X[(r, m, d)]] for (r, m, d) in X},
+        "x": {f"{pp}|{r}|{m}|{d}": [None if not np.isfinite(v) else round(float(v), 6) for v in X[(pp, r, m, d)]] for (pp, r, m, d) in X},
         "y": {k: [None if not np.isfinite(v) else round(float(v), 4) for v in Y[k]] for k in Y},
     }
+    # misma tabla en CSV para el repositorio (deliveries/week12/data/multiverse_specs.csv), ordenada por r
+    with open(APP.parent / "data" / "multiverse_specs.csv", "w", newline="", encoding="utf-8") as fh:
+        w = csv.writer(fh, lineterminator="\n")
+        w.writerow(["rank", "pipeline", "roi", "metric", "delta", "marker", "correlation", "outliers", "r", "ci_low", "ci_high", "p", "n"])
+        for k, i in enumerate(order, 1):
+            sp = out_specs[i]
+            w.writerow([k, sp["pipe"], sp["roi"], sp["met"], sp["delta"], sp["marker"], sp["corr"], sp["out"], sp["r"], sp["lo"], sp["hi"], sp["p"], sp["n"]])
     (APP / "data" / "multiverse.json").write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"{len(subjects)} sujetos, {len(specs)} especificaciones, {a.perms} permutaciones")
     print(f"control Δσθ frontal vs merged_summary: máx |dif| = {gap:.2e}")

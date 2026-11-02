@@ -1,7 +1,7 @@
 """Genera data/topo_by_subject.json: potencia theta por electrodo y por sujeto.
 
-Fuente: deliveries/week06/data/processed/eeg_theta_per_electrode.csv, que el pipeline
-de la Semana 6 (02_eeg_pipeline.ipynb) ya exportó con theta_mean (μθ) y theta_std (σθ)
+Fuente: deliveries/week12/data/processed_ica/eeg_theta_per_electrode.csv, que el pipeline principal
+(notebook 02 + referencia promedio + ICA, tools/build_eeg_ica.py) exporta con theta_mean (μθ) y theta_std (σθ)
 por electrodo, por sujeto y por condición. Aquí NO se reprocesa EEG crudo: solo se
 reorganiza ese CSV a la forma que consume js/topomap.js, pero por sujeto en vez de
 promediada sobre los 68.
@@ -22,7 +22,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[3]   # tools, app, week12, deliveries, raíz
-CSV_PATH = REPO_ROOT / "deliveries" / "week06" / "data" / "processed" / "eeg_theta_per_electrode.csv"
+# pipeline principal (promedio + ICA, tools/build_eeg_ica.py); el de la Semana 6 queda en deliveries/week06/data/processed
+CSV_PATH = REPO_ROOT / "deliveries" / "week12" / "data" / "processed_ica" / "eeg_theta_per_electrode.csv"
 OUT_PATH = HERE.parent / "data" / "topo_by_subject.json"
 TASK = "eyesopen"  # única condición disponible para los 71 participantes
 

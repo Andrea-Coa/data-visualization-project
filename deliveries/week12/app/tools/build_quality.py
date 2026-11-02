@@ -1,9 +1,11 @@
 """Builds data/quality.json: per-person EEG data quality and an eye-artifact (blink) check of σθ.
 
-1. Data quality (from deliveries/week06/data/processed/eeg_theta_per_electrode.csv and eeg_pipeline_skipped.csv):
-   epochs used (out of 75), interpolated bad channels (names) and excluded recordings, eyes open.
-2. Blink check (from the raw EEG, same preprocessing as notebook 02, whose definition cells are executed as they are).
-   ds004902 has no EOG channel and the pipeline has no ICA, so frontal theta could be contaminated by blinks.
+1. Data quality (from deliveries/week12/data/processed_ica/eeg_theta_per_electrode.csv and eeg_pipeline_skipped.csv,
+   written by tools/build_eeg_ica.py): epochs used (out of 75, after the 200 µV rejection), interpolated bad channels
+   (names), ICA components removed and excluded recordings, eyes open.
+2. Residual-blink check. ds004902 has no EOG channel, so ICA removes ocular components by their correlation with
+   Fp1/Fp2; this check asks whether what ICA leaves still drives σθ. Blinks are detected on the raw EEG (before ICA)
+   and σθ is recomputed on the ICA-cleaned data of the main pipeline (tools/eeg_ica.py).
    Blinks are detected with mne.preprocessing.find_eog_events on Fp1 and Fp2 (vertical-EOG proxies; its own
    1–10 Hz filter and automatic threshold), keeping the channel with more detections in case one is a bad channel. For each recording: blinks per minute and blinks per 4-s epoch.
    σθ is then recomputed with the app's definition (mean over the ROI electrodes of each electrode's SD of relative
@@ -20,13 +22,16 @@ import argparse
 import csv
 import json
 import os
+import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import eeg_ica  # noqa: E402
 REPO = HERE.parents[3]
 NB = REPO / "deliveries" / "week06" / "code" / "02_eeg_pipeline.ipynb"
-PROC = REPO / "deliveries" / "week06" / "data" / "processed"
+PROC = eeg_ica.PROC_ICA
 DATA = HERE.parent / "data"
 MIN_CLEAN = 30   # epochs with enough clean windows needed to compute a clean σθ
 WIN, STEP, PAD, MIN_WIN = 500, 250, 0.25, 3   # 1-s windows, 50 % overlap, margin around blinks (s), clean windows per epoch
@@ -56,29 +61,21 @@ def process(rec, cond):
     blinks = max(cand, key=len)
     t_blink = (blinks[:, 0] - raw.first_samp) / raw.info["sfreq"]
     minutes = raw.times[-1] / 60
-    # mismo preprocesamiento y épocas que el notebook 02
-    montage = ns["build_montage"](rec["electrodes_tsv"])
-    if montage is not None:
-        raw.set_montage(montage, on_missing="ignore", verbose=False)
-    raw.notch_filter(50.0, verbose=False)
-    raw.filter(*ns["BAND_FULL"], verbose=False)
-    bads = ns["detect_bad_channels"](raw)
-    if bads and montage is not None and len(bads) < 0.2 * len(raw.ch_names):
-        raw.info["bads"] = bads
-        raw.interpolate_bads(reset_bads=True, verbose=False)
-    ep = mne.make_fixed_length_epochs(raw, duration=ns["EPOCH_DURATION_S"], preload=True, verbose=False)
-    ep = ep[: min(ns["MAX_EPOCHS"], len(ep))]
+    # mismo preprocesamiento y épocas que la app: pipeline principal con ICA (tools/eeg_ica.py)
+    raw, _ = eeg_ica.clean_raw(rec, ns)
+    ep, kept, _ = eeg_ica.clean_epochs(raw, ns)
     psds, freqs = ep.compute_psd(method="welch", fmin=1.0, fmax=40.0, verbose=False).get_data(return_freqs=True)
     th = (freqs >= 4.0) & (freqs <= 8.0)
     rel = psds[:, :, th].sum(axis=2) / psds.sum(axis=2)                       # (épocas, canales)
     n_ep = len(ep)
-    per_epoch = np.bincount(np.clip((t_blink // ns["EPOCH_DURATION_S"]).astype(int), 0, None), minlength=n_ep)[:n_ep]
+    per_pos = np.bincount(np.clip((t_blink // ns["EPOCH_DURATION_S"]).astype(int), 0, None), minlength=76)
+    per_epoch = per_pos[kept]                                                  # parpadeos de cada época conservada
     # ventanas de 1 s dentro de cada época; una ventana es "sucia" si toca un parpadeo (± PAD s)
     X = ep.get_data(); sf = ep.info["sfreq"]; L = X.shape[2]; starts = list(range(0, L-WIN+1, STEP))
     win = np.hamming(WIN); fr = np.fft.rfftfreq(WIN, 1/sf); band = (fr >= 1) & (fr <= 40); thb = (fr >= 4) & (fr <= 8)
     rel_all = np.full((n_ep, X.shape[1]), np.nan); rel_cl = np.full((n_ep, X.shape[1]), np.nan); n_clean_win = 0
     for e in range(n_ep):
-        t0 = e*ns["EPOCH_DURATION_S"]
+        t0 = kept[e]*ns["EPOCH_DURATION_S"]
         P = np.array([np.abs(np.fft.rfft(X[e][:, s:s+WIN]*win, axis=1))**2 for s in starts])   # (ventanas, canales, freqs)
         dirty = np.array([np.any((t_blink >= t0+s/sf-PAD) & (t_blink <= t0+(s+WIN)/sf+PAD)) for s in starts])
         rf = lambda Q: Q[:, thb].sum(axis=1)/Q[:, band].sum(axis=1)
@@ -112,7 +109,8 @@ def main():
         for r in csv.DictReader(fh):
             if r["task"] != "eyesopen":
                 continue
-            d = q.setdefault(r["participant_id"], {}).setdefault(r["condition"], {"epochs": int(float(r["n_epochs_used"])), "interpolated": []})
+            d = q.setdefault(r["participant_id"], {}).setdefault(r["condition"], {"epochs": int(float(r["n_epochs_used"])), "interpolated": [],
+                                                                                 "ica_removed": int(float(r["n_ica_removed"]))})
             if r["interpolated"] in ("True", "true", "1"):
                 d["interpolated"].append(r["electrode"])
     skipped = [f"{r['participant_id']} {r['session']}" for r in csv.DictReader((PROC / "eeg_pipeline_skipped.csv").open(encoding="utf-8")) if r["task"] == "eyesopen"]
@@ -139,6 +137,7 @@ def main():
             if c in q.get(pid, {}) or c in B.get(pid, {}):
                 b = B.get(pid, {}).get(c, {})
                 rec[c] = {"epochs": q.get(pid, {}).get(c, {}).get("epochs"), "interpolated": q.get(pid, {}).get(c, {}).get("interpolated", []),
+                          "ica_removed": q.get(pid, {}).get(c, {}).get("ica_removed"),
                           "blinks_per_min": round(b["blinks_per_min"], 1) if b else None, "blink_free_epochs": b.get("blink_free_epochs")}
         if {"NS", "SD"} <= set(B.get(pid, {})):
             bs = B[pid]
@@ -170,8 +169,9 @@ def main():
         }
     br = {c: [persons[p][c]["blinks_per_min"] for p in persons if c in persons[p] and persons[p][c]["blinks_per_min"] is not None] for c in ("NS", "SD")}
     db = np.array([persons[p]["d_blinks_per_min"] for p in paired])
-    meta = {"source": "eeg_theta_per_electrode.csv, eeg_pipeline_skipped.csv (Week 6) and ds004902 raw EEG; tools/build_quality.py",
-            "blink_detector": "mne.preprocessing.find_eog_events on Fp1 and Fp2, channel with more detections (no EOG channel in ds004902)", "min_clean_epochs": MIN_CLEAN,
+    meta = {"source": "processed_ica/eeg_theta_per_electrode.csv, eeg_pipeline_skipped.csv (tools/build_eeg_ica.py) and ds004902 raw EEG; tools/build_quality.py",
+            "blink_detector": "mne.preprocessing.find_eog_events on Fp1 and Fp2 of the raw EEG (before ICA), channel with more detections (no EOG channel in ds004902)",
+            "pipeline": eeg_ica.PIPELINE, "min_clean_epochs": MIN_CLEAN,
             "excluded_recordings": skipped,
             "blinks_per_min": {c: {"median": float(np.median(v)), "n": len(v)} for c, v in br.items()},
             "d_blinks_test": {"mean": float(db.mean()), "t": float(stats.ttest_1samp(db, 0).statistic), "p": float(stats.ttest_1samp(db, 0).pvalue), "n": len(db)}}

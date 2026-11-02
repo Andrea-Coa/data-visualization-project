@@ -45,11 +45,12 @@ const side = (() => {
       svg.append("path").attr("fill", "none").attr("stroke", l.col).attr("stroke-width", 1.2).attr("stroke-dasharray", "4 3")
         .attr("d", d3.line().x(f => sx(f)).y(f => sy(l.ap.of-l.ap.ex*Math.log10(f)))(fr));
     });
-    const lg = svg.append("g").attr("transform", `translate(${W-m.r-62},${m.t+4})`);   // la leyenda cabe en 62 px
-    [["NS", C.ns, 0], ["SD", C.sd, 13], ["1/f fit", C.ink2, 26]].forEach(([t, c, dy]) => {
+    const lg = svg.append("g").attr("transform", `translate(${W-m.r-62},${m.t+4})`);   // se reubica según el ancho real del texto
+    [["Normal Sleep", C.ns, 0], ["Sleep Deprivation", C.sd, 13], ["1/f fit", C.ink2, 26]].forEach(([t, c, dy]) => {
       lg.append("line").attr("x1", 0).attr("x2", 12).attr("y1", dy).attr("y2", dy).attr("stroke", c).attr("stroke-width", 1.6).attr("stroke-dasharray", t === "1/f fit" ? "4 3" : null);
       lg.append("text").attr("class", "mdim").attr("x", 16).attr("y", dy+3.5).text(t);
     });
+    lg.attr("transform", `translate(${W-m.r-lg.node().getBBox().width-2},${m.t+4})`);
     // ---- 2. Δ exponente y Δ offset por electrodo (misma interpolación que la matriz)
     const dOf = k => { const v = {}; E.forEach((e, i) => { const x = d3.mean(ids, id => { const a = APER.persons[id][k]; return a[0][i] != null && a[1][i] != null ? a[1][i]-a[0][i] : null; }); if(x != null) v[e] = x; }); return v; };
     const maps = [["exp", "Δ exponent"], ["off", "Δ offset"]], mw = (W-12)/2, R = Math.min(mw/2-14, (h2-34)/2);
@@ -113,8 +114,8 @@ const side = (() => {
       .attr("stroke", i => col(d[i])).attr("stroke-linecap", "round")
       .attr("stroke-width", i => sel ? 1.2+3*Math.abs(d[i])/mx : (G.p[i] < .05 ? 4 : 1.3)).attr("opacity", i => sel ? .35+.6*Math.abs(d[i])/mx : (G.p[i] < .05 ? .95 : .4))
       .style("cursor", "help")
-      .on("pointerenter", (ev, i) => showTip(ev, `<div class="h">${CONN.pairs[i].join(" – ")}</div>` + trow("wPLI² NS → SD", `${f3(G.NS[i])} → ${f3(G.SD[i])}`) +
-        trow(sel ? `Δ, your selection (${ids.length})` : "Δ SD − NS", fsr(d[i])) + (sel ? "" : trow("d_z · p · q", `${f2(G.dz[i])} · ${fp(G.p[i])} · ${fp(G.q[i])}`))))
+      .on("pointerenter", (ev, i) => showTip(ev, `<div class="h">${CONN.pairs[i].join(" – ")}</div>` + trow("wPLI² Normal → Deprivation", `${f3(G.NS[i])} → ${f3(G.SD[i])}`) +
+        trow(sel ? `Δ, your selection (${ids.length})` : "Δ Deprivation − Normal", fsr(d[i])) + (sel ? "" : trow("d_z · p · q", `${f2(G.dz[i])} · ${fp(G.p[i])} · ${fp(G.q[i])}`))))
       .on("pointermove", ev => moveTip(ev)).on("pointerleave", hideTip);
     const baseW = i => sel ? 1.2+3*Math.abs(d[i])/mx : (G.p[i] < .05 ? 4 : 1.3), baseO = i => sel ? .35+.6*Math.abs(d[i])/mx : (G.p[i] < .05 ? .95 : .4);
     const focus = k => edges.attr("stroke-width", i => k == null ? baseW(i) : (i === k ? 6 : baseW(i))).attr("opacity", i => k == null ? baseO(i) : (i === k ? 1 : .12));
@@ -149,12 +150,12 @@ const side = (() => {
     cg.append("circle").attr("cx", i => px(i)+px.bandwidth()/2).attr("cy", i => py(d[i])).attr("r", 2.6)
       .attr("fill", i => (ci[i][1] < 0 || ci[i][0] > 0) ? col(d[i]) : C.panel).attr("stroke", i => col(d[i])).attr("stroke-width", 1.2);
     cg.append("rect").attr("x", i => px(i)).attr("width", px.step()).attr("y", y0+m2.t).attr("height", H-m2.b-y0-m2.t).attr("fill", "transparent")
-      .on("pointerenter", (ev, i) => { focus(i); showTip(ev, `<div class="h">${CONN.pairs[i].join(" – ")}</div>` + trow(sel ? `Δ, your selection (${ids.length})` : "Δ SD − NS", fsr(d[i])) +
+      .on("pointerenter", (ev, i) => { focus(i); showTip(ev, `<div class="h">${CONN.pairs[i].join(" – ")}</div>` + trow(sel ? `Δ, your selection (${ids.length})` : "Δ Deprivation − Normal", fsr(d[i])) +
         trow("95% CI", `[${fsr(ci[i][0])}, ${fsr(ci[i][1])}]`) + (sel ? "" : trow("p · q", `${fp(G.p[i])} · ${fp(G.q[i])}`))); })
       .on("pointermove", ev => moveTip(ev)).on("pointerleave", () => { focus(null); hideTip(); });
     const g = CONN.global, down = d.filter(x => x < 0).length;
     setTitle("t-conn", `θ synchrony: lower in ${down} of 45 pairs`, nb(sel ? `your selection, n = ${ids.length}` : `none survives FDR; n = ${CONN.meta.n}`),
-      notes("Debiased wPLI², multitaper, 4–8 Hz; FCz re-inserted and average reference; 10 lateral regions (midline excluded), 45 pairs.",
+      notes("Debiased wPLI², multitaper, 4–8 Hz; FCz re-inserted, average reference and ICA, as in the main pipeline; 10 lateral regions (midline excluded), 45 pairs.",
         `With all ${CONN.meta.n} people: global ${f3(g.NS)} → ${f3(g.SD)} (d_z = ${f2(g.dz)}); sign-flip permutation joint test p = ${fp(g.p_perm)}; max-t p = ${fp(g.p_maxt)}. ${g.pairs_down} of 45 pairs decrease, none with q < 0.05, and no relation to the PVT.`,
         "Bottom: each region pair's mean change with its 95% CI, sorted. Filled dots: CI excludes zero (uncorrected). All pairs fall below zero, but no pair survives FDR: a diffuse, consistent decrease rather than a localized effect. Hover a pair to highlight it on the head.",
         "Exploratory: at rest, much of theta connectivity may reflect aperiodic activity rather than oscillations (Monchy et al.); hence it is not a main view.",
@@ -178,12 +179,12 @@ const side = (() => {
     const by = d3.scaleLinear().domain([0, d3.max(bl, d => Math.max(d.a, d.b))]).nice().range([h1-m1.b, m1.t]);
     svg.append("text").attr("class", "colhead").attr("x", m1.l-34).attr("y", 11).style("text-anchor", "start").style("font-size", "11px").text("Blinks per minute (Fp1/Fp2)");
     svg.append("g").attr("class", "axis").attr("transform", `translate(${m1.l},0)`).call(d3.axisLeft(by).ticks(4).tickSizeOuter(0)).call(a => a.select(".domain").remove());
-    [["NS", C.ns], ["SD", C.sd]].forEach(([c, col]) => svg.append("text").attr("x", bx(c)).attr("y", h1-2).attr("text-anchor", "middle").style("font-size", "11px").style("font-weight", 600).style("fill", col).text(c));
+    [["NS", C.ns], ["SD", C.sd]].forEach(([c, col]) => svg.append("text").attr("x", bx(c)).attr("y", h1-2).attr("text-anchor", "middle").style("font-size", "11px").style("font-weight", 600).style("fill", col).text(c === "NS" ? "Normal Sleep" : "Sleep Deprivation"));
     const sl = svg.append("g").selectAll("line").data(bl.sort((u, v) => (ss && ss.has(u.id)) - (ss && ss.has(v.id)))).join("line")
       .attr("x1", bx("NS")).attr("x2", bx("SD")).attr("y1", d => by(d.a)).attr("y2", d => by(d.b))
       .attr("stroke", d => ss && ss.has(d.id) ? C.ink : colOf(d.id)).attr("stroke-width", d => ss && ss.has(d.id) ? 2 : 1).attr("opacity", d => ss ? (ss.has(d.id) ? 1 : .25) : .55)
       .style("cursor", "pointer")
-      .on("pointerenter", (ev, d) => showTip(ev, `<div class="h">${d.id}</div>` + trow("blinks/min NS → SD", `${d.a} → ${d.b}`)))
+      .on("pointerenter", (ev, d) => showTip(ev, `<div class="h">${d.id}</div>` + trow("blinks/min Normal → Deprivation", `${d.a} → ${d.b}`)))
       .on("pointermove", ev => moveTip(ev)).on("pointerleave", hideTip)
       .on("click", (ev, d) => { hideTip(); const p = P.find(o => o.id === d.id); if(!p) return; if(ev.shiftKey) pin(p); else togglePick(p); });
     const medA = d3.median(bl, d => d.a), medB = d3.median(bl, d => d.b);
@@ -210,9 +211,9 @@ const side = (() => {
     svg.append("text").attr("class", "ab").attr("x", m2.l+4).attr("y", y0+m2.t+12).style("font-size", "11px").text(`ρ = ${f2(sm.rho_clean_vs_all)} · n = ${sm.n_clean} · dashed: identity`);
     const bt = QUAL.meta.d_blinks_test;
     setTitle("t-eye", `Blinks do not drive σθ: ρ = ${f2(sm.rho_clean_vs_all)} without them`, nb(`${ROI[k].name}; n = ${sm.n_clean}`),
-      notes(`No EOG channel and no ICA, so blinks were detected on Fp1 and Fp2 (MNE find_eog_events; the channel with more detections, in case one is a bad channel). Blink rate barely changes with deprivation (median ${f2(QUAL.meta.blinks_per_min.NS.median)} → ${f2(QUAL.meta.blinks_per_min.SD.median)} per minute; t = ${f2(bt.t)}, p = ${fp(bt.p)}), and its change is unrelated to Δσθ (ρ = ${f2(sm.rho_dblinks_vs_dsigma)}).`,
-        `Bottom: σθ recomputed with 1-s windows (50% overlap) inside each epoch, using all windows (x) or dropping those within 0.25 s of a blink (y); people need ${QUAL.meta.min_clean_epochs} usable epochs. Points near the dashed identity line mean blinks do not change each person's Δσθ.`,
-        `Within recordings, epochs with more blinks have lower, not higher, relative theta (mean r = ${f2(sm.within_recording_r_blinks_theta)}): blinks add slow (delta) power. Hover any person in the scatter or heatmap for their EEG quality (epochs used, interpolated channels, blinks).`,
+      notes(`ICA removed the ocular components (ds004902 has no EOG channel); this view checks what is left. Blinks were detected on Fp1 and Fp2 of the raw EEG, before ICA (MNE find_eog_events; the channel with more detections). Blink rate barely changes with deprivation (median ${f2(QUAL.meta.blinks_per_min.NS.median)} → ${f2(QUAL.meta.blinks_per_min.SD.median)} per minute; t = ${f2(bt.t)}, p = ${fp(bt.p)}). People whose blink rate rose more also show a larger Δσθ (ρ = ${f2(sm.rho_dblinks_vs_dsigma)}, p = ${fp(sm.p_dblinks_vs_dsigma)}), which by itself could mean contamination or a shared cause (drowsiness).`,
+        `Bottom: σθ recomputed on the ICA-cleaned EEG with 1-s windows (50% overlap) inside each epoch, using all windows (x) or dropping those within 0.25 s of a blink (y); people need ${QUAL.meta.min_clean_epochs} usable epochs. Points near the dashed identity line mean blinks do not change each person's Δσθ, so the association above is not contamination.`,
+        `Within recordings, epochs with more blinks do not have more relative theta (mean r = ${f2(sm.within_recording_r_blinks_theta)}). Hover any person in the scatter or heatmap for their EEG quality (epochs used, ICA components removed, interpolated channels, blinks).`,
         "Data: tools/build_quality.py from the raw EEG (ds004902)."));
   }
 

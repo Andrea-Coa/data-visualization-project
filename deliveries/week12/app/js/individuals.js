@@ -113,7 +113,7 @@ const indiv = (() => {
       model.groups.map(g => trow(`C(e) ${g.name.toLowerCase()}`, fs2(g.cons[h.col]), g.color)).join("") + trow(`mean Δ${METN[model.met]}`, fsr(model.mean[h.col]));
     const p = P.find(d => d.id === h.row), t = e && SUBTOPO[h.row][e], g = model.groups.find(g => g.ids.includes(h.row)), yk = yK();
     return `<div class="h">${h.row}${e ? ` · ${e}` : ""} <span class="m">${g ? g.name.toLowerCase() : ""}</span></div>` +
-      (t ? trow("NS → SD", `${fr(t.NS[model.met])} → ${fr(t.SD[model.met])}`) + trow(`Δ${METN[model.met]}`, fsr(model.D.get(h.row)[h.col])) : "") +
+      (t ? trow("Normal → Deprivation", `${fr(t.NS[model.met])} → ${fr(t.SD[model.met])}`) + trow(`Δ${METN[model.met]}`, fsr(model.D.get(h.row)[h.col])) : "") +
       (p && p[yk] != null ? trow(model.mk.ax2, fsr(p[yk])) : "") + qualRows(h.row);
   }
   function setHover(row, col){
@@ -143,9 +143,9 @@ const indiv = (() => {
       "Vulnerable and resilient are defined by behavior only (worse or not than the median change in the chosen marker), not by theta.");
     if(b){
       const dA = mC(a), dB = mC(b);
-      setTitle("t-heat", `Δ${METN[model.met]} by person and electrode`, nb(`mean C: ${a.name} ${fs2(dA)}, ${b.name} ${fs2(dB)}`), hInfo);
-    } else setTitle("t-heat", `Δ${METN[model.met]} by person and electrode`, nb(`${a.name}: |C| ≥ 0.6 at ${strong(a)} of 61, n = ${a.ids.length}`), hInfo);
-    d3.select("#k-heat").html(`<span class="k">Δ${METN[model.met]} SD − NS</span><span class="k"><i style="width:64px;height:7px;border-radius:2px;background:linear-gradient(90deg,${d3.range(0, 1.01, .25).map(C.div).join(",")})"></i>±${fr(model.lim)}</span>`);
+      setTitle("t-heat", `Δ${METN[model.met]} person × electrode`, nb(`C̄ ${a.name} ${fs2(dA)} · ${b.name} ${fs2(dB)}`), hInfo);
+    } else setTitle("t-heat", `Δ${METN[model.met]} person × electrode`, nb(`${a.name}: |C| ≥ 0.6 at ${strong(a)} of 61, n = ${a.ids.length}`), hInfo);
+    d3.select("#k-heat").html(`<span class="k">Δ${METN[model.met]} Deprivation − Normal</span><span class="k"><i style="width:64px;height:7px;border-radius:2px;background:linear-gradient(90deg,${d3.range(0, 1.01, .25).map(C.div).join(",")})"></i>±${fr(model.lim)}</span>`);
   }
   function render(){ build(); titles(); drawHeat(); }
   bus.on("pin.indiv", () => paintHeat());

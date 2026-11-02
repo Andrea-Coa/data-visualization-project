@@ -1,18 +1,18 @@
 """Genera los datos de las vistas secundarias desde el EEG crudo: data/aperiodic.json y data/connectivity.json.
 
-Ambos parten del mismo preprocesamiento que deliveries/week06/code/02_eeg_pipeline.ipynb (cuyas celdas de
-definiciones se ejecutan tal cual): notch 50 Hz, 1–40 Hz, canales malos por log-varianza e interpolación,
-75 épocas de 4 s, solo ojos abiertos.
+Ambos parten del pipeline principal de la app (tools/eeg_ica.py): notebook 02 (notch 50 Hz, 1–40 Hz, canales
+malos por log-varianza e interpolación), FCz reinsertado y referencia promedio, ICA (componentes oculares y
+musculares fuera), 75 épocas de 4 s con rechazo > 200 µV; solo ojos abiertos. Usa las ICA en caché de build_eeg_ica.py.
 
 aperiodic.json  (¿el efecto theta es oscilatorio o es el fondo 1/f?; Bai et al., 2024; Li, 2026; Monchy et al.)
   specparam (FOOOF 1.1) con los ajustes de Bai et al. (2024) sobre este mismo dataset: peak_width_limits 1–12,
-  max_n_peaks 8, min_peak_height 0.1, peak_threshold 2, modo "fixed", 1–40 Hz; referencia FCz como se grabó.
+  max_n_peaks 8, min_peak_height 0.1, peak_threshold 2, modo "fixed", 1–40 Hz; referencia promedio, como la app.
   - por electrodo (espectro promedio de las épocas, Welch 4 s, 0.25 Hz): exponente, offset, theta periódica
     (media en 4–8 Hz del espectro aplanado, log10) y si hay un pico en 4–8 Hz;
   - por época y región (Welch de 1 s con 50 % de solapamiento dentro de cada época, 1 Hz): θ relativa y θ
     periódica, para comparar Δσθ con Δσθ periódica (épocas con R² ≥ 0.8; al menos 50 por registro).
 connectivity.json  (sincronía theta entre regiones)
-  FCz reinsertado y referencia promedio; wPLI² debiased (Vinck et al., 2011), multitaper, 4–8 Hz; 10 regiones
+  con FCz y referencia promedio; wPLI² debiased (Vinck et al., 2011), multitaper, 4–8 Hz; 10 regiones
   laterales (la línea media queda fuera); prueba t pareada por par con FDR y prueba conjunta por permutación.
 
 Requisitos: ds004902 en <raíz>/ds004902 y Python con mne, mne-connectivity, fooof==1.1.0, scipy, statsmodels,
@@ -29,6 +29,8 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import eeg_ica  # noqa: E402
 REPO = HERE.parents[3]
 NB = REPO / "deliveries" / "week06" / "code" / "02_eeg_pipeline.ipynb"
 DATA = HERE.parent / "data"
@@ -80,19 +82,10 @@ def process(rec, cond, cache):
     if out.exists():
         return rec["participant_id"], cond, "en caché"
     ns = notebook_defs()
-    raw = mne.io.read_raw_eeglab(rec["set_path"], preload=True, verbose=False)
-    montage = ns["build_montage"](rec["electrodes_tsv"])
-    if montage is not None:
-        raw.set_montage(montage, on_missing="ignore", verbose=False)
-    raw.notch_filter(50.0, verbose=False)
-    raw.filter(*ns["BAND_FULL"], verbose=False)
-    bads = ns["detect_bad_channels"](raw)
-    if bads and montage is not None and len(bads) < 0.2 * len(raw.ch_names):
-        raw.info["bads"] = bads
-        raw.interpolate_bads(reset_bads=True, verbose=False)
-    mk = lambda r: mne.make_fixed_length_epochs(r, duration=ns["EPOCH_DURATION_S"], preload=True, verbose=False)
-    ep = mk(raw); ep = ep[: min(ns["MAX_EPOCHS"], len(ep))]; ch = ep.ch_names
-    # --- aperiódico (referencia FCz, como la app)
+    raw, _ = eeg_ica.clean_raw(rec, ns)                       # pipeline principal: referencia promedio + ICA
+    ea, _, _ = eeg_ica.clean_epochs(raw, ns, drop_fcz=False)  # mismas épocas que la app (rechazo > 200 µV)
+    ep = ea.copy().drop_channels(["FCz"]); ch = ep.ch_names
+    # --- aperiódico (61 electrodos, como la app)
     ps, fr = ep.compute_psd(method="welch", fmin=1.0, fmax=40.0, verbose=False).get_data(return_freqs=True)
     elec = fit_many(fr, ps.mean(axis=0))
     ps1, f1 = ep.compute_psd(method="welch", fmin=1.0, fmax=40.0, n_fft=500, n_per_seg=500, n_overlap=250, verbose=False).get_data(return_freqs=True)
@@ -101,10 +94,7 @@ def process(rec, cond, cache):
     for name, members in (("front", ns["FRONTAL_ROI"]), ("ct", ns["CENTROTEMPORAL_ROI"])):
         idx = [ch.index(c) for c in members if c in ch]
         roi[name] = np.c_[fit_many(f1, ps1[:, idx, :].mean(axis=1)), rel1[:, idx].mean(axis=1)]
-    # --- conectividad (FCz reinsertado, referencia promedio)
-    mne.add_reference_channels(raw, "FCz", copy=False)
-    raw.set_eeg_reference("average", projection=False, verbose=False)
-    ea = mk(raw); ea = ea[: min(ns["MAX_EPOCHS"], len(ea))]
+    # --- conectividad (con FCz, referencia promedio)
     con = spectral_connectivity_epochs(ea, method="wpli2_debiased", mode="multitaper", sfreq=ea.info["sfreq"], fmin=4.0, fmax=8.0, faverage=True, verbose=False)
     W = con.get_data(output="dense")[:, :, 0]; W = W + W.T; cha = ea.ch_names
     ridx = {r: [cha.index(c) for c in cs] for r, cs in REGIONS.items()}
@@ -182,7 +172,7 @@ def aggregate(cache):
         mx[b] = np.abs(x.mean(0) / (x.std(0, ddof=1) / np.sqrt(n))).max(); g = x.mean(1); mm[b] = g.mean() / (g.std(ddof=1) / np.sqrt(n))
     connectivity = {
         "meta": {"source": "ds004902, ojos abiertos; tools/build_secondary.py", "n": n, "measure": "wPLI² debiased, multitaper, 4–8 Hz",
-                 "reference": "FCz reinsertado, referencia promedio", "regions": REGIONS, "permutations": B},
+                 "reference": "FCz reinsertado, referencia promedio, ICA (tools/eeg_ica.py)", "regions": REGIONS, "permutations": B},
         "pairs": [list(p) for p in PAIRS],
         "group": {"NS": [r4(v) for v in NSp.mean(0)], "SD": [r4(v) for v in SDp.mean(0)], "dz": [r4(v) for v in dP.mean(0) / dP.std(0, ddof=1)],
                   "t": [r4(v) for v in t.statistic], "p": [r4(v) for v in t.pvalue], "q": [r4(v) for v in q],

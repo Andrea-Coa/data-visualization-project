@@ -23,7 +23,7 @@ const COLLECT = `(() => {
     R.rho.push({roi:r, met, y:k, rho:s.rho, lo:s.lo, hi:s.hi, n:s.n,
       rows:EEG.filter(d => d[xk] != null && d[k] != null).map(d => [d.id, d[xk], d[k]])});
   }
-  R.titles = {sc:txt("t-sc"), topo:txt("t-topo"), dyn:txt("t-dyn"), heat:txt("t-heat")};
+  R.titles = {sc:txt("t-sc") + " n = " + ([...document.querySelectorAll("#scatter .sbox text")].map(e => e.textContent).pop() || ""), topo:txt("t-topo"), dyn:txt("t-dyn"), heat:txt("t-heat")};
   R.legendDyn = document.getElementById("k-dyn").textContent;
   R.activeIds = activeIds();
   R.rollVar = ["NS", "SD"].map(c => epochStats(activeIds(), "f", c, "var"));

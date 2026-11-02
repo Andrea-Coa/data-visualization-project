@@ -261,14 +261,14 @@ const topo = (() => {
     // con el interruptor Δ apagado solo se dibujan NS y SD, con su barra de color
     const conds = S.showD ? ["NS", "SD", "D"] : ["NS", "SD"], nC = conds.length, nB = nC-1;
     // en pantallas angostas las barras se achican y la unidad pasa al ícono ⓘ del panel (no cabe girada)
-    const narrow = W < 560, labW = 22, barW = narrow ? 50 : 66, topH = 22, rowGap = 10;
-    const s = Math.floor(Math.max(80, Math.min((W-labW-nB*barW-8)/nC, (H-topH-rowGap-4)/2)));
+    const narrow = W < 560, labW = 22, barW = narrow ? 58 : 66, topH = 22, rowGap = 10;
+    const s = Math.floor(Math.max(64, Math.min((W-labW-nB*barW-8)/nC, (H-topH-rowGap-4)/2)));
     const usedW = labW+nC*s+nB*barW, x0 = Math.max(0, (W-usedW)/2), y0 = Math.max(0, (H-(topH+2*s+rowGap))/2);
     const X = {lab:x0, NS:x0+labW, SD:x0+labW+s, bar1:x0+labW+2*s+6, D:x0+labW+2*s+barW, bar2:x0+labW+3*s+barW+6};
     const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
       .attr("role", "img").attr("aria-label", `Topomap matrix: columns ${S.showD ? "NS, SD and Δ" : "NS and SD"}; rows ${sp.rows.map(r => r.label).join(" and ")}`);
     const defs = svg.append("defs");
-    [["NS", "NS", ""], ["SD", "SD", ""], ["D", "Δ", " SD − NS"]].filter(([k]) => conds.includes(k)).forEach(([k, a, b]) => {
+    (s < 130 ? [["NS", "Normal", ""], ["SD", "Deprivation", ""], ["D", "Δ", ""]] : [["NS", "Normal Sleep", ""], ["SD", "Sleep Deprivation", ""], ["D", "Δ", " Deprivation − Normal"]]).filter(([k]) => conds.includes(k)).forEach(([k, a, b]) => {
       const t = svg.append("text").attr("class", "colhead").attr("x", X[k]+s/2).attr("y", y0+14);
       t.append("tspan").text(a); t.append("tspan").attr("class", "m").text(b);
     });
@@ -342,8 +342,8 @@ const topo = (() => {
     return `<div class="h">${e}</div>` + sp.rows.map(row => {
       const t = row.T[e]; if(!t) return "";
       const met = row.met, dv = met === "var" ? t.dVar : t.dMean, r = sp.mode === "pair" ? null : elecRho(e, met);
-      return `<div class="m" style="margin-top:4px">${row.label}</div>` + trow("NS · SD", `${fr(t.NS[met])} · ${fr(t.SD[met])}`) +
-        trow("Δ SD − NS", `${fsr(dv)}${all68 ? ` <span class="m">p ${fp(pOf(t, met))}, q ${fp(qOf(t, met))}</span>` : ""}`) +
+      return `<div class="m" style="margin-top:4px">${row.label}</div>` + trow("Normal · Deprivation", `${fr(t.NS[met])} · ${fr(t.SD[met])}`) +
+        trow("Δ Deprivation − Normal", `${fsr(dv)}${all68 ? ` <span class="m">p ${fp(pOf(t, met))}, q ${fp(qOf(t, met))}</span>` : ""}`) +
         // tamaño de efecto de la prueba t pareada (solo con las 68 personas, donde hay prueba por electrodo)
         (all68 && t.tVar != null ? (sf => trow("95% CI of Δ", `[${fsr(t["ci"+sf][0])}, ${fsr(t["ci"+sf][1])}]`) +
           trow(`t(${t.nPaired-1}) · d<sub>z</sub>`, `${f2(t["t"+sf])} · ${f2(t["dz"+sf])}`))(met === "var" ? "Var" : "Mean") : "") +
@@ -369,7 +369,7 @@ const topo = (() => {
       return;
     }
     const v = sigCount("var"), m = sigCount("mean");
-    setTitle("t-topo", S.showD ? "θ topomaps: NS, SD and Δ" : "θ topomaps: NS and SD", `${v.q + m.q} of 61 electrodes with q &lt; 0.05`,
+    setTitle("t-topo", `θ maps · ${v.q + m.q} of 61 electrodes with q &lt; 0.05`, "",
       notes(...base, `Paired t-test per electrode, n = 68. Ring: uncorrected p &lt; 0.05 (σθ ${v.p}, μθ ${m.p}); filled dot: q &lt; 0.05 after Benjamini–Hochberg FDR (σθ ${v.q}, μθ ${m.q}).`));
     // las marcas de p y FDR solo se dibujan sobre los mapas Δ
     if(S.showD) k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);

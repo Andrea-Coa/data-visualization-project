@@ -1,6 +1,6 @@
 """Genera data/topo.json: estadística por electrodo de las 68 personas con EEG en NS y SD (ojos abiertos).
 
-Fuente: deliveries/week06/data/processed/eeg_theta_per_electrode.csv (theta_mean = μθ, theta_std = σθ).
+Fuente: deliveries/week12/data/processed_ica/eeg_theta_per_electrode.csv (pipeline principal con ICA; theta_mean = μθ, theta_std = σθ).
 
 Para cada electrodo y cada métrica (μθ "mean", σθ "var"), siempre sobre las mismas personas pareadas:
   NS, SD          media del grupo en cada condición (con n)
@@ -27,7 +27,8 @@ from scipy import stats
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[3]   # tools, app, week12, deliveries, raíz
-CSV_PATH = REPO_ROOT / "deliveries" / "week06" / "data" / "processed" / "eeg_theta_per_electrode.csv"
+# pipeline principal (promedio + ICA, tools/build_eeg_ica.py); el de la Semana 6 queda en deliveries/week06/data/processed
+CSV_PATH = REPO_ROOT / "deliveries" / "week12" / "data" / "processed_ica" / "eeg_theta_per_electrode.csv"
 OUT_PATH = HERE.parent / "data" / "topo.json"
 TASK = "eyesopen"
 METRICS = {"mean": ("theta_mean", "Mean"), "var": ("theta_std", "Var")}

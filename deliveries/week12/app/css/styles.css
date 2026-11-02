@@ -11,8 +11,8 @@
   --ramp-div:#A7EEFF,#2AA9DC,#1A1F2B,#E5457C,#FFA6C4;
   --null:rgba(232,234,240,.08);
   --sel:rgba(61,214,245,.12);
-  --sans:"Geist","Helvetica Neue",Arial,sans-serif;
-  --bar-h:48px;
+  --sans:"Roboto","Helvetica Neue",Arial,sans-serif; --cond:"Roboto Condensed","Roboto","Arial Narrow",sans-serif;
+  --bar-h:58px;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -255,3 +255,73 @@ button,select{font:inherit;color:inherit}
 :root[data-theme="light"] .sheet{background:#FFFFFF}
 :root[data-theme="light"] .sheet-head{background:#FFFFFF}
 :root[data-theme="light"] .sheet::backdrop{background:rgba(0,0,0,.35)}
+
+/* ---------- sistema visual (noviembre 2026) ----------
+   Inspirado en los sistemas de visual analytics de IEEE VIS/TVCG (VISTA, Unlearning Comparator, AttributionScanner):
+   bloque de identidad con nombre y subtítulo, resumen del dataset en una caja, cada vista en su propia caja con un
+   nombre corto en mayúsculas e ícono, el hallazgo como subtítulo discreto, controles con su etiqueta encima y
+   tipografía condensada para los títulos. */
+:root{--page:#07090D;--border:#262C38;--secbar:#1F2430;--secbar-ink:#E8EAF0}
+:root[data-theme="light"]{--page:#EEF0F3;--border:#CBD0D8;--secbar:#5B616B;--secbar-ink:#FFFFFF}
+body{background:var(--page)}
+.bar{background:var(--panel);border-bottom:1px solid var(--border);gap:18px;padding:0 14px}
+:root[data-theme="light"] .bar{background:var(--panel);border-bottom:1px solid var(--border)}
+.brand{align-items:center;gap:10px;flex:none}
+.brand .mark{width:30px;height:30px;color:var(--ink);flex:none}
+.brand-t{display:flex;flex-direction:column;line-height:1.1}
+.logo,:root[data-theme="light"] .logo{font-family:var(--cond);font-size:22px;font-weight:700;letter-spacing:.03em;color:var(--ink)}
+.logo::before,:root[data-theme="light"] .logo::before{display:none}
+.tag{font-family:var(--cond);font-size:11.5px;color:var(--muted);letter-spacing:.01em;white-space:nowrap}
+.dset{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:3px;padding:3px 0;min-width:0;flex:0 1 auto;overflow:hidden}
+.dset>span{display:flex;flex-direction:column;padding:0 12px;border-left:1px solid var(--rule);min-width:0}
+.dset>span:first-child{border-left:0}
+.dset i,.fld>i{font-style:normal;font-family:var(--cond);font-size:9.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);line-height:1.2}
+.dset b{font-size:11.5px;font-weight:500;color:var(--ink);white-space:nowrap}
+.dset .pipe{border:0;padding:0;font-size:11.5px;color:var(--ink);text-align:left;text-decoration:underline dotted var(--muted);text-underline-offset:3px}
+.ctrls{align-items:flex-end;gap:10px}
+.fld{display:flex;flex-direction:column;gap:2px}
+.seg{border-radius:3px}.seg button{border-radius:2px}
+.ctrls select,.btn{border-radius:3px}
+.ctrls>.btn{align-self:flex-end}
+/* tablero: cajas con separación */
+.board{gap:8px;padding:8px;background:var(--page)}
+.col{gap:8px}
+.panel,:root[data-theme="light"] .panel{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:6px 12px 8px}
+.col-c .panel{border-right:1px solid var(--border)}
+.col-s,.board.swap .col-s{background:var(--panel);border:1px solid var(--border);border-radius:3px}
+.vh{display:flex;align-items:center;gap:6px;flex:none;font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink);padding:0 0 4px;margin:0 0 5px;border-bottom:1px solid var(--rule2)}
+.vh .vi{width:13px;height:13px;fill:currentColor;flex:none}
+.ph h2{font-size:12px;font-weight:500;color:var(--ink2)}
+.ph h2 b{color:var(--ink)}
+.side-head{padding:6px 8px 0 12px;border-bottom:0}
+.side-head .vh{flex:1;margin:0;font-size:13px;letter-spacing:.05em;color:var(--ink)}
+.sec-group{padding:10px 12px 4px;display:flex;flex-direction:column;gap:1px}
+.sec-group b{font-family:var(--cond);font-size:11px;color:var(--ink)}
+.sec-group span{font-size:10.5px;color:var(--muted)}
+.sec{border-bottom:0}
+.sec-btn{margin:3px 10px;width:calc(100% - 20px);padding:6px 10px;border-radius:2px;background:var(--secbar);color:var(--secbar-ink);display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center}
+.sec-btn::before{grid-row:1 / span 2;color:var(--secbar-ink);opacity:.85}
+.sec-btn b{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.sec-btn span{grid-column:2;font-size:10.5px;font-weight:400;opacity:.82}
+.sec-body{padding:4px 12px 8px}
+@media (hover:hover) and (pointer:fine){ .sec-btn:hover{filter:brightness(1.12)} }
+.colhead,.rowhead{font-family:var(--cond)}
+.atitle{font-family:var(--sans)}
+@media (max-width:1100px){ .dset{display:none} .tag{white-space:normal} }
+.dset>span{flex:none}
+.ctrls select{max-width:190px}
+.sec-btn span{display:none}
+.sec-btn[aria-expanded="true"] span{display:block}
+.sec-btn::before{grid-row:1 / 3;align-self:center}
+.sec-btn{row-gap:1px;padding:5px 10px}
+@media (max-width:1499px){ .dset{display:none} .ctrls{gap:8px} .ctrls select{max-width:160px} .tag{font-size:10.5px} }
+.tag{white-space:normal;max-width:235px;line-height:1.2;margin-top:2px}
+@media (max-width:1100px){
+  .ctrls{align-items:flex-end}
+  .fld{flex:1 1 150px;min-width:0}
+  .fld .seg{align-self:flex-start}
+  .fld select{width:100%;max-width:none!important;flex:none!important}
+  .brand{width:100%}
+}
+.key .k.m{white-space:normal}
+@media (max-width:600px){ .ph .key{flex:1 1 100%;justify-content:flex-start} }

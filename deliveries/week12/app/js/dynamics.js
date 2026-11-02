@@ -34,7 +34,7 @@ const dyn = (() => {
     XS = (G ? cur.D[0] : cur.SD).xs;
     // la leyenda dice qué es la banda sombreada (error estándar, no desviación estándar) y con cuántas personas
     d3.select("#k-dyn").html(G ? G.map(gr => `<span class="k"><i class="ln" style="background:${gr.color}"></i>${gr.name}</span>`).join("") + `<span class="k m">band: Δ mean ± SE</span>`
-      : `<span class="k"><i class="ln ns"></i>NS</span><span class="k"><i class="ln sd"></i>SD</span><span class="k"><i class="dash"></i>trend</span><span class="k m">band: mean ± SE, n = ${cur.SD.n}</span>`);
+      : `<span class="k"><i class="ln ns"></i>Normal Sleep</span><span class="k"><i class="ln sd"></i>Sleep Deprivation</span><span class="k"><i class="dash"></i>trend</span><span class="k m">band: mean ± SE, n = ${cur.SD.n}</span>`);
     const series = G ? cur.D : [cur.NS, cur.SD];
     const vals = series.flatMap(s => s.mean.flatMap((v, i) => v == null ? [] : [v-s.sem[i], v+s.sem[i]])).concat(G ? [0] : []);
     const [lo, hi] = d3.extent(vals), pad = (hi-lo)*.08;
@@ -49,7 +49,7 @@ const dyn = (() => {
     ln = d3.line().defined(v => v != null).x((v, i) => ex(i)).y(v => dy(v)).curve(d3.curveMonotoneX);
     const plot = g.append("g").attr("clip-path", "url(#dclip)").style("pointer-events", "none");
     if(G) plot.append("line").attr("class", "zero").attr("x1", m.l).attr("x2", W-m.r).attr("y1", dy(0)).attr("y2", dy(0));
-    const items = G ? cur.D.map((s, i) => ({s, col:G[i].color, lab:G[i].name})) : [{s:cur.NS, col:C.ns, lab:"NS"}, {s:cur.SD, col:C.sd, lab:"SD"}];
+    const items = G ? cur.D.map((s, i) => ({s, col:G[i].color, lab:G[i].name})) : [{s:cur.NS, col:C.ns, lab:"Normal Sleep"}, {s:cur.SD, col:C.sd, lab:"Sleep Deprivation"}];
     items.forEach(({s, col}) => {
       plot.append("path").attr("fill", col).attr("fill-opacity", .13)
         .attr("d", d3.area().defined((v, i) => s.mean[i] != null).x((v, i) => ex(i)).y0((v, i) => dy(s.mean[i]-s.sem[i])).y1((v, i) => dy(s.mean[i]+s.sem[i])).curve(d3.curveMonotoneX)(s.mean));
@@ -92,7 +92,7 @@ const dyn = (() => {
       return;
     }
     const d = idx.map(i => cur.SD.mean[i]-cur.NS.mean[i]), up = d.filter(v => v > 0).length;
-    setTitle("t-dyn", `${isVar() ? "Moving σθ (40-s windows)" : "Relative θ per epoch"}: NS and SD${S.selected ? ", your selection" : ""}${post}`, nb(`n = ${cur.SD.n}`),
+    setTitle("t-dyn", `${isVar() ? "Moving σθ, 40-s windows" : "Relative θ per epoch"}${S.selected ? " · your selection" : ""}${post}`, nb(`n = ${cur.SD.n}`),
       notes(`${what}; mean ± standard error across people. Dashed lines: linear trend.`,
         `SD &gt; NS in ${up} of ${idx.length} ${unit}${S.win ? `; mean Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : `; SD slope ${fsr(slopePerMin(cur.SD.mean, XS))}/min`}.`,
         scale, "Drag over the chart to choose a time window for the scatter."));
@@ -101,7 +101,7 @@ const dyn = (() => {
     const r = s => s.mean[i] != null ? `${f3(s.mean[i])} <span class="m">± ${f3(s.sem[i])}</span>` : "n/d";
     const head = isVar() ? `Window ${i+1} <span class="m">${spanTxt(i)}</span>` : `Epoch ${i+1} <span class="m">${spanTxt(i)}</span>`;
     return `<div class="h">${head}</div>` +
-      (G ? G.map((gr, k) => trow(`${gr.name}, Δ`, r(cur.D[k]), gr.color)).join("") : trow("NS", r(cur.NS), C.ns) + trow("SD", r(cur.SD), C.sd));
+      (G ? G.map((gr, k) => trow(`${gr.name}, Δ`, r(cur.D[k]), gr.color)).join("") : trow("Normal Sleep", r(cur.NS), C.ns) + trow("Sleep Deprivation", r(cur.SD), C.sd));
   }
   function drawHead(i){
     scan.attr("x1", ex(i)).attr("x2", ex(i)).style("opacity", 1);

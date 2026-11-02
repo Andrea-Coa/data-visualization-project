@@ -98,7 +98,7 @@ const scatter = (() => {
     const yt = mkY(), plotH = plotB-m.t;
     g.append("text").attr("class", "atitle sc-at").attr("text-anchor", "middle").attr("transform", "rotate(-90)").attr("x", -(m.t+plotB)/2).attr("y", 9).text(yt.axis.length*5.9 < plotH ? yt.axis : yt.ax2);
     g.append("text").attr("class", "atitle sc-at").attr("text-anchor", "middle").attr("x", (m.l+W-m.r)/2).attr("y", H-3)
-      .text(`${xName()}, SD − NS`);
+      .text(`${xName()}, Deprivation − Normal`);
     lassoPath = g.append("path").attr("class", "lasso-selection");
     ptsG = g.append("g").style("pointer-events", "none");   // puntos nítidos: el brillo solo va en las series
     abG = g.append("g").style("pointer-events", "none");

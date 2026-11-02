@@ -211,6 +211,27 @@ def test_quality():
     check("ρ with vs without blinks", worst < 1e-3, f"max difference {worst:.1e}")
 
 
+def test_cui_variant():
+    print("\n8. ICA pipeline in the style of Cui et al. (data/cui_variant.json)")
+    cf = APP / "data" / "cui_variant.json"
+    if not cf.exists():
+        check("ICA-variant data", False, "missing data/cui_variant.json (tools/build_cui_variant.py)"); return
+    C = json.loads(cf.read_text(encoding="utf-8"))
+    P = {d["id"]: d for d in json.loads((APP / "data" / "participants.json").read_text(encoding="utf-8"))}
+    same = set(C["persons"]) == {p for p, d in P.items() if d.get("d_front_var") is not None}
+    check("same paired people as the app", same, f"{len(C['persons'])} people")
+    worst = 0.0
+    for key, s in C["summary"].items():
+        if key.startswith("app_"):
+            continue
+        v, roi = key.rsplit("_", 1)
+        x = np.array([q[f"d_sigma_{roi}_{v}"] for q in C["persons"].values() if q[f"d_sigma_{roi}_{v}"] is not None])
+        worst = max(worst, abs(stats.ttest_1samp(x, 0).statistic - s["t"]))
+        pv = [(q[f"d_sigma_{roi}_{v}"], P[p]["d_pvt"]) for p, q in C["persons"].items() if q[f"d_sigma_{roi}_{v}"] is not None and P[p].get("d_pvt") is not None]
+        worst = max(worst, abs(stats.spearmanr(*np.array(pv).T).statistic - s["pvt"]["rho"]))
+    check("group t and ρ with ΔPVT recomputed per person", worst < 1e-6, f"max difference {worst:.1e}")
+
+
 def take_screenshots(binary, base, profile, out):
     print(f"\n5. Regresión visual (capturas para revisar a mano en {out})")
     for w, h in ((1365, 768), (1600, 900)):
@@ -238,6 +259,7 @@ def main():
         test_consistency(R)
         test_secondary()
         test_quality()
+        test_cui_variant()
         take_screenshots(a.chrome, base, profile, out)
     srv.shutdown()
     bad = [n for n, ok, _ in RESULTS if not ok]
