@@ -8,8 +8,8 @@ function loadData(){
   const base = window.BATIMIX_BASE || "";
   // las vistas secundarias son opcionales: si faltan sus JSON, la app funciona igual
   const opt = f => d3.json(`${base}data/${f}.json`).catch(() => null);
-  return Promise.all([Promise.all(FILES.map(f => d3.json(`${base}data/${f}.json`))), opt("aperiodic"), opt("connectivity"), opt("quality")])
-    .then(([[p, t, c, s, st, mv, c3], ap, cn, ql]) => ({participants:p, topo:t, coords:c, subEpochs:s, subTopo:st, multiverse:mv, coords3d:c3, aperiodic:ap, connectivity:cn, quality:ql}))
+  return Promise.all([Promise.all(FILES.map(f => d3.json(`${base}data/${f}.json`))), opt("aperiodic"), opt("connectivity"), opt("quality"), opt("electrode_epochs")])
+    .then(([[p, t, c, s, st, mv, c3], ap, cn, ql, ee]) => ({participants:p, topo:t, coords:c, subEpochs:s, subTopo:st, multiverse:mv, coords3d:c3, aperiodic:ap, connectivity:cn, quality:ql, elecEpochs:ee}))
     .catch(() => new Promise((res, rej) => {
       if(window.BATIMIX_DATA) return res(window.BATIMIX_DATA);
       const sc = document.createElement("script"); sc.src = `${base}data/data.js`;
@@ -22,6 +22,7 @@ function loadData(){
 function prepare(D){
   P = D.participants; TOPO = D.topo; COORDS = D.coords; SUBEP = D.subEpochs; SUBTOPO = D.subTopo || {}; MULTI = D.multiverse || null; COORDS3 = D.coords3d || null;
   APER = D.aperiodic || null; CONN = D.connectivity || null; QUAL = D.quality || null;
+  ELEP = D.elecEpochs || null; if(ELEP) ELEP.idx = Object.fromEntries(ELEP.electrodes.map((e, i) => [e, i]));
   EEG = P.filter(d => d.d_front_var != null); EEG_IDS = EEG.map(d => d.id);
   ELEC = Object.keys(COORDS).filter(e => TOPO[e]);
   const qv = bh(ELEC.map(e => TOPO[e].sigVar)), qm = bh(ELEC.map(e => TOPO[e].sigMean));

@@ -74,7 +74,7 @@
 
 **Typography.** Geist for titles and text, Geist Mono for figures and axes. At least 9–10 px in charts.
 
-**Interaction.** Lasso, click to add or remove people (1 to n), Shift + click for people A and B, Esc and Clear, group selector, global region and metric; the ⤢ button of each view opens it almost full screen (Esc restores it). Immediate response, no decorative animation, visible focus states.
+**Interaction.** Lasso, click to add or remove people (1 to n), Shift + click for people A and B, Esc and Clear, group selector, global region and metric; the ⤢ button of each view opens it almost full screen (Esc restores it); choosing an electrode (a map or a heatmap row) also switches the time view from the region to that electrode's own series, with its larger scale, so a local effect can be checked over the five minutes. Immediate response, no decorative animation, visible focus states.
 
 **Accessibility.** AA contrast, visible focus, group selector as an alternative to the lasso, data table in About.
 

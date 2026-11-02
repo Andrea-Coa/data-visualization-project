@@ -232,6 +232,24 @@ def test_cui_variant():
     check("group t and ρ with ΔPVT recomputed per person", worst < 1e-6, f"max difference {worst:.1e}")
 
 
+def test_electrode_epochs():
+    print("\n9. Electrode series of the time view (data/electrode_epochs.json)")
+    ef = APP / "data" / "electrode_epochs.json"
+    if not ef.exists():
+        check("electrode series data", False, "missing data/electrode_epochs.json (tools/build_participants.py)"); return
+    J = json.loads(ef.read_text(encoding="utf-8")); ST = json.loads((APP / "data" / "topo_by_subject.json").read_text(encoding="utf-8"))
+    worst, n = 0.0, 0
+    for pid, conds in J["persons"].items():
+        for c, rows in conds.items():
+            for e, row in zip(J["electrodes"], rows):
+                t = ST.get(pid, {}).get(e, {}).get(c)
+                if not t:
+                    continue
+                a = np.array([np.nan if v is None else v / J["scale"] for v in row], float)
+                worst = max(worst, abs(np.nanmean(a) - t["mean"]), abs(np.nanstd(a) - t["var"])); n += 1
+    check("mean and SD of each electrode series equal the topomap values", worst < 1e-4, f"{n} series, max difference {worst:.1e}")
+
+
 def take_screenshots(binary, base, profile, out):
     print(f"\n5. Regresión visual (capturas para revisar a mano en {out})")
     for w, h in ((1365, 768), (1600, 900)):
@@ -260,6 +278,7 @@ def main():
         test_secondary()
         test_quality()
         test_cui_variant()
+        test_electrode_epochs()
         take_screenshots(a.chrome, base, profile, out)
     srv.shutdown()
     bad = [n for n, ok, _ in RESULTS if not ok]

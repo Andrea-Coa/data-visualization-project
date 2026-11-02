@@ -80,17 +80,19 @@ const dyn = (() => {
     // puntos dentro de la ventana elegida (por su tiempo central), o todos
     const idx = d3.range(XS.length).filter(i => !S.win || (XS[i] >= S.win[0]*4 && XS[i] <= (S.win[1]+1)*4));
     const post = S.win ? `, ${winTxt(S.win)}` : "", unit = isVar() ? "windows" : "epochs";
+    // con un electrodo elegido la serie es la de ese electrodo, no la de la región (escalas distintas: no se superponen)
+    const src = S.elec && ELEP ? ` · electrode ${S.elec}` : ` · ${ROI[S.roi].name}`;
     const upOf = s => idx.filter(i => s.mean[i] != null && s.mean[i] > 0).length;
     if(G){
       const u = cur.D.map(upOf);
-      setTitle("t-dyn", `${isVar() ? "Δ moving σθ" : "Δθ per epoch"}: two groups${post}`, nb(`n = ${cur.D[0].n} and ${cur.D[1].n}`),
+      setTitle("t-dyn", `${isVar() ? "Δ moving σθ" : "Δθ per epoch"}${src}: two groups${post}`, nb(`n = ${cur.D[0].n} and ${cur.D[1].n}`),
         notes(`Δ (deprivation − normal), mean ± SE per group: Δ &gt; 0 in ${u[0]} (${G[0].name}) and ${u[1]} (${G[1].name}) of ${idx.length} ${unit}.`, "Drag over the chart to set a time window for the scatter."));
       return;
     }
     const d = idx.map(i => cur.SD.mean[i]-cur.NS.mean[i]), up = d.filter(v => v > 0).length;
-    setTitle("t-dyn", `${isVar() ? "Moving σθ, 40-s windows" : "Relative θ per epoch"}${S.selected ? " · your selection" : ""}${post}`, nb(`n = ${cur.SD.n}`),
+    setTitle("t-dyn", `${isVar() ? "Moving σθ, 40-s windows" : "Relative θ per epoch"}${src}${S.selected ? " · your selection" : ""}${post}`, nb(`n = ${cur.SD.n}`),
       notes(`${isVar() ? "SD of regional relative θ in 40-s windows (10 epochs)" : "Regional relative θ per 4-s epoch"}, mean ± SE across people. Deprivation &gt; normal in ${up} of ${idx.length} ${unit}${S.win ? `; mean Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : ""}.`,
-        "Rejected epochs (&gt; 200 µV) are gaps. Drag over the chart to set a time window for the scatter."));
+        `${S.elec && ELEP ? `Series of electrode ${S.elec}: noisier than a region and on a larger scale (a region averages 16–28 electrodes). Remove it with the x chip in the header.` : "Click an electrode on a map (or a heatmap row) to see its own series."} Rejected epochs (&gt; 200 µV) are gaps; drag to set a time window for the scatter.`));
   }
   function tipFor(i){
     const r = s => s.mean[i] != null ? `${f3(s.mean[i])} <span class="m">± ${f3(s.sem[i])}</span>` : "n/d";

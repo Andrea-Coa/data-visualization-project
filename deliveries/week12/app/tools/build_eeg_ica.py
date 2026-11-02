@@ -7,6 +7,8 @@ Same files and columns as deliveries/week06/data/processed (notebooks 02 and 03)
                                so rejected epochs leave a gap
   eeg_pipeline_skipped.csv     recordings that cannot be processed
   merged_summary.csv           ROI means and SD − NS deltas merged with the Week 6 behavioral deltas (notebook 03)
+  eeg_theta_epochs_electrode.npz  relative theta per epoch (75 positions, NaN = rejected) and electrode, one array
+                               per "participant|condition", for the electrode series of the app's time view
 Cleaning is in tools/eeg_ica.py. Eyes open only. About 10 minutes with 7 processes the first time (ICA fits are cached).
 Usage (from deliveries/week12/app/):  python3 tools/build_eeg_ica.py [--procs 7] [--refit]
 """
@@ -40,7 +42,10 @@ def process(rec, cond, refit):
     meta = {"n_epochs_available": available, "n_epochs_used": len(ep), "n_epochs_rejected": min(75, available) - len(ep),
             "n_bad_channels": len(info["bads"]), "n_ica_components": info["n_components"], "n_ica_removed": len(info["removed"]),
             "n_ica_ocular": info["n_ocular"], "n_ica_muscle": info["n_muscle"]}
-    return rec["participant_id"], cond, (elec, rois, meta), None
+    # theta relativa por época y electrodo, en su posición del registro (NaN = época rechazada), para la vista temporal
+    full = np.full((ns["MAX_EPOCHS"], len(ep.ch_names)), np.nan, dtype=np.float32)
+    full[[k for k in kept if k < ns["MAX_EPOCHS"]]] = rel[:len([k for k in kept if k < ns["MAX_EPOCHS"]])]
+    return rec["participant_id"], cond, (elec, rois, meta, (list(ep.ch_names), full)), None
 
 
 def merge(proc):
@@ -64,6 +69,7 @@ def merge(proc):
 
 
 def main():
+    import numpy as np
     import pandas as pd
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--procs", type=int, default=7)
@@ -75,6 +81,7 @@ def main():
     cond_map = ns["session_to_condition"](pd.read_csv(ns["PARTICIPANTS_TSV"], sep="\t"))
     recs = [r for r in ns["find_recordings"](E.REPO / "ds004902") if r["task"] == "eyesopen"]
     elec, rois, skipped = [], [], []
+    epochs_e, channels = {}, None
     jobs = []
     for r in recs:
         c = cond_map.get((r["participant_id"], r["session"]))
@@ -93,7 +100,12 @@ def main():
             if res is None:
                 skipped.append((r["participant_id"], r["session"], "eyesopen", why))
             else:
-                el, ro, meta = res
+                el, ro, meta, (chs, full) = res
+                if channels is None:
+                    channels = chs
+                # cada .set guarda sus canales en su propio orden: se reordena al de la primera grabación
+                assert set(chs) == set(channels), f"different channels in {pid} {c}"
+                epochs_e[f"{pid}|{c}"] = full[:, [chs.index(ch) for ch in channels]]
                 for d in el:
                     elec.append({**d, "participant_id": pid, "condition": c, "task": "eyesopen", **meta})
                 for d in ro:
@@ -105,6 +117,7 @@ def main():
     pe.to_csv(E.PROC_ICA / "eeg_theta_per_electrode.csv", index=False)
     pd.DataFrame(rois).sort_values(["participant_id", "condition", "roi", "epoch_idx"]).to_csv(E.PROC_ICA / "eeg_theta_epochs_roi.csv", index=False)
     pd.DataFrame(skipped, columns=["participant_id", "session", "task", "reason"]).to_csv(E.PROC_ICA / "eeg_pipeline_skipped.csv", index=False)
+    np.savez_compressed(E.PROC_ICA / "eeg_theta_epochs_electrode.npz", channels=np.array(channels), **epochs_e)
     m = merge(E.PROC_ICA)
     r = pe.drop_duplicates(["participant_id", "condition"])
     print(f"\n{len(r)} recordings, {len(skipped)} skipped; ICA components removed: mean {r.n_ica_removed.mean():.2f} "

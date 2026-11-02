@@ -8,6 +8,8 @@ processed files exactly as done here (checked: maximum difference 1e-16). The EE
                       merged_summary.csv; demographic and behavioral fields are kept as they are
   subject_epochs.json per person and condition, relative theta of each 4-s epoch averaged over the frontal (f_) and
                       centrotemporal (c_) electrodes, 75 positions, null where the epoch was rejected (4 decimals)
+  electrode_epochs.json  relative theta per epoch for each electrode (× 10 000, null = rejected), from
+                      eeg_theta_epochs_electrode.npz: the time view shows it when an electrode is chosen
   ../data/participants_deltas.csv  the same participants table as CSV (with PVT lapses and RT SD)
 
 Usage (from deliveries/week12/app/):  python3 tools/build_participants.py [--proc folder]
@@ -59,6 +61,23 @@ def main():
                 arr[i] = round(float(r["theta_power"]), 4)
     S = {d["id"]: ep.get(d["id"], {}) for d in P}
     (DATA / "subject_epochs.json").write_text(json.dumps(S, separators=(",", ":")), encoding="utf-8")
+    # serie por época de cada electrodo (vista temporal con un electrodo elegido): enteros = θ relativa × 10 000
+    npz = a.proc / "eeg_theta_epochs_electrode.npz"
+    if npz.exists():
+        import numpy as np
+        Z = np.load(npz)
+        chans = [str(c) for c in Z["channels"]]
+        pers = {}
+        for d in P:
+            if d["d_front_var"] is None:
+                continue
+            for c in ("NS", "SD"):
+                k = f"{d['id']}|{c}"
+                if k in Z.files:
+                    A = Z[k].T   # (electrodos, épocas)
+                    pers.setdefault(d["id"], {})[c] = [[None if not np.isfinite(v) else int(round(float(v) * 10000)) for v in row] for row in A]
+        (DATA / "electrode_epochs.json").write_text(json.dumps({"scale": 10000, "electrodes": chans, "persons": pers}, separators=(",", ":")), encoding="utf-8")
+        print(f"electrode_epochs.json: {len(pers)} people × {len(chans)} electrodes × 75 epochs")
     M = json.loads((DATA / "multiverse.json").read_text(encoding="utf-8")) if (DATA / "multiverse.json").exists() else None
     at = {s: i for i, s in enumerate(M["subjects"])} if M else {}
     cols = ["id", "gender", "age", "order", "psqi", *FIELDS, "d_pvt", "d_kss", "d_sss", "d_panasP", "d_panasN", "d_pvt_lapses", "d_pvt_sdrt"]

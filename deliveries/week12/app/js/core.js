@@ -3,7 +3,7 @@
    Semana 12: sin animaciones; los cambios de estado se dibujan en el acto. */
 
 // ---------- datos (los asigna main.js tras cargar data/*.json) ----------
-let P = [], TOPO = {}, COORDS = {}, COORDS3 = null, APER = null, CONN = null, QUAL = null, SUBEP = {}, EEG = [], EEG_IDS = [], ELEC = [], SUBTOPO = {}, MULTI = null;
+let P = [], TOPO = {}, COORDS = {}, COORDS3 = null, APER = null, CONN = null, QUAL = null, ELEP = null, SUBEP = {}, EEG = [], EEG_IDS = [], ELEC = [], SUBTOPO = {}, MULTI = null;
 const $ = id => document.getElementById(id);
 
 // ---------- paleta: se lee de los tokens CSS (una sola fuente de verdad) ----------
@@ -178,10 +178,19 @@ function rollSD(arr){
 }
 // eje del tiempo (segundos) de cada punto: centro de la época, o centro de la ventana móvil
 const seriesX = met => met === "var" ? d3.range(75-ROLL_W+1).map(i => i*4+ROLL_W*2) : d3.range(75).map(i => i*4+2);
-const seriesOf = (s, pref, cond, met) => { const a = s && s[pref+"_"+cond]; return a ? (met === "var" ? rollSD(a) : a) : null; };
+// serie por época de una persona: la de la región o, con un electrodo elegido (clic en un mapa o en una fila del mapa
+// de calor), la de ese electrodo (data/electrode_epochs.json); null en las épocas rechazadas
+function rawSeries(id, pref, cond){
+  if(S.elec && ELEP){
+    const p = ELEP.persons[id], i = ELEP.idx[S.elec], a = p && p[cond] && p[cond][i];
+    return a ? a.map(v => v == null ? null : v/ELEP.scale) : null;
+  }
+  const s = SUBEP[id]; return s ? s[pref+"_"+cond] : null;
+}
+const seriesOf = (id, pref, cond, met) => { const a = rawSeries(id, pref, cond); return a ? (met === "var" ? rollSD(a) : a) : null; };
 // media ± EE entre personas, punto a punto; con met = "var", de la σθ móvil
 function epochStats(ids, pref, cond, met = "mean"){
-  const xs = seriesX(met), mean = [], sem = [], n = [], per = ids.map(id => seriesOf(SUBEP[id], pref, cond, met));
+  const xs = seriesX(met), mean = [], sem = [], n = [], per = ids.map(id => seriesOf(id, pref, cond, met));
   for(let i = 0; i < xs.length; i++){
     const v = []; for(const a of per) if(a && a[i] != null) v.push(a[i]);
     mean.push(v.length ? d3.mean(v) : null); sem.push(v.length > 1 ? d3.deviation(v)/Math.sqrt(v.length) : 0); n.push(v.length);
@@ -191,7 +200,7 @@ function epochStats(ids, pref, cond, met = "mean"){
 // Δ (SD menos NS) punto a punto, persona a persona, con su error estándar
 function epochDiffStats(ids, pref, met = "mean"){
   const xs = seriesX(met), mean = [], sem = []; let nMax = 0;
-  const per = ids.map(id => [seriesOf(SUBEP[id], pref, "NS", met), seriesOf(SUBEP[id], pref, "SD", met)]);
+  const per = ids.map(id => [seriesOf(id, pref, "NS", met), seriesOf(id, pref, "SD", met)]);
   for(let i = 0; i < xs.length; i++){
     const v = []; for(const [a, b] of per) if(a && b && a[i] != null && b[i] != null) v.push(b[i]-a[i]);
     mean.push(v.length ? d3.mean(v) : null); sem.push(v.length > 1 ? d3.deviation(v)/Math.sqrt(v.length) : 0); nMax = Math.max(nMax, v.length);
