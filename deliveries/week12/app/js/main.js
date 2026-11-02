@@ -126,7 +126,8 @@ loadData().then(D => {
   const setMax = box => {
     document.querySelectorAll(".is-max").forEach(b => { b.classList.remove("is-max"); b.querySelector(".vx").setAttribute("aria-label", "Expand view"); });
     $("maxbg").hidden = !box;
-    if(box){ box.classList.add("is-max"); box.querySelector(".vx").setAttribute("aria-label", "Restore view"); }
+    document.querySelectorAll(".vx").forEach(b => b.title = "Expand (Esc to close)");
+    if(box){ box.classList.add("is-max"); const b = box.querySelector(".vx"); b.setAttribute("aria-label", "Restore view"); b.title = "Restore (Esc)"; }
     requestAnimationFrame(drawAll);   // el nuevo tamaño ya está aplicado: cada vista se redibuja a su escala
   };
   document.querySelectorAll(".vx").forEach(b => b.addEventListener("click", e => {

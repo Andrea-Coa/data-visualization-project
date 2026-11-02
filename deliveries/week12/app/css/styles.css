@@ -358,3 +358,11 @@ body{background:var(--page)}
 /* cabeceras de vista de alto fijo: título y leyenda en una línea, para que seleccionar no mueva las vistas de abajo */
 .p-scatter .ph{flex-wrap:nowrap}
 .p-scatter .ph h2{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ícono: flechas hacia afuera para ampliar, hacia adentro para restaurar */
+.vx .co{display:none}
+.is-max .vx .ex{display:none}
+.is-max .vx .co{display:inline}
+/* las vistas secundarias apilan sus gráficos en vertical: ampliadas, conservan una proporción vertical y se centran */
+.sec.is-max .sec-body{align-items:center}
+.sec.is-max .sec-body .ph{width:100%}
+.sec.is-max .view{width:min(100%, calc((100vh - 150px) * .82))!important;flex:1 1 0!important}
