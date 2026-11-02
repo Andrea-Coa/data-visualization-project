@@ -1,16 +1,16 @@
 ipykernel
 numpy
 pandas
-scipy        # pruebas t, Spearman y multiverso (build_multiverse.py, build_topo_stats.py, check_app.py)
-statsmodels  # FDR de referencia en las pruebas técnicas (check_app.py)
+scipy        # t-tests, Spearman and multiverse (build_multiverse.py, build_topo_stats.py, check_app.py)
+statsmodels  # reference FDR in the technical tests (check_app.py)
 
-# visualización
+# visualization
 matplotlib
 seaborn
 PyQt6
 
 # for eeg data
 mne
-mne-connectivity  # wPLI de la vista «Sincronía θ» (tools/build_secondary.py)
-fooof==1.1.0      # specparam de la vista «Oscilatoria o aperiódica» (tools/build_secondary.py)
+mne-connectivity  # wPLI for the «θ synchrony» view (tools/build_secondary.py)
+fooof==1.1.0      # specparam for the «Oscillatory or aperiodic» view (tools/build_secondary.py)
 pymatreader  # required by mne.io.read_raw_eeglab for MATLAB v7.3 (HDF5) .set files

@@ -1,129 +1,130 @@
-# BATIMIX: Una noche sin dormir no le pasa igual a todos
+# BATIMIX: One sleepless night does not affect everyone the same way
 
-**Refined Draft Report, Semana 12** · DS5343 Data Visualization, UTEC 2026-2
-**Equipo:** Jimena Gurbillon, Andrea Coa, Paolo Medrano
-**Fecha:** 28 de octubre de 2026
-**Aplicación:** `deliveries/week12/app/` · despliegue previsto en https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/ (verificar tras el push)
+**Refined Draft Report, Week 12** · DS5343 Data Visualization, UTEC 2026-2
+**Team:** Jimena Gurbillon, Andrea Coa, Paolo Medrano
+**Date:** 28 October 2026 (updated 2 November 2026)
+**Application:** `deliveries/week12/app/` · planned deployment at https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/ (verify after the push)
 
-![BATIMIX a 1600 × 900: dispersión, mapa de calor persona × electrodo, cinco minutos y matriz de topomapas](assets/dashboard-1600x900.png)
+![BATIMIX at 1600 × 900: scatter, person × electrode heatmap, five minutes, topomap matrix and secondary views](assets/dashboard-1600x900.png)
 
-## 1. Narrativa
+## 1. Narrative
 
-**Problema.** Ante la misma noche sin dormir, algunas personas se deterioran mucho y otras casi nada. El promedio grupal diluye esa diferencia (Van Dongen et al., 2004). Cui et al. (2026) propusieron un marcador individual: cuánto aumenta la variabilidad de la potencia theta entre épocas de 4 s (σθ) en el EEG de reposo, y reportaron que se asocia con el enlentecimiento en la tarea de vigilancia psicomotora (PVT; ρ = 0.544 frontal, n = 28).
+**Problem.** After the same sleepless night, some people deteriorate a lot and others barely at all. The group average dilutes that difference (Van Dongen et al., 2004). Cui et al. (2026) proposed an individual marker: how much the variability of theta power across 4-s epochs (σθ) increases in resting EEG, and reported that it is associated with slowing on the psychomotor vigilance task (PVT; ρ = 0.544 frontal, n = 28).
 
-**Audiencia y decisión.** Investigadores en fisiología del sueño que hacen screening exploratorio sobre datos públicos. La herramienta ayuda a decidir qué canales, regiones y covariables merecen una prueba formal. No es diagnóstica ni predictiva.
+**Audience and decision.** Sleep physiology researchers doing exploratory screening on public data. The tool helps decide which channels, regions and covariates deserve a formal test. It is neither diagnostic nor predictive.
 
-**Datos.** OpenNeuro ds004902 (Xiang et al., 2024, CC0): 71 personas, sueño normal (NS) frente a 24 a 30 h sin dormir (SD), EEG de 61 canales con ojos abiertos. 68 tienen EEG en ambas condiciones; entre ellas, PVT 30, KSS 32, SSS 33 y PANAS 65.
+**Data.** OpenNeuro ds004902 (Xiang et al., 2024, CC0): 71 people, normal sleep (NS) versus 24–30 h without sleep (SD), 61-channel eyes-open EEG. 68 have EEG in both conditions; of these, PVT 30, KSS 32, SSS 33 and PANAS 65.
 
-**Secuencia analítica.** Cada panel responde una pregunta y su título es la respuesta, calculada en vivo con los datos:
+**Analytic sequence.** Each panel answers one question and its title is the answer, computed live from the data:
 
-| Pregunta | Respuesta (datos reales) | Panel |
+| Question | Answer (real data) | Panel |
 |---|---|---|
-| ¿Todos cambian igual? | 39 personas se vuelven más inestables y 29 más estables; el promedio sube solo +0.0043 (DE entre personas 0.023) | Franja inferior de la dispersión |
-| ¿Dónde cambia, en la cabeza? | σθ: 4 de 61 electrodos con p < 0.05 sin corregir (AF8, Fp2, O2, Oz); μθ: 8; ninguno tras FDR: difuso, sin foco | Matriz de topomapas, columna Δ |
-| ¿Cuándo, en los cinco minutos? | SD sobre NS en 52 de 75 épocas; tendencia SD −0.0021 por minuto | Cinco minutos |
-| ¿Más inestable es más lento? | ρ = −0.10 [−0.44, 0.27], n = 30: no replica a Cui et al. | Dispersión |
-| ¿Depende de cómo se analiza? | En 448 análisis alternativos, ningún estadístico conjunto supera al azar (p ≥ 0.15) | Acerca de, «Robustez» (sección 4) |
+| Does everyone change the same way? | 39 people become more unstable and 29 more stable; the mean rises only +0.0043 (SD across people 0.023) | Scatter and heatmap |
+| Where does it change on the head? | σθ: 4 of 61 electrodes with uncorrected p < 0.05 (AF8, Fp2, O2, Oz); μθ: 8; none after FDR: diffuse, no focus | Topomap matrix, Δ column |
+| When, within the five minutes? | Moving σθ in SD above NS in 63 of 66 windows (frontal) | Five minutes |
+| Is more unstable slower? | ρ = −0.10 [−0.44, 0.27], n = 30: does not replicate Cui et al. | Scatter |
+| Is the effect oscillatory or 1/f? | The change in σθ tracks the change in periodic theta (ρ = 0.70 to 0.87); aperiodic variability explains 2–7% | Secondary view «Oscillatory or aperiodic» |
+| Does it depend on how it is analyzed? | Across 448 alternative analyses, no joint statistic exceeds chance (p ≥ 0.15) | About, «Robustness» (section 4) |
 
-**Conclusión preliminar.** Sin dormir, la theta de cada persona se mueve en direcciones distintas, y ese cambio no predice de forma robusta quién se deteriora. La única pista consistente es con el ánimo (afecto positivo, PANAS+), no con la vigilancia (PVT).
+**Preliminary conclusion.** Without sleep, each person's theta moves in different directions, and that change does not robustly predict who deteriorates. The only consistent hint is with mood (positive affect, PANAS+), not with vigilance (PVT).
 
-## 2. Qué cambió desde la Semana 10
+## 2. What changed since Week 10
 
-| Antes (Semana 10) | Ahora (Semana 12) | Por qué |
+| Before (Week 10) | Now (Week 12) | Why |
 |---|---|---|
-| Dashboard claro de tres tarjetas separadas, con historia con scroll comentada | Tema oscuro, cuatro paneles sin espacio entre ellos que llenan la pantalla (1365 × 768 sin desplazamiento) | Observación del profesor (sin espacios en blanco) y decisión del equipo (una sola vista, sin scrollytelling) |
-| Controles repartidos en varias barras y dentro de cada tarjeta | Un único header con el título y todos los controles | Ruido visual de los controles |
-| Textos de ayuda ("arrastra para…", "pasa el cursor…") y etiquetas de rol | Sin textos de instrucciones: el título de cada panel es su hallazgo; intro, glosario y método en "Acerca de" | Ruido visual; pedido del equipo |
-| Animaciones de transición y botón Reproducir | Sin animaciones: cada cambio de estado es inmediato | Sin motion graphics |
-| Mapas por distancia inversa (IDW) sobre coordenadas 2D aproximadas a mano | Interpolación biarmónica v4, la de `topoplot` de EEGLAB y `ft_topoplotER` de FieldTrip, sobre las posiciones reales de `electrodes.tsv` en proyección azimutal equidistante; un selector muestra además la cúbica de Clough-Tocher de MNE y el spline esférico (Perrin et al., 1989). Las tres implementaciones reproducen a las originales (EEGLAB y FieldTrip en MATLAB R2022a, MNE 1.8) con error menor a 1e-9 del rango. Con los datos de los 68, el mapa v4 correlaciona r ≥ 0.985 con la cúbica de MNE y r ≥ 0.93 con el spline esférico en los seis mapas | El IDW no es un estándar para topomapas de EEG; usar el método de referencia de la comunidad y mostrar que el patrón no depende de él |
-| Sin indicación del pipeline ni de unidades; tooltip del electrodo con p y q | Chip fijo en el header (θ 4–8 / 1–40 Hz · ref. FCz · 75 × 4 s · sin ICA, enlazado al método); unidades en las barras de color; la banda de Cinco minutos rotulada «media ± EE»; tooltip con t(67), d_z e IC 95 % de Δ. Δ del mapa de las 68 ahora pareado y p con la t exacta (antes aproximación normal); mismas conclusiones | Lo primero que pregunta un neurofisiólogo: con qué pipeline, en qué unidades y qué tamaño de efecto |
-| Cinco minutos mostraba siempre la media (μθ), aunque la métrica elegida fuera σθ | Sigue al botón σθ/μθ: con σθ muestra la σθ móvil (DE de la θ regional en ventanas de 40 s que avanzan de a una época). Exploratoria y rotulada: su escala es menor que la σθ de la dispersión porque parte de la serie promediada por región | Q6 para la métrica central: la hipótesis de inestabilidad de estado (Doran, Van Dongen y Dinges, 2001) predice más variabilidad momento a momento sin dormir; Cui et al. (2026) la resumen en un número sin orden temporal; 40 s es donde la potencia espectral en reposo alcanza su confiabilidad (Gudmundsson et al., 2007) |
-| Dos columnas: mapas y vistas del mismo tamaño; vistas secundarias inexistentes | Tres columnas con el topomapa como protagonista y una columna de vistas secundarias plegables: «Oscilatoria o aperiódica» (specparam) y «Sincronía θ» (wPLI), calculadas desde el EEG crudo con `tools/build_secondary.py` y enlazadas a la selección | Jerarquía visual (crítica del profesor) y la objeción que un neurofisiólogo haría primero: ¿es oscilación o fondo 1/f? |
-| Sin verificación automática de los números | `tools/check_app.py`: 13 pruebas (FDR y ρ contra statsmodels y scipy, t y d_z contra scipy, señales de referencia con MNE, consistencia de n entre títulos, Acerca de, Reporte y tooltip, capturas) | Un número mal calculado invalida la herramienta para un experto |
-| Un topomapa con conmutadores σ/μ y NS/SD/Δ | Matriz 2 × 3 de topomapas: columnas NS, SD y Δ; filas σθ y μθ, o las personas A y B elegidas con clic en la dispersión | Comparar condiciones, métricas y personas sin conmutar (T1, T2, T4) |
-| Franjas por región de 20 px | Franja de las 68 personas bajo la dispersión, con el conteo 39 / 29 | El hallazgo central necesitaba evidencia visual |
-| Selección solo con lazo; ρ fijo de los 68 | Lazo + **Comparar dos grupos** (mujeres vs hombres, orden de sesión, PSQI, vulnerables vs resto), con un color por grupo en las cuatro vistas y ρ por grupo | Tarea T7: los moderadores se ven lado a lado, no filtrados de a uno |
-| Vistas que solo mostraban | Todas enlazadas: clic en un electrodo o una ventana de tiempo redefine el eje x de la dispersión; clic en dos puntos o en dos filas del mapa de calor compara a dos personas | "Todo interactivo": cada vista es también un control |
-| Sin vista por persona | Panel fijo con el mapa de calor persona × electrodo: dos grupos definidos solo por la conducta (se deterioran frente a resisten; o los grupos de Comparar) y su consistencia C(e). En la entrega era un panel flotante con un grafo de similitud; el grafo se retiró para reducir gráficos | Tareas T3 y T4 sin promedios: ¿quienes se deterioran comparten una firma? Clic en una fila o un nodo = persona A o B en la matriz de mapas |
-| Sin forma de llevarse lo visto | Botón **Reporte**: HTML autocontenido con la vista actual, cómo leer cada gráfico, la tabla de personas y su CSV | Que el investigador documente y comparta lo que encontró |
-| Títulos largos | Etiqueta de tarea + titular breve calculado con los datos + cifras en tono apagado | Cada panel transmite su mensaje en pocas palabras |
-| Marcadores: PVT mediana, KSS, SSS, PANAS | Además PVT lapsos y DE del TR | Basner y Dinges (2011) |
-| Sin respuesta a la no replicación | Multiverso de 448 análisis con inferencia por permutación. Tuvo panel propio en la entrega del 28 de octubre; después, para reducir gráficos, pasó a «Acerca de» y al Reporte como análisis de robustez | Diferencial metodológico (sección 4) |
+| Light dashboard of three separate cards, with a commented scrolling story | Single view with gapless panels that fill the screen (1365 × 768 without scrolling); light theme by default, dark as an option | Instructor feedback (no white space) and team decision (one view, no scrollytelling) |
+| Controls spread over several bars and inside each card | One header with the title and all controls | Visual noise from controls |
+| Help text ("drag to…", "hover…") and role labels | No instruction text: each panel title is its finding; intro, glossary and method in About | Visual noise; team request |
+| Transition animations and a Play button | No animations: every state change is immediate | No motion graphics |
+| Inverse-distance (IDW) maps on hand-approximated 2D coordinates | Biharmonic v4 interpolation, as in EEGLAB `topoplot` and FieldTrip `ft_topoplotER`, on the real positions in `electrodes.tsv` in azimuthal equidistant projection; a selector also shows MNE's Clough-Tocher cubic and the spherical spline (Perrin et al., 1989). All three implementations reproduce the originals (EEGLAB and FieldTrip in MATLAB R2022a, MNE 1.8) with an error below 1e-9 of the range. With all 68 people, the v4 map correlates r ≥ 0.985 with MNE's cubic and r ≥ 0.93 with the spherical spline in all six maps | IDW is not a standard for EEG topomaps; use the community's reference method and show that the pattern does not depend on it |
+| No indication of pipeline or units; electrode tooltip with p and q | Fixed chip in the header (θ 4–8 / 1–40 Hz · ref. FCz · 75 × 4 s · no ICA, linked to the method); units on the color bars; the five-minute band labeled «mean ± SE»; tooltip with t(67), d_z and 95% CI of Δ. The Δ map of the 68 is now paired and p uses the exact t distribution (formerly a normal approximation); same conclusions | The first questions of a neurophysiologist: which pipeline, which units, what effect size |
+| Five minutes always showed the mean (μθ), even with σθ selected | Follows the σθ/μθ button: with σθ it shows moving σθ (SD of regional θ in 40-s windows sliding by one epoch). Exploratory and labeled: its scale is smaller than the scatter σθ because it starts from the region-averaged series | Q6 for the central metric: the state-instability hypothesis (Doran, Van Dongen and Dinges, 2001) predicts more moment-to-moment variability without sleep; Cui et al. (2026) summarize it as a single number without temporal order; 40 s is where resting spectral power reaches its reliability (Gudmundsson et al., 2007) |
+| Two columns with maps and views of the same size; no secondary views | Three columns with the topomap as the main view and a column of collapsible secondary views: «Oscillatory or aperiodic» (specparam) and «θ synchrony between regions» (wPLI graph and effect per pair), computed from the raw EEG with `tools/build_secondary.py` and linked to the selection | Visual hierarchy (instructor critique) and the first objection a neurophysiologist would raise: is it oscillation or 1/f background? |
+| No automatic verification of the numbers | `tools/check_app.py`: 16 tests (FDR and ρ against statsmodels and scipy, t and d_z against scipy, reference signals with MNE, consistency of n across titles, About, Report and tooltip, secondary views, screenshots) and `tools/check_reproduction.py` (the processed data reproduce from the raw EEG) | A miscalculated number invalidates the tool for an expert |
+| One topomap with σ/μ and NS/SD/Δ toggles | 2 × 3 topomap matrix: NS, SD and Δ columns; σθ and μθ rows, or one row per person when exactly two people are selected | Compare conditions, metrics and people without toggling (T1, T2, T4) |
+| Selection with the lasso only; fixed ρ for the 68 | Lasso, click selection from 1 to n people, and **Compare two groups** (women vs men, session order, PSQI, vulnerable vs rest), with one color per group in every view and ρ per group | Task T7: moderators side by side, not filtered one at a time |
+| Views that only displayed | All linked: clicking an electrode or a time window redefines the scatter x-axis; clicking points or heatmap columns builds the selection; two selected people are compared side by side | "Everything interactive": each view is also a control |
+| No per-person view | Fixed person × electrode heatmap: two groups defined by behavior only (deteriorate vs resist, or the Compare groups) and their consistency C(e); selected people are outlined without reordering | Tasks T3 and T4 without averages: do those who deteriorate share a signature? |
+| No way to take the view away | **Report** button: self-contained HTML with the current view, how to read each chart, the people table and its CSV | Let the researcher document and share what they found |
+| Long titles | Short headline computed from the data plus figures in a muted tone | Each panel conveys its message in a few words |
+| Markers: median PVT, KSS, SSS, PANAS | Also PVT lapses and RT SD | Basner and Dinges (2011) |
+| No response to the non-replication | 448-analysis multiverse with permutation inference. It had its own panel in the 28 October delivery; later, to reduce the number of charts, it moved to About and the Report as a robustness analysis | Methodological contribution (section 4) |
+| Spanish interface | English interface | The tool and its figures will be part of an English paper |
 
-## 3. Justificación del diseño
+## 3. Design rationale
 
-**Disposición.** Tres columnas sin espacio entre paneles, según el boceto del equipo y el patrón más común en sistemas de IEEE VIS (Chen et al.: vistas grandes al centro, paneles laterales angostos). Centro: la matriz de topomapas, protagonista, y debajo cinco minutos, ancha para sus 75 épocas. Izquierda: las personas, con la dispersión compacta y el mapa de calor alto. Derecha: vistas secundarias en acordeón (una abierta a la vez), que se pliegan a una franja para dar más espacio a los mapas. El botón ⇄ intercambia los lados; el centro no se mueve. En pantallas angostas los paneles se apilan, con los mapas primero.
+**Layout.** Three gapless columns, following the team's sketch and the most common pattern in IEEE VIS systems (Chen et al.: large views in the center, narrow side panels). Center: the topomap matrix, the main view, with the five-minute series below, wide enough for its 75 epochs. Left: the people, with a compact scatter and a tall heatmap. Right: secondary views in an accordion (one open at a time) that collapse to a strip to give the maps more room. The ⇄ button swaps the sides; the center does not move. On narrow screens the panels stack, maps first.
 
-**Tareas y vistas** (tipología de Brehmer y Munzner, 2013):
+**Tasks and views** (typology of Brehmer and Munzner, 2013):
 
-| Tarea | Pregunta | Vista | Cómo la responde |
+| Task | Question | View | How it answers |
 |---|---|---|---|
-| T1 Localizar | ¿Dónde cambia theta? (Q1) | Matriz, columna Δ | Mapa interpolado (v4 de EEGLAB y FieldTrip) con anillo (p < 0.05) y relleno (FDR) |
-| T2 Comparar métricas | ¿Variabilidad o media? (Q2) | Matriz, filas σθ y μθ | Las dos métricas a la vista, una sobre otra |
-| T3 Identificar | ¿Quiénes son vulnerables? (Q3) | Dispersión; mapa de calor | Cuadrante ámbar (sobre ambas medianas), lazo y franja de las 68 personas; una fila por persona |
-| T4 Comparar | ¿Comparten firma espacial? (Q4) | Matriz por grupo; filas A y B; mapa de calor | Promedio del grupo activo; dos personas con escalas compartidas; C(e) por grupo |
-| T5 Correlacionar | ¿Converge con cada marcador? (Q5) | Dispersión, eje Y | ρ de Spearman con IC 95 % y n en el título, recalculado por grupo |
-| T6 Describir tendencia | ¿Cambia dentro del registro? (Q6) | Cinco minutos | Media ± EE por época del grupo activo |
-| T7 Comparar grupos | ¿Influyen sexo, PSQI u orden de sesión? (Q7) | Selector Comparar | Dos grupos con dos colores en las cuatro vistas: filas de mapas, ρ por grupo, Δ por época |
-| T8 Verificar robustez | ¿Depende de las decisiones analíticas? | Acerca de, «Robustez» | Estadísticos conjuntos del multiverso con su p de permutación y enlace al CSV de los 448 análisis |
+| T1 Locate | Where does theta change? (Q1) | Matrix, Δ column | Interpolated map (EEGLAB/FieldTrip v4) with ring (p < 0.05) and fill (FDR) |
+| T2 Compare metrics | Variability or mean? (Q2) | Matrix, σθ and μθ rows | Both metrics in view, one above the other |
+| T3 Identify | Who is vulnerable? (Q3) | Scatter; heatmap | Amber quadrant (above both medians), lasso and click selection; one column per person |
+| T4 Compare | Do they share a spatial signature? (Q4) | Matrix by group; two selected people; heatmap | Mean of the active group; two people with shared scales; C(e) per group |
+| T5 Correlate | Does it converge with each marker? (Q5) | Scatter, Y-axis | Spearman ρ with 95% CI and n in the title, recomputed per group |
+| T6 Describe trend | Does it change within the recording? (Q6) | Five minutes | With μθ, mean ± SE per epoch; with σθ, moving σθ in 40-s windows |
+| T7 Compare groups | Do sex, PSQI or session order matter? (Q7) | Compare selector | Two groups with two colors in every view: map rows, ρ per group, Δ per epoch |
+| T8 Check robustness | Does it depend on analytic decisions? Is it oscillatory? | About, «Robustness»; secondary views | Joint multiverse statistics with their permutation p; periodic vs aperiodic separation; θ synchrony with effects and CIs per pair |
 
-**Codificación y color.** Tema oscuro tipo instrumento: los mapas "brillan" sobre el fondo. NS = cian, SD = magenta. NS y SD comparten una escala secuencial (inferno) por fila para que comparar columnas sea comparar valores; en el modo A / B ambas filas comparten escala. Δ usa una escala divergente cian, oscuro, magenta con el cero fundido en el fondo. Ámbar marca el cuadrante vulnerable. Etiquetas directas (NS y SD al final de las series, conteo 39 / 29 sobre la franja, "análisis inicial" en la curva) en vez de leyendas lejanas.
+**Encoding and color.** Light theme by default with ColorBrewer palettes; an optional dark "instrument" theme. NS = blue, SD = red. NS and SD share a sequential scale per row so that comparing columns means comparing values; with two people both rows share the scale. Δ uses a diverging scale with a neutral zero. Amber marks the vulnerable quadrant. Selection is marked with a ring (scatter) or an outline (heatmap) without changing the point colors, which keep their meaning. Direct labels instead of distant legends.
 
-**Tipografía.** Geist para títulos y texto, Geist Mono para cifras y ejes. Mínimo 10 px en gráficos.
+**Typography.** Geist for titles and text, Geist Mono for figures and axes. At least 9–10 px in charts.
 
-**Interacción.** Lazo libre, clic en dos puntos para A y B, Esc y Limpiar, selector de grupo, región y métrica globales. Respuesta inmediata, sin animación decorativa, estados de foco visibles (principios de Emil Kowalski).
+**Interaction.** Lasso, click to add or remove people (1 to n), Shift + click for people A and B, Esc and Clear, group selector, global region and metric. Immediate response, no decorative animation, visible focus states.
 
-**Accesibilidad.** Contraste AA sobre fondo oscuro, foco visible, selector de grupos como alternativa al lazo, tabla de datos en "Acerca de" con filas que eligen A y B.
+**Accessibility.** AA contrast, visible focus, group selector as an alternative to the lasso, data table in About.
 
-## 4. Diferencial: multiverso de 448 análisis
+## 4. Contribution: a multiverse of 448 analyses
 
-Una sola correlación es una de muchas decisiones posibles. Para responder con honestidad a la no replicación de Cui et al., calculamos **448 especificaciones**: 4 regiones (frontal, centro-temporal, posterior, global) × 2 métricas (σθ, μθ) × 2 formas de cambio (absoluto, relativo) × 7 marcadores conductuales × 2 correlaciones (Spearman, Pearson) × 2 reglas de atípicos (todos, excluir |z| > 2.5). Todas se orientan a deterioro, de modo que la hipótesis predice r > 0.
+A single correlation is one of many possible decisions. To respond honestly to the non-replication of Cui et al., we computed **448 specifications**: 4 regions (frontal, centrotemporal, posterior, global) × 2 metrics (σθ, μθ) × 2 forms of change (absolute, relative) × 7 behavioral markers × 2 correlations (Spearman, Pearson) × 2 outlier rules (all, exclude |z| > 2.5). All are oriented toward deterioration, so the hypothesis predicts r > 0.
 
-La inferencia conjunta sigue a Simonsohn, Simmons y Nelson (2020), adaptada a datos observacionales sin covariables: se permutan las filas conductuales entre los 68 sujetos (2000 veces), se recalcula el multiverso completo y se comparan tres estadísticos con su distribución nula. El umbral de cada estadístico es el percentil 95 de su distribución permutada. En la entrega del 28 de octubre tenía un panel explorable (Dragicevic et al., 2019); para reducir gráficos, el equipo lo retiró del tablero y lo dejó como análisis de robustez en «Acerca de» y en el Reporte, con los 448 resultados en `data/multiverse_specs.csv`.
+Joint inference follows Simonsohn, Simmons and Nelson (2020), adapted to observational data without covariates: the behavioral rows are permuted among the 68 participants (2000 times), the whole multiverse is recomputed, and three statistics are compared with their null distribution. The threshold of each statistic is the 95th percentile of its permuted distribution. In the 28 October delivery it had an explorable panel (Dragicevic et al., 2019); to reduce the number of charts, the team removed it from the board and kept it as a robustness analysis in About and in the Report, with the 448 results in `data/multiverse_specs.csv`.
 
-| Prueba | Mediana de r | Significativos con r > 0 | Z de Stouffer |
+| Test | Median r | Significant with r > 0 | Stouffer Z |
 |---|---|---|---|
-| Principal, solo σθ (224) | +0.035 (p = 0.32) | 0 | +4.57 (p = 0.22) |
-| Multiverso completo (448) | +0.012 (p = 0.42) | 26; el azar llega a 56 (p = 0.15) | +3.13 (p = 0.33) |
+| Main, σθ only (224) | +0.035 (p = 0.32) | 0 | +4.57 (p = 0.22) |
+| Full multiverse (448) | +0.012 (p = 0.42) | 26; chance reaches 56 (p = 0.15) | +3.13 (p = 0.33) |
 
-Los 26 análisis significativos son todos PANAS+ con μθ: a mayor aumento de potencia theta, mayor caída del afecto positivo. Es la única señal consistente, pero no supera al azar en conjunto: queda como hipótesis. El análisis inicial de la Semana 6 se reproduce exacto (ρ = −0.099) y el Δσθ frontal recalculado coincide con `merged_summary.csv` (diferencia máxima 2.8e−17).
+The 26 significant analyses are all PANAS+ with μθ: the larger the increase in theta power, the larger the drop in positive affect. It is the only consistent signal, but it does not exceed chance jointly: it remains a hypothesis. The initial Week 6 analysis reproduces exactly (ρ = −0.099) and the recomputed frontal Δσθ matches `merged_summary.csv` (maximum difference 2.8e−17).
 
-**Por qué podría no replicar** (`research/literatura_verificada.md`): Cui et al. usaron referencia promedio, ICA, filtro de 1 a 30 Hz, denominador de 4 a 30 Hz, rechazo de épocas y limpieza de tiempos de reacción, con n = 28; nosotros, referencia FCz, sin ICA, denominador de 1 a 40 Hz y n = 30. Con n = 30 la probabilidad de detectar ρ = 0.3 es cercana a 0.35.
+**Why it might not replicate** (`research/literatura_verificada.md`): Cui et al. used average reference, ICA, a 1–30 Hz filter, a 4–30 Hz denominator, epoch rejection and reaction-time cleaning, with n = 28; we used FCz reference, no ICA, a 1–40 Hz denominator and n = 30. With n = 30, the probability of detecting ρ = 0.3 is close to 0.35.
 
-## 5. Hallazgos preliminares
+## 5. Preliminary findings
 
-1. La respuesta es individual: 39 personas aumentan su variabilidad theta y 29 la reducen; el promedio casi no se mueve.
-2. El cambio espacial es difuso: ningún electrodo sobrevive FDR, ni en σθ ni en μθ.
-3. La elevación de theta en SD es leve y sostenida a lo largo de los cinco minutos.
-4. La inestabilidad theta no predice el enlentecimiento en el PVT (ρ = −0.10, n = 30), tampoco con lapsos (ρ = −0.01).
-5. El resultado no depende de una decisión analítica: en todo el multiverso ningún estadístico conjunto supera al azar.
-6. Persona por persona tampoco aparece una firma de vulnerabilidad: con el PVT, quienes se deterioran y quienes resisten tienen consistencia media C = −0.02 y +0.10, y en un grafo de similitud (analizado en la entrega, hoy fuera del tablero) 19 de 42 vecinos de quienes se deterioran son de su grupo (azar ≈ 19). La excepción vuelve a ser el ánimo: quienes pierden afecto positivo suben más theta (C = +0.28 frente a −0.01 en σθ; +0.35 frente a −0.07 en μθ), aunque sus patrones no se parecen más entre sí.
-7. **σθ es oscilatoria, no un efecto del fondo 1/f.** La privación cambia la actividad aperiódica en este dataset (offset d_z = +0.26, p = 0.034; exponente d_z = +0.24, p = 0.055; en la línea de Bai et al., 2024, y Li, 2026), pero el cambio de σθ de cada persona se parece al de su theta periódica (ρ = 0.70 frontal, 0.87 centro-temporal) y la variabilidad del exponente explica solo entre el 2 y el 7 %. El 53 % de los electrodos muestra un pico theta, como pide comprobar Monchy et al. antes de interpretar la theta.
-8. **Sincronía theta entre regiones (exploratoria).** Con referencia promedio y wPLI², baja en los 45 pares tras la privación, pero ninguno sobrevive la FDR (prueba conjunta por permutación p = 0.055) y no se relaciona con el PVT.
+1. The response is individual: 39 people increase their theta variability and 29 reduce it; the mean barely moves.
+2. The spatial change is diffuse: no electrode survives FDR, in σθ or in μθ.
+3. The theta elevation in SD is mild and sustained across the five minutes.
+4. Theta instability does not predict PVT slowing (ρ = −0.10, n = 30), nor lapses (ρ = −0.01).
+5. The result does not depend on an analytic decision: across the whole multiverse no joint statistic exceeds chance.
+6. Person by person there is no vulnerability signature either: with the PVT, those who deteriorate and those who resist have mean consistency C = −0.02 and +0.10, and in a similarity graph (analyzed in the delivery, now off the board) 19 of 42 neighbors of those who deteriorate belong to their group (chance ≈ 19). The exception is again mood: those who lose positive affect increase theta more (C = +0.28 versus −0.01 in σθ; +0.35 versus −0.07 in μθ), although their patterns are not more similar to each other.
+7. **σθ is oscillatory, not an effect of the 1/f background.** Deprivation changes aperiodic activity in this dataset (offset d_z = +0.26, p = 0.034; exponent d_z = +0.24, p = 0.055; in line with Bai et al., 2024, and Li, 2026), but each person's change in σθ tracks the change in their periodic theta (ρ = 0.70 frontal, 0.87 centrotemporal) and exponent variability explains only 2–7%. 53% of electrodes show a theta peak, as Monchy et al. ask to verify before interpreting theta.
+8. **Theta synchrony between regions (exploratory).** With average reference and wPLI², it decreases in all 45 region pairs after deprivation, but no pair survives FDR (sign-flip permutation joint test p = 0.055; 10 of 45 pairs have an uncorrected 95% CI that excludes zero) and it is unrelated to the PVT.
 
-## 6. Limitaciones
+## 6. Limitations
 
-- n bajo para la conducta (PVT 30), con poca potencia estadística.
-- Preprocesamiento heurístico: sin ICA, sin re-referenciar, detección de canales malos por varianza.
-- Las pruebas por electrodo con subgrupos no se muestran (n pequeño); los grupos pequeños son exploratorios.
-- Tres grabaciones de ojos abiertos (`sub-01`, `sub-28` y `sub-44`, sesión 2) están truncadas en el bucket de OpenNeuro y MNE no puede leerlas; se verificó con una descarga del 2 de noviembre de 2026, así que volver a descargar no las repara.
-- Xiang et al. (2024) parecen asignar los valores t del PVT a indicadores distintos de los del diccionario del dataset; seguimos el diccionario.
-- Evaluación con usuarios todavía pendiente.
+- Small n for behavior (PVT 30), with low statistical power.
+- Heuristic preprocessing: no ICA, no re-referencing (except for the synchrony view), bad-channel detection by variance.
+- Per-electrode tests are not shown for subgroups (small n); small groups are exploratory.
+- Three eyes-open recordings (`sub-01`, `sub-28` and `sub-44`, session 2) are truncated in the OpenNeuro bucket and MNE cannot read them; this was verified with a download on 2 November 2026, so downloading again does not fix them.
+- Xiang et al. (2024) appear to assign the PVT t values to indicators different from those in the dataset dictionary; we follow the dictionary.
+- User evaluation still pending.
 
-## 7. Conectividad funcional: de postergada a vista secundaria exploratoria
+## 7. Functional connectivity: from postponed to an exploratory secondary view
 
-En la Semana 12 la descartamos para el tablero principal (`research/informe_conectividad.md`): el estudio más parecido (Verweij et al., 2014) no halló cambios con ojos abiertos, nuestro pipeline usaba referencia FCz y 1830 aristas exigían efectos grandes. La condición que el propio informe ponía para reabrirla se cumplió: descargamos el EEG crudo y verificamos que el pipeline lo reproduce. Por eso la calculamos con las salvaguardas de la literatura (FCz reinsertado y referencia promedio, wPLI² debiased, 10 regiones y 45 pares, FDR y permutación) y la mostramos solo como vista secundaria exploratoria, rotulada como tal: el resultado es una tendencia consistente sin pares significativos, y en reposo la conectividad theta puede reflejar actividad aperiódica (Monchy et al.).
+In Week 12 we ruled it out for the main board (`research/informe_conectividad.md`): the most similar study (Verweij et al., 2014) found no changes with eyes open, our pipeline used FCz reference, and 1830 edges required large effects. The condition that the report itself set for reopening it was met: we downloaded the raw EEG and verified that the pipeline reproduces it. We therefore computed it with the safeguards from the literature (FCz re-inserted and average reference, debiased wPLI², 10 regions and 45 pairs, FDR and permutation) and show it only as an exploratory secondary view, labeled as such: a head graph and an effect-per-pair plot with 95% CIs. The result is a consistent trend without significant pairs, and at rest theta connectivity may reflect aperiodic activity (Monchy et al.).
 
-## 8. Trabajo restante y responsables
+## 8. Remaining work and owners
 
-| Semana | Jimena Gurbillon | Andrea Coa | Paolo Medrano | Todo el equipo |
+| Week | Jimena Gurbillon | Andrea Coa | Paolo Medrano | Whole team |
 |---|---|---|---|---|
-| 13 (29 oct a 4 nov) | Re-ejecutar el pipeline con referencia promedio e ICA (estilo Cui) y añadirlo como dimensión del multiverso | Resumen de moderadores; guion del teaser | Criterio de vulnerabilidad por lapsos (Chua et al., 2019); redacción de Resultados | Despliegue en GitHub Pages; prueba informal con 3 a 5 usuarios (tareas T1 a T8) |
-| 14 (5 a 11 nov) | Datos y métodos del paper; póster | Video de presentación (5 min) y teaser (1 min) | Diseño y resultados del paper; figura de abstract gráfico | Paper completo en plantilla IEEE VIS (LaTeX); incorporar hallazgos de usabilidad |
-| 15 (12 a 18 nov) | Pulido del mapa | Página del proyecto final | Pulido del multiverso | README final, contribuciones, reflexión, prueba de enlaces, exhibición |
+| 13 (29 Oct to 4 Nov) | Rerun the pipeline with average reference and ICA (Cui style) and add it as a multiverse dimension | Moderator summary; teaser script | Vulnerability criterion by lapses (Chua et al., 2019); Results writing | Deployment on GitHub Pages; informal test with 3 to 5 users (tasks T1 to T8) |
+| 14 (5 to 11 Nov) | Paper data and methods; poster | Presentation video (5 min) and teaser (1 min) | Paper design and results; graphical abstract figure | Full paper in the IEEE VIS template (LaTeX); incorporate usability findings |
+| 15 (12 to 18 Nov) | Map polishing | Final project page | Secondary views and ML polishing | Final README, contributions, reflection, link check, exhibition |
 
-## Referencias
+## References
 
-Las referencias completas, con DOI verificado, están en `research/literatura_verificada.md`. Citadas aquí: Basner y Dinges (2011), Brehmer y Munzner (2013), Chua et al. (2019), Cui et al. (2026), Dragicevic et al. (2019), Simonsohn, Simmons y Nelson (2020), Van Dongen et al. (2004), Verweij et al. (2014), Xiang et al. (2024).
+Full references with verified DOIs are in `research/literatura_verificada.md` (in Spanish). Cited here: Bai et al. (2024), Basner and Dinges (2011), Brehmer and Munzner (2013), Chen et al. (multiple-view composition patterns), Chua et al. (2019), Cui et al. (2026), Doran, Van Dongen and Dinges (2001), Dragicevic et al. (2019), Gudmundsson et al. (2007), Li (2026), Monchy et al. (aperiodic functional connectivity), Perrin et al. (1989), Simonsohn, Simmons and Nelson (2020), Van Dongen et al. (2004), Verweij et al. (2014), Vinck et al. (2011), Xiang et al. (2024).
 
-*Uso de IA: parte del código, del análisis de multiverso y de la redacción se desarrolló con asistencia de Claude (Anthropic) y fue revisada por el equipo.*
+*Use of AI: part of the code, the multiverse analysis and the writing was developed with the assistance of Claude (Anthropic) and reviewed by the team.*

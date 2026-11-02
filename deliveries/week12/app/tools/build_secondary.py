@@ -185,7 +185,10 @@ def aggregate(cache):
                  "reference": "FCz reinsertado, referencia promedio", "regions": REGIONS, "permutations": B},
         "pairs": [list(p) for p in PAIRS],
         "group": {"NS": [r4(v) for v in NSp.mean(0)], "SD": [r4(v) for v in SDp.mean(0)], "dz": [r4(v) for v in dP.mean(0) / dP.std(0, ddof=1)],
-                  "t": [r4(v) for v in t.statistic], "p": [r4(v) for v in t.pvalue], "q": [r4(v) for v in q]},
+                  "t": [r4(v) for v in t.statistic], "p": [r4(v) for v in t.pvalue], "q": [r4(v) for v in q],
+                  # media de Δ por par con su IC 95 % (t con n − 1 gl), para el gráfico de efectos por par
+                  "mean_d": [r4(v) for v in dP.mean(0)],
+                  "ci": [[r4(m - h), r4(m + h)] for m, h in zip(dP.mean(0), stats.t.ppf(.975, n - 1) * dP.std(0, ddof=1) / np.sqrt(n))]},
         "global": paired(NSp.mean(1), SDp.mean(1)) | {"p_perm": float((np.abs(mm) >= abs(mobs)).mean()), "p_maxt": float((mx >= np.abs(tobs).max()).mean()),
                                                      "pairs_down": int((dP.mean(0) < 0).sum())},
         "persons": {p: [[r4(v) for v in NSp[i]], [r4(v) for v in SDp[i]]] for i, p in enumerate(ids)},

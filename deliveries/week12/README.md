@@ -1,70 +1,70 @@
-# BATIMIX: Una noche sin dormir no le pasa igual a todos (Semana 12)
+# BATIMIX: One sleepless night does not affect everyone the same way (Week 12)
 
-Borrador refinado y respuesta a la crítica. Explorador enlazado en D3.js, **en una sola vista y con un único header**, sobre la vulnerabilidad individual a la privación de sueño en EEG de reposo (OpenNeuro ds004902, 68 personas con EEG pareado). Tres columnas sin espacio entre ellas: al centro, la matriz 2 × 3 de topomapas (protagonista) y debajo cinco minutos (σθ móvil o μθ por época); a la izquierda, las personas (dispersión de vulnerabilidad y mapa de calor persona × electrodo); a la derecha, vistas secundarias plegables: «Oscilatoria o aperiódica» (specparam) y «Sincronía θ entre regiones» (wPLI). El multiverso de 448 análisis queda como análisis de robustez en «Acerca de», en el Reporte y en `RefinedDraftReport.md` (sección 4).
+Refined draft and peer-critique response. A linked D3.js explorer, **in a single view with a single header**, of individual vulnerability to sleep deprivation in resting-state EEG (OpenNeuro ds004902, 68 people with paired EEG). Three columns with no gaps between them: in the center, the 2 × 3 topomap matrix (the main view) with the five-minute series below (moving σθ or μθ per epoch); on the left, the people (vulnerability scatter and person × electrode heatmap); on the right, collapsible secondary views: «Oscillatory or aperiodic» (specparam) and «θ synchrony between regions» (wPLI). The 448-analysis multiverse is kept as a robustness analysis in About, in the Report and in `RefinedDraftReport.md` (section 4).
 
-- **Aplicación:** [`app/index.html`](app/index.html), con tema claro (clásico, por defecto) u oscuro (instrumento) desde el botón ◐ del header; enlaces directos con `?tema=oscuro` o `?tema=claro`
-- **Despliegue (GitHub Pages):** https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/ (verificar tras el push; ver "Despliegue")
-- **Página del proyecto:** [`project/index.html`](project/index.html)
-- **Equipo:** Jimena Gurbillon, Andrea Coa, Paolo Medrano · DS5343 Data Visualization, UTEC 2026-2
+- **Application:** [`app/index.html`](app/index.html), with a light theme (classic, default) or a dark theme (instrument) from the ◐ button in the header; direct links with `?theme=light` or `?theme=dark`
+- **Deployment (GitHub Pages):** https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/ (verify after the push; see "Deployment")
+- **Project page:** [`project/index.html`](project/index.html)
+- **Team:** Jimena Gurbillon, Andrea Coa, Paolo Medrano · DS5343 Data Visualization, UTEC 2026-2
 
-![Vista única a 1365 × 768](assets/dashboard-1365x768.png)
+![Single view at 1365 × 768](assets/dashboard-1365x768.png)
 
-![Tema oscuro (instrumento)](assets/dashboard-oscuro-1600x900.png)
+![Dark theme (instrument)](assets/dashboard-dark-1600x900.png)
 
-## Contenido de la carpeta
+## Folder contents
 
 ```
 deliveries/week12/
-  README.md                      este archivo
-  RefinedDraftReport.md          narrativa, justificación de diseño, hallazgos, limitaciones y trabajo restante
-  PeerCritiqueResponse.pdf       feedback recibido y respuesta a cada sugerencia (fuente: PeerCritiqueResponse.html)
-  PresentationWeek12.pptx        presentación de la semana
-  paper/                         borrador inicial del paper: fuente (HTML) y PDF
-  project/                       página inicial del proyecto
-  app/                           código de la aplicación refinada
-    index.html                   vista única: header con controles, cuatro paneles y el panel "Acerca de"
-    css/styles.css               temas oscuro y claro (tokens de color y tipografía; el claro con data-theme="light"), tablero sin espacios
-    js/core.js                   datos, estado, bus de eventos, grupos, selección A y B, estadística
-    js/topomap.js                matriz 2 × 3 de topomapas (v4 de EEGLAB/FieldTrip; cúbica de MNE y spline esférico en el selector; isolíneas, p y FDR, filas σθ/μθ o A/B)
-    js/scatter.js                dispersión de vulnerabilidad, franja de las 68 personas, lazo, A y B, tabla
-    js/dynamics.js               cinco minutos: con μθ, media ± EE por época; con σθ, σθ móvil en ventanas de 40 s
-    js/individuals.js            mapa de calor persona × electrodo con dos grupos definidos por la conducta y su consistencia C(e)
-    js/secondary.js              vistas secundarias: oscilatoria o aperiódica (espectro, Δ exponente y offset, Δσθ periódica) y sincronía θ (wPLI)
-    js/report.js                 reporte descargable (HTML autocontenido con la vista, lectura de cada gráfico y CSV)
-    js/main.js                   carga de datos, controles y arranque
-    data/*.json                  datos procesados finales (y data.js para abrir con doble clic)
-    tools/build_multiverse.py    genera data/multiverse.json (448 análisis, 2000 permutaciones)
-    tools/build_subject_topo.py  genera data/topo_by_subject.json
-    tools/build_coords.py        genera data/coords.json (2D) y data/coords3d.json (3D) desde electrodes.tsv
-    tools/build_secondary.py     genera data/aperiodic.json (specparam) y data/connectivity.json (wPLI) desde el EEG crudo
-    tools/build_topo_stats.py    genera data/topo.json: NS, SD, Δ, t pareada, d_z e IC 95 % por electrodo (68 pareadas)
-    tools/check_app.py           pruebas técnicas: estadística, efecto por electrodo, señal de referencia, consistencia, capturas
-    tools/selftest.html          página que usa check_app.py para leer lo que la app calcula y muestra
-    tools/check_reproduction.py  reproduce los CSV procesados desde el EEG crudo (notebook 02) y los compara con los del repo
-    tools/build_data.py          regenera data/data.js desde los JSON (Python, sin Node)
-    tools/build-data.js          lo mismo con Node.js
-  data/                          los mismos resultados en CSV: multiverse_specs.csv, participants_deltas.csv
-  assets/                        capturas de la aplicación
-  research/                      informes: hechos_clave.md, literatura_verificada.md, informe_conectividad.md
+  README.md                      this file
+  RefinedDraftReport.md          narrative, design rationale, findings, limitations and remaining work
+  PeerCritiqueResponse.pdf       feedback received and the response to each suggestion (source: PeerCritiqueResponse.html)
+  PresentationWeek12.pptx        presentation of the week
+  paper/                         initial paper draft: source (HTML) and PDF
+  project/                       initial project page
+  app/                           code of the refined application
+    index.html                   single view: header with controls, three columns and the About panel
+    css/styles.css               light and dark themes (color and type tokens; dark is the base, light uses data-theme="light"), gapless board
+    js/core.js                   data, state, event bus, groups, selection, statistics
+    js/topomap.js                2 × 3 topomap matrix (EEGLAB/FieldTrip v4; MNE cubic and spherical spline in the selector; contours, p and FDR, σθ/μθ rows or two people)
+    js/scatter.js                vulnerability scatter, lasso, click selection, A and B, data table
+    js/dynamics.js               five minutes: with μθ, mean ± SE per epoch; with σθ, moving σθ in 40-s windows
+    js/individuals.js            person × electrode heatmap with two behavior-defined groups and their consistency C(e)
+    js/secondary.js              secondary views: oscillatory or aperiodic (spectrum, Δ exponent and offset, Δσθ periodic) and θ synchrony (wPLI graph and effect per pair)
+    js/report.js                 downloadable report (self-contained HTML with the view, how to read each chart, and CSV)
+    js/main.js                   data loading, controls and start-up
+    data/*.json                  final processed data (and data.js to open the page by double-click)
+    tools/build_multiverse.py    generates data/multiverse.json (448 analyses, 2000 permutations)
+    tools/build_subject_topo.py  generates data/topo_by_subject.json
+    tools/build_coords.py        generates data/coords.json (2D) and data/coords3d.json (3D) from electrodes.tsv
+    tools/build_topo_stats.py    generates data/topo.json: NS, SD, Δ, paired t, d_z and 95% CI per electrode (68 paired people)
+    tools/build_secondary.py     generates data/aperiodic.json (specparam) and data/connectivity.json (wPLI) from the raw EEG
+    tools/check_app.py           technical tests: statistics, per-electrode effects, reference signals, consistency, secondary views, screenshots
+    tools/selftest.html          page used by check_app.py to read what the app computes and shows
+    tools/check_reproduction.py  reproduces the processed CSVs from the raw EEG (notebook 02) and compares them with the repository
+    tools/build_data.py          regenerates data/data.js from the JSON files (Python, no Node)
+    tools/build-data.js          the same with Node.js
+  data/                          the same results as CSV: multiverse_specs.csv, participants_deltas.csv
+  assets/                        screenshots of the application
+  research/                      research notes (in Spanish): hechos_clave.md, literatura_verificada.md, informe_conectividad.md
 ```
 
-## Cómo ejecutarlo
+## How to run it
 
-No requiere instalación ni build. Necesita internet para cargar D3 (cdnjs) y las fuentes (Google Fonts).
+No installation or build step. Internet is needed to load D3 (cdnjs) and the fonts (Google Fonts).
 
 ```bash
 cd deliveries/week12/app
 python -m http.server 8000
 ```
 
-Abre `http://localhost:8000`. También funciona con doble clic sobre `app/index.html`: si el navegador bloquea `fetch` en `file://`, la página carga `data/data.js`.
+Open `http://localhost:8000`. Double-clicking `app/index.html` also works: if the browser blocks `fetch` on `file://`, the page loads `data/data.js`.
 
-Pensada para escritorio desde 1365 × 768 (todo cabe sin desplazarse). En pantallas angostas los paneles se apilan.
+Designed for desktop from 1365 × 768 (everything fits without scrolling). On narrow screens the panels stack, maps first.
 
-## Cómo reproducir los datos
+## How to reproduce the data
 
-1. Datos procesados de la Semana 6: ver `deliveries/week06/README.md` (descarga de ds004902 desde S3 y notebooks `01` a `03`). Producen `deliveries/week06/data/processed/*.csv`.
-2. Desde `deliveries/week12/app/`:
+1. Week 6 processed data: see `deliveries/week06/README.md` (download of ds004902 from S3 and notebooks `01` to `03`). They produce `deliveries/week06/data/processed/*.csv`.
+2. From `deliveries/week12/app/`:
 
 ```bash
 python tools/build_subject_topo.py
@@ -83,58 +83,58 @@ python tools/build_multiverse.py --perms 2000
 ```
 
 ```bash
-python3 tools/build_data.py      # o, con Node.js: node tools/build-data.js
+python3 tools/build_data.py      # or, with Node.js: node tools/build-data.js
 ```
 
-`build_multiverse.py` necesita `numpy` y `scipy`; tarda un par de minutos. Imprime un control de consistencia (Δσθ frontal recalculado frente a `merged_summary.csv`) y los estadísticos conjuntos. `build_coords.py` solo usa la biblioteca estándar: lee las posiciones 3D reales de `electrodes.tsv` (ds004902, o la muestra de `deliveries/week04/data/sample`) para el spline esférico de los topomapas y deriva de ellas la proyección 2D. `build_topo_stats.py` (requiere scipy) reemplaza al `topo.json` de la Semana 10, que no tenía generador: aquel usaba la aproximación normal para los p y calculaba Δ como diferencia de medias no pareadas (69 en NS, 70 en SD); ahora todo usa las 68 personas pareadas y la t exacta (mismos electrodos con p < 0.05; ninguno sobrevive la FDR). `participants.json` y `subject_epochs.json` vienen sin cambios de la Semana 10.
+`build_multiverse.py` needs `numpy` and `scipy` and takes a couple of minutes; it prints a consistency check (frontal Δσθ recomputed against `merged_summary.csv`) and the joint statistics. `build_coords.py` uses only the standard library: it reads the real 3D positions from `electrodes.tsv` (ds004902, or the sample in `deliveries/week04/data/sample`) for the spherical spline and derives the 2D projection from them. `build_topo_stats.py` (requires scipy) replaces the Week 10 `topo.json`, which had no generator: that file used the normal approximation for the p values and computed Δ as a difference of unpaired means (69 in NS, 70 in SD); now everything uses the 68 paired people and the exact t distribution (same electrodes with p < 0.05; none survives FDR). `participants.json` and `subject_epochs.json` are unchanged from Week 10.
 
-## Vistas secundarias (desde el EEG crudo)
+## Secondary views (from the raw EEG)
 
 ```bash
 python3 tools/build_secondary.py --procs 6
 ```
 
-Con el mismo preprocesamiento del notebook 02: separa la parte periódica de la aperiódica con specparam (ajustes de Bai et al., 2024, sobre este dataset) y calcula wPLI² theta entre 10 regiones con referencia promedio. Requiere `mne-connectivity` y `fooof==1.1.0` (en `requirements.txt`); tarda unos 5 minutos. Si faltan `data/aperiodic.json` o `data/connectivity.json`, la app funciona igual y la columna derecha lo indica.
+With the same preprocessing as notebook 02, it separates the periodic from the aperiodic part of the spectrum with specparam (settings of Bai et al., 2024, on this dataset) and computes theta wPLI² between 10 regions with average reference, including the mean change and 95% CI per region pair. It requires `mne-connectivity` and `fooof==1.1.0` (in `requirements.txt`) and takes about 5 minutes. If `data/aperiodic.json` or `data/connectivity.json` is missing, the app still works and the right column says so.
 
-## Reproducir desde el EEG crudo
+## Reproducing from the raw EEG
 
-Con el dataset en `<raíz>/ds004902` (ver `deliveries/week06/README.md`; bastan los archivos de ojos abiertos, ~6 GB, que nunca se suben al repositorio):
+With the dataset in `<root>/ds004902` (see `deliveries/week06/README.md`; the eyes-open files, ~6 GB, are enough and are never committed):
 
 ```bash
 python3 tools/check_reproduction.py
 ```
 
-Corre el código del notebook `02_eeg_pipeline.ipynb` con la salida redirigida a una carpeta temporal y compara, para ojos abiertos, `eeg_theta_per_electrode.csv`, `eeg_theta_epochs_roi.csv` y las grabaciones descartadas con los de `deliveries/week06/data/processed`. Resultado del 2 de noviembre de 2026: las 8479 filas por electrodo y las 31 083 épocas por región coinciden (diferencia máxima 1.6e-7, ruido numérico entre versiones de MNE y numpy) y se descartan las mismas grabaciones. Tarda unos 15 minutos.
+It runs the code of notebook `02_eeg_pipeline.ipynb` with its output redirected to a temporary folder and compares, for eyes open, `eeg_theta_per_electrode.csv`, `eeg_theta_epochs_roi.csv` and the discarded recordings with those in `deliveries/week06/data/processed`. Result on 2 November 2026: the 8479 per-electrode rows and the 31,083 per-region epochs match (maximum difference 1.6e-7, numerical noise between MNE and numpy versions) and the same recordings are discarded. It takes about 15 minutes.
 
-## Pruebas técnicas
+## Technical tests
 
 ```bash
-python3 -I tools/check_app.py --out capturas_pruebas
+python3 -I tools/check_app.py --out test_screenshots
 ```
 
-Requiere Google Chrome y Python con numpy, scipy, statsmodels y mne. Compara la FDR, ρ de Spearman y su IC calculados por la app con statsmodels y scipy; t, p, d_z e IC de `topo.json` con `scipy.stats.ttest_rel`; el cálculo de θ relativa del notebook 02 con señales de valor teórico conocido (ruido blanco, senos de 6 y 10 Hz); el mismo n y los mismos conteos en títulos, «Acerca de», Reporte y tooltip; y guarda capturas a 1365 × 768 y 1600 × 900 en ambos temas para revisarlas a mano. Sale con código 1 si algo falla. No cubre reproducir la app desde el EEG crudo (requiere descargar ds004902).
+Requires Google Chrome and Python with numpy, scipy, statsmodels and mne. It compares the FDR, Spearman ρ and its CI computed by the app with statsmodels and scipy; t, p, d_z and CI in `topo.json` with `scipy.stats.ttest_rel`; the relative-θ computation of notebook 02 with signals of known theoretical value (white noise, 6 and 10 Hz sines); the same n and counts in titles, About, Report and tooltip; the summary figures of the secondary views against their per-person data; and it saves screenshots at 1365 × 768 and 1600 × 900 in both themes for manual review. It exits with code 1 if anything fails. It does not cover reproducing the app from the raw EEG (see the previous section).
 
-## Despliegue (GitHub Pages)
+## Deployment (GitHub Pages)
 
-1. En el repositorio: Settings, Pages, Source "Deploy from a branch", rama `main`, carpeta `/ (root)`. La raíz del repositorio tiene `.nojekyll` (sirve los archivos tal cual) e `index.html` (redirige a esta aplicación).
-2. Tras el push, abrir `https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/` y comprobar que cargan los datos.
+1. In the repository: Settings, Pages, Source "Deploy from a branch", branch `main`, folder `/ (root)`. The repository root has `.nojekyll` (serves files as they are) and `index.html` (redirects to this application).
+2. After the push, open `https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/` and check that the data load.
 
-Todas las rutas son relativas. Los datos son CC0.
+All paths are relative. The data are CC0.
 
-## Qué cambió desde la Semana 10
+## What changed since Week 10
 
-Tema oscuro; una sola vista sin desplazamiento ni animaciones; un único header con todos los controles; paneles sin espacio entre ellos y sin textos de instrucciones (el título de cada panel es su hallazgo); matriz 2 × 3 de topomapas con filas σθ/μθ o personas A y B; franja de las 68 personas con el conteo 39 / 29; selector de grupos (T7); PVT lapsos y DE del TR; multiverso con inferencia por permutación (análisis de robustez, sin panel propio desde el 28 de octubre). Intro, glosario, método y créditos en "Acerca de". Detalle en `RefinedDraftReport.md` y `PeerCritiqueResponse.pdf`.
+A single view with no scrolling or animations; one header with all controls; panels with no gaps and no instruction text (each panel title is its finding); three columns with the topomap matrix as the main view and collapsible secondary views (aperiodic and θ synchrony, computed from the raw EEG); σθ/μθ rows or two selected people side by side; group selector (T7); PVT lapses and RT SD; moving σθ in the five-minute view; t, d_z and 95% CI per electrode; multiverse with permutation inference (robustness analysis, without its own panel since 28 October); English interface. Intro, glossary, method and credits in About. Details in `RefinedDraftReport.md` and `PeerCritiqueResponse.pdf`.
 
-## Dependencias
+## Dependencies
 
-- D3.js 7.8.5 desde cdnjs (licencia ISC).
-- Google Fonts: Geist y Geist Mono (OFL).
-- Para regenerar datos y correr las pruebas: Python 3 con los paquetes de `requirements.txt` (numpy, scipy, statsmodels, pandas, mne, pymatreader) y Google Chrome para `check_app.py`. Node.js es opcional (`build-data.js`).
+- D3.js 7.8.5 from cdnjs (ISC license).
+- Google Fonts: Geist and Geist Mono (OFL).
+- To regenerate the data and run the tests: Python 3 with the packages in `requirements.txt` (numpy, scipy, statsmodels, pandas, mne, mne-connectivity, fooof, pymatreader) and Google Chrome for `check_app.py`. Node.js is optional (`build-data.js`).
 
-## Datos, créditos y uso de IA
+## Data, credits and use of AI
 
-Dataset OpenNeuro ds004902 (Xiang, Fan, Bai, Lv y Lei, 2024, *Scientific Data*), CC0. Inspiraciones: Bai et al. (2024), Cui et al. (2026), Dragicevic et al. (2019), Simonsohn, Simmons y Nelson (2020). Parte del código, del análisis y de la redacción se desarrolló con asistencia de IA (Claude, de Anthropic) y fue revisada por el equipo.
+Dataset OpenNeuro ds004902 (Xiang, Fan, Bai, Lv and Lei, 2024, *Scientific Data*), CC0. Inspiration: Bai et al. (2024), Cui et al. (2026), Dragicevic et al. (2019), Simonsohn, Simmons and Nelson (2020). Part of the code, the analysis and the writing was developed with AI assistance (Claude, by Anthropic) and reviewed by the team.
 
-## Limitaciones conocidas
+## Known limitations
 
-PVT pareado solo para 30 personas (poca potencia); preprocesamiento sin ICA ni re-referenciado; las pruebas por electrodo no se muestran en subgrupos; tres grabaciones de ojos abiertos (`sub-01`, `sub-28` y `sub-44`, sesión 2) están truncadas en el bucket de OpenNeuro y MNE no puede leerlas; se verificó con una descarga del 2 de noviembre de 2026, así que volver a descargar no las repara; evaluación con usuarios pendiente. Ver `RefinedDraftReport.md`, sección 6.
+PVT paired for only 30 people (low power); preprocessing without ICA or re-referencing (except for the synchrony view); per-electrode tests are not shown for subgroups; three eyes-open recordings (`sub-01`, `sub-28` and `sub-44`, session 2) are truncated in the OpenNeuro bucket and MNE cannot read them, which was verified with a download on 2 November 2026, so downloading again does not fix them; user evaluation pending. See `RefinedDraftReport.md`, section 6.

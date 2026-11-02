@@ -101,12 +101,13 @@ const side = (() => {
     const all = Object.keys(CONN.persons), ids = idsOf(all), sel = ids.length < all.length, G = CONN.group;
     const d = CONN.pairs.map((p, i) => d3.mean(ids, id => CONN.persons[id][1][i]-CONN.persons[id][0][i]));
     const mx = d3.max(d, Math.abs) || 1, col = x => C.div((x+mx)/(2*mx));
-    const R = Math.min(W/2-26, (H-110)/2), cx = W/2, cy = 18+R;
+    // arriba el grafo sobre la cabeza; abajo, el efecto de cada par con su IC 95 % (caterpillar plot)
+    const R = Math.min(W/2-26, (H*.52-70)/2), cx = W/2, cy = 18+R;
     const node = {}; Object.entries(CONN.meta.regions).forEach(([r, cs]) => { const v = cs.filter(c => COORDS[c]); node[r] = [cx+d3.mean(v, c => COORDS[c][0])*R, cy-d3.mean(v, c => COORDS[c][1])*R]; });
     svg.append("circle").attr("class", "head").attr("cx", cx).attr("cy", cy).attr("r", R);
     svg.append("path").attr("class", "head").attr("d", `M ${cx-7} ${cy-R+1} L ${cx} ${cy-R-8} L ${cx+7} ${cy-R+1}`);
     const order = d3.range(d.length).sort((a, b) => Math.abs(d[a])-Math.abs(d[b]));   // los cambios grandes encima
-    svg.append("g").selectAll("line").data(order).join("line")
+    const edges = svg.append("g").selectAll("line").data(order).join("line")
       .attr("x1", i => node[CONN.pairs[i][0]][0]).attr("y1", i => node[CONN.pairs[i][0]][1]).attr("x2", i => node[CONN.pairs[i][1]][0]).attr("y2", i => node[CONN.pairs[i][1]][1])
       .attr("stroke", i => col(d[i])).attr("stroke-linecap", "round")
       .attr("stroke-width", i => sel ? 1.2+3*Math.abs(d[i])/mx : (G.p[i] < .05 ? 4 : 1.3)).attr("opacity", i => sel ? .35+.6*Math.abs(d[i])/mx : (G.p[i] < .05 ? .95 : .4))
@@ -114,6 +115,8 @@ const side = (() => {
       .on("pointerenter", (ev, i) => showTip(ev, `<div class="h">${CONN.pairs[i].join(" – ")}</div>` + trow("wPLI² NS → SD", `${f3(G.NS[i])} → ${f3(G.SD[i])}`) +
         trow(sel ? `Δ, your selection (${ids.length})` : "Δ SD − NS", fsr(d[i])) + (sel ? "" : trow("d_z · p · q", `${f2(G.dz[i])} · ${fp(G.p[i])} · ${fp(G.q[i])}`))))
       .on("pointermove", ev => moveTip(ev)).on("pointerleave", hideTip);
+    const baseW = i => sel ? 1.2+3*Math.abs(d[i])/mx : (G.p[i] < .05 ? 4 : 1.3), baseO = i => sel ? .35+.6*Math.abs(d[i])/mx : (G.p[i] < .05 ? .95 : .4);
+    const focus = k => edges.attr("stroke-width", i => k == null ? baseW(i) : (i === k ? 6 : baseW(i))).attr("opacity", i => k == null ? baseO(i) : (i === k ? 1 : .12));
     Object.entries(node).forEach(([r, [x, y]]) => {
       svg.append("circle").attr("cx", x).attr("cy", y).attr("r", 10).attr("fill", C.panel).attr("stroke", C.ink2).attr("stroke-width", 1.2);
       svg.append("text").attr("x", x).attr("y", y+3.5).attr("text-anchor", "middle").style("font-size", "8.5px").style("font-weight", 600).style("fill", "var(--ink)").text(r);
@@ -125,10 +128,34 @@ const side = (() => {
     svg.append("text").attr("class", "mdim").attr("x", cx-74).attr("y", ly+7).attr("text-anchor", "end").text(`${fsr(-mx)} less`);
     svg.append("text").attr("class", "mdim").attr("x", cx+74).attr("y", ly+7).text(`more ${fsr(mx)}`);
     svg.append("text").attr("class", "mdim").attr("x", cx).attr("y", ly+22).attr("text-anchor", "middle").text(sel ? "Δ wPLI² (SD − NS), mean of your selection" : "Δ wPLI² (SD − NS); thick line: uncorrected p < 0.05");
+    // ---- efecto por par: media de Δ con IC 95 %, ordenado; con selección, el IC se calcula con esas personas
+    const tq = df => { const z = 1.959964; return z+(z**3+z)/(4*df)+(5*z**5+16*z**3+3*z)/(96*df*df)+(3*z**7+19*z**5+17*z**3-15*z)/(384*df**3); };   // cuantil t 0.975 (Cornish-Fisher)
+    const ci = CONN.pairs.map((_, i) => {
+      if(!sel) return G.ci[i];
+      const v = ids.map(id => CONN.persons[id][1][i]-CONN.persons[id][0][i]); if(v.length < 3) return [d[i], d[i]];
+      const h = tq(v.length-1)*d3.deviation(v)/Math.sqrt(v.length); return [d[i]-h, d[i]+h];
+    });
+    const y0 = ly+40, m2 = {l:40, r:8, t:18, b:16}, rk = d3.range(d.length).sort((a, b) => d[a]-d[b]);
+    const px = d3.scaleBand().domain(rk).range([m2.l, W-m2.r]).padding(.25);
+    const py = d3.scaleLinear().domain(d3.extent(ci.flat().concat([0]))).nice().range([H-m2.b, y0+m2.t]);
+    svg.append("text").attr("class", "colhead").attr("x", m2.l).attr("y", y0+8).style("text-anchor", "start").style("font-size", "11px").text("Effect per pair: mean Δ ± 95% CI");
+    svg.append("g").attr("class", "axis").attr("transform", `translate(${m2.l},0)`).call(d3.axisLeft(py).ticks(4).tickSizeOuter(0).tickFormat(fTick(L.format("+.2~f")))).call(a => a.select(".domain").remove());
+    svg.append("line").attr("class", "zero").attr("x1", m2.l).attr("x2", W-m2.r).attr("y1", py(0)).attr("y2", py(0)).attr("stroke", C.ink2).attr("stroke-dasharray", "3 3");
+    svg.append("text").attr("class", "mdim").attr("x", W-m2.r).attr("y", H-3).attr("text-anchor", "end").text("45 region pairs, sorted by Δ");
+    const cg = svg.append("g").selectAll("g").data(rk).join("g").style("cursor", "help");
+    cg.append("line").attr("x1", i => px(i)+px.bandwidth()/2).attr("x2", i => px(i)+px.bandwidth()/2).attr("y1", i => py(ci[i][0])).attr("y2", i => py(ci[i][1]))
+      .attr("stroke", i => col(d[i])).attr("stroke-width", 1.4);
+    cg.append("circle").attr("cx", i => px(i)+px.bandwidth()/2).attr("cy", i => py(d[i])).attr("r", 2.6)
+      .attr("fill", i => (ci[i][1] < 0 || ci[i][0] > 0) ? col(d[i]) : C.panel).attr("stroke", i => col(d[i])).attr("stroke-width", 1.2);
+    cg.append("rect").attr("x", i => px(i)).attr("width", px.step()).attr("y", y0+m2.t).attr("height", H-m2.b-y0-m2.t).attr("fill", "transparent")
+      .on("pointerenter", (ev, i) => { focus(i); showTip(ev, `<div class="h">${CONN.pairs[i].join(" – ")}</div>` + trow(sel ? `Δ, your selection (${ids.length})` : "Δ SD − NS", fsr(d[i])) +
+        trow("95% CI", `[${fsr(ci[i][0])}, ${fsr(ci[i][1])}]`) + (sel ? "" : trow("p · q", `${fp(G.p[i])} · ${fp(G.q[i])}`))); })
+      .on("pointermove", ev => moveTip(ev)).on("pointerleave", () => { focus(null); hideTip(); });
     const g = CONN.global, down = d.filter(x => x < 0).length;
     setTitle("t-conn", `θ synchrony: lower in ${down} of 45 pairs`, nb(sel ? `your selection, n = ${ids.length}` : `none survives FDR; n = ${CONN.meta.n}`),
       notes("Debiased wPLI², multitaper, 4–8 Hz; FCz re-inserted and average reference; 10 lateral regions (midline excluded), 45 pairs.",
         `With all ${CONN.meta.n} people: global ${f3(g.NS)} → ${f3(g.SD)} (d_z = ${f2(g.dz)}); sign-flip permutation joint test p = ${fp(g.p_perm)}; max-t p = ${fp(g.p_maxt)}. ${g.pairs_down} of 45 pairs decrease, none with q < 0.05, and no relation to the PVT.`,
+        "Bottom: each region pair's mean change with its 95% CI, sorted. Filled dots: CI excludes zero (uncorrected). All pairs fall below zero, but no pair survives FDR: a diffuse, consistent decrease rather than a localized effect. Hover a pair to highlight it on the head.",
         "Exploratory: at rest, much of theta connectivity may reflect aperiodic activity rather than oscillations (Monchy et al.); hence it is not a main view.",
         "Data: tools/build_secondary.py from the raw EEG (ds004902)."));
   }
