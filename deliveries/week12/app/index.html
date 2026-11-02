@@ -24,6 +24,7 @@
 <header class="bar">
   <div class="brand">
     <span class="logo">BATIMIX</span>
+    <button class="pipe" id="pipebtn" type="button" aria-haspopup="dialog" title="Con qué datos se calculó todo: banda theta 4 a 8 Hz como fracción de la potencia de 1 a 40 Hz (Welch); referencia FCz, la de la grabación; 75 épocas de 4 s por registro; ojos abiertos; sin ICA. Clic: método completo en Acerca de.">θ 4–8 / 1–40 Hz · ref. FCz · 75 × 4 s · sin ICA</button>
   </div>
   <div class="ctrls" role="region" aria-label="Controles">
     <div class="seg" id="roiseg" role="group" aria-label="Región EEG">
@@ -64,7 +65,7 @@
   </div>
   <div class="col col-r">
   <section class="panel p-topo" aria-labelledby="t-topo">
-    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div><select class="isel" id="interpsel" aria-label="Método de interpolación de los topomapas" title="Método de interpolación"><option value="v4">v4 · EEGLAB/FieldTrip</option><option value="ct">Cúbica · MNE</option><option value="spline">Spline esférico</option></select><button class="tog" id="dtog" type="button" aria-pressed="true" title="Mostrar u ocultar los mapas de diferencia">Δ SD − NS</button></div>
+    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div><select class="isel" id="interpsel" aria-label="Método de interpolación de los topomapas" title="Interpolación de los mapas: solo cambia el dibujo entre electrodos, no los valores ni las pruebas (ver Acerca de)"><option value="v4">Interp. v4 · EEGLAB/FieldTrip</option><option value="ct">Interp. cúbica · MNE</option><option value="spline">Interp. spline esférico</option></select><button class="tog" id="dtog" type="button" aria-pressed="true" title="Mostrar u ocultar los mapas de diferencia">Δ SD − NS</button></div>
     <div class="view" id="topo"></div>
   </section>
   </div>
@@ -88,6 +89,7 @@
         <tr><td>KSS, SSS</td><td>Escalas de somnolencia de Karolinska y Stanford (puntos).</td></tr>
         <tr><td>PANAS+, PANAS−</td><td>Afecto positivo y negativo (puntos).</td></tr>
         <tr><td>Cuadrante vulnerable</td><td>Sobre la mediana del cambio theta y peor que la mediana del marcador elegido.</td></tr>
+        <tr><td>t, d<sub>z</sub>, IC 95 %</td><td>Prueba t pareada por electrodo con las 68 personas: t con 67 grados de libertad; d<sub>z</sub> = media de Δ dividida por su desviación estándar (tamaño de efecto pareado; 0.2 pequeño, 0.5 mediano); IC 95 % de la media de Δ. Se muestran al pasar el cursor por un electrodo.</td></tr>
         <tr><td>FDR</td><td>Corrección de Benjamini y Hochberg para 61 pruebas t pareadas, una por electrodo.</td></tr>
         <tr><td>C(e)</td><td>Consistencia de un grupo en el electrodo e: proporción de personas cuyo Δ sube menos la proporción cuyo Δ baja (de −1 a +1). Cerca de ±1 = el grupo cambia en la misma dirección.</td></tr>
         <tr><td>Vulnerables, resistentes</td><td>Grupos del heatmap, definidos solo por la conducta: peor o no que la mediana del cambio en el marcador elegido. No usan theta, para que la firma theta de cada grupo no sea circular.</td></tr>
@@ -102,12 +104,14 @@
         <tr><td>T3 Identificar</td><td>¿Quiénes son vulnerables? (Q3)</td><td>Dispersión con cuadrante y lazo; heatmap, una fila por persona</td></tr>
         <tr><td>T4 Comparar</td><td>¿Comparten firma espacial? (Q4)</td><td>Matriz por grupo; clic en dos personas (puntos o filas del heatmap) = filas A y B; heatmap persona × electrodo con C(e) por grupo</td></tr>
         <tr><td>T5 Correlacionar</td><td>¿Converge con cada marcador? (Q5)</td><td>Dispersión, marcador del eje Y y ρ con su n</td></tr>
-        <tr><td>T6 Describir tendencia</td><td>¿Cambia dentro del registro? (Q6)</td><td>Cinco minutos, media ± EE por época</td></tr>
+        <tr><td>T6 Describir tendencia</td><td>¿Cambia dentro del registro? (Q6)</td><td>Cinco minutos: con μθ, media ± EE por época; con σθ, σθ móvil en ventanas de 40 s (Doran et al., 2001: inestabilidad de estado; ventana según Gudmundsson et al., 2007)</td></tr>
         <tr><td>T7 Comparar grupos</td><td>¿Influyen sexo, PSQI u orden de sesión? (Q7)</td><td>Selector Comparar: dos grupos con dos colores en las cuatro vistas</td></tr>
       </tbody>
     </table>
     <h3>Método</h3>
     <p>Procesamiento del equipo (Semana 6): notch de 50 Hz, pasabanda de 1 a 40 Hz, canales malos interpolados, sin ICA, referencia FCz. Mapas por interpolación biarmónica v4, la de EEGLAB y FieldTrip, sobre las posiciones reales de los electrodos (electrodes.tsv de ds004902) en proyección azimutal equidistante; el selector del panel muestra también la cúbica de MNE y el spline esférico (Perrin et al., 1989; m = 4, 20 términos de Legendre, sin regularización). Las tres implementaciones reproducen a las originales (EEGLAB y FieldTrip en MATLAB, MNE 1.8) con error menor a 1e-9 del rango. NS y SD comparten una escala secuencial por fila; Δ usa una escala divergente con cero neutro. Con un grupo seleccionado los mapas promedian a esas personas, sin prueba por electrodo. Correlaciones de Spearman con IC 95 %.</p>
+    <h3 id="h-interp">Interpolación de los mapas</h3>
+    <p>El selector «Interp.» del panel de topomapas solo cambia cómo se pinta el espacio <i>entre</i> electrodos. Los valores de cada electrodo, las pruebas t, los q de la FDR, los anillos y los rellenos son los mismos con cualquier método. v4 (por defecto) es la interpolación biarmónica de <i>topoplot</i> de EEGLAB y de <i>ft_topoplotER</i> de FieldTrip; «Cúbica · MNE» es la de <i>plot_topomap</i> de MNE-Python; «Spline esférico» interpola sobre las posiciones 3D (Perrin et al., 1989). Si un patrón aparece con un método y no con los otros, es un efecto del dibujo, no de los datos.</p>
     <h3>Limitaciones</h3>
     <p>PVT pareado para solo 30 personas (baja potencia); preprocesamiento heurístico; Cui et al. usaron referencia promedio, ICA y otro denominador, lo que puede explicar parte de la no replicación.</p>
     <h3 id="h-table">Datos de la dispersión</h3>

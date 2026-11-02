@@ -63,7 +63,7 @@ function computeX(){
       const s = SUBEP[d.id]; if(!s || !s[pref+"_NS"] || !s[pref+"_SD"]) return;
       const ns = s[pref+"_NS"].slice(a, b+1).filter(v => v != null), sd = s[pref+"_SD"].slice(a, b+1).filter(v => v != null);
       if(ns.length < 3 || sd.length < 3) return;
-      d.wx = S.met === "var" ? d3.deviation(sd)-d3.deviation(ns) : d3.mean(sd)-d3.mean(ns);
+      d.wx = S.met === "var" ? sdPop(sd)-sdPop(ns) : d3.mean(sd)-d3.mean(ns);
     });
   }
 }
@@ -155,27 +155,42 @@ function bh(ps){
 const pOf = (t, met) => met === "var" ? t.sigVar : t.sigMean;
 const qOf = (t, met) => met === "var" ? t.qVar : t.qMean;
 const sigCount = met => ({p: ELEC.filter(e => pOf(TOPO[e], met) < .05).length, q: ELEC.filter(e => qOf(TOPO[e], met) < .05).length});
-function epochStats(ids, pref, cond){
-  const mean = [], sem = [], n = [];
-  for(let i = 0; i < 75; i++){
-    const v = [];
-    for(const id of ids){ const s = SUBEP[id], a = s && s[pref+"_"+cond]; if(a && a[i] != null) v.push(a[i]); }
+// σθ móvil: desviación estándar de la θ regional en una ventana deslizante de ROLL_W épocas (10 × 4 s = 40 s; la
+// potencia espectral del EEG en reposo alcanza su confiabilidad máxima hacia los 40 s: Gudmundsson et al., 2007).
+// Mismo divisor que σθ en el pipeline (np.std, n). Ojo: σθ de la dispersión promedia las DE de cada electrodo de la
+// región; aquí se usa la serie ya promediada por región (subject_epochs.json), así que la escala es menor: sirve
+// para ver la forma en el tiempo, no para comparar cifras con la dispersión.
+const ROLL_W = 10;
+const sdPop = a => { const m = d3.mean(a); return Math.sqrt(d3.mean(a, v => (v-m)**2)); };
+function rollSD(arr){
+  const out = [];
+  for(let i = 0; i+ROLL_W <= 75; i++){ const v = arr.slice(i, i+ROLL_W).filter(x => x != null); out.push(v.length >= ROLL_W*.8 ? sdPop(v) : null); }
+  return out;
+}
+// eje del tiempo (segundos) de cada punto: centro de la época, o centro de la ventana móvil
+const seriesX = met => met === "var" ? d3.range(75-ROLL_W+1).map(i => i*4+ROLL_W*2) : d3.range(75).map(i => i*4+2);
+const seriesOf = (s, pref, cond, met) => { const a = s && s[pref+"_"+cond]; return a ? (met === "var" ? rollSD(a) : a) : null; };
+// media ± EE entre personas, punto a punto; con met = "var", de la σθ móvil
+function epochStats(ids, pref, cond, met = "mean"){
+  const xs = seriesX(met), mean = [], sem = [], n = [], per = ids.map(id => seriesOf(SUBEP[id], pref, cond, met));
+  for(let i = 0; i < xs.length; i++){
+    const v = []; for(const a of per) if(a && a[i] != null) v.push(a[i]);
     mean.push(v.length ? d3.mean(v) : null); sem.push(v.length > 1 ? d3.deviation(v)/Math.sqrt(v.length) : 0); n.push(v.length);
   }
-  return {mean, sem, n:d3.max(n)};
+  return {mean, sem, n:d3.max(n), xs};
 }
-// Δ (SD menos NS) por época, persona a persona, con su error estándar
-function epochDiffStats(ids, pref){
-  const mean = [], sem = []; let nMax = 0;
-  for(let i = 0; i < 75; i++){
-    const v = [];
-    for(const id of ids){ const s = SUBEP[id]; if(!s) continue; const a = s[pref+"_NS"], b = s[pref+"_SD"]; if(a && b && a[i] != null && b[i] != null) v.push(b[i]-a[i]); }
+// Δ (SD menos NS) punto a punto, persona a persona, con su error estándar
+function epochDiffStats(ids, pref, met = "mean"){
+  const xs = seriesX(met), mean = [], sem = []; let nMax = 0;
+  const per = ids.map(id => [seriesOf(SUBEP[id], pref, "NS", met), seriesOf(SUBEP[id], pref, "SD", met)]);
+  for(let i = 0; i < xs.length; i++){
+    const v = []; for(const [a, b] of per) if(a && b && a[i] != null && b[i] != null) v.push(b[i]-a[i]);
     mean.push(v.length ? d3.mean(v) : null); sem.push(v.length > 1 ? d3.deviation(v)/Math.sqrt(v.length) : 0); nMax = Math.max(nMax, v.length);
   }
-  return {mean, sem, n:nMax};
+  return {mean, sem, n:nMax, xs};
 }
-function slopePerMin(arr){
-  const pts = arr.map((v, i) => [(i*4+2)/60, v]).filter(p => p[1] != null);
+function slopePerMin(arr, xs){
+  const pts = arr.map((v, i) => [(xs ? xs[i] : i*4+2)/60, v]).filter(p => p[1] != null);
   const mx = d3.mean(pts, p => p[0]), my = d3.mean(pts, p => p[1]); let a = 0, b = 0;
   pts.forEach(([x, y]) => { a += (x-mx)*(y-my); b += (x-mx)**2; });
   return a/b;

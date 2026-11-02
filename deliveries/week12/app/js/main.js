@@ -107,6 +107,9 @@ loadData().then(D => {
   d3.select("#themebtn").on("click", () => setTheme(themeNow() === "light" ? "dark" : "light"));
   if(themeNow() === "light"){ $("themebtn").setAttribute("aria-label", "Cambiar a tema oscuro"); $("themebtn").title = "Tema oscuro"; }
   d3.select("#aboutbtn").on("click", () => { const d = $("about"); d.showModal ? d.showModal() : d.setAttribute("open", ""); });
+  // el chip de pipeline abre Acerca de en la sección de método
+  d3.select("#pipebtn").on("click", () => { const d = $("about"); d.showModal ? d.showModal() : d.setAttribute("open", "");
+    const h = [...d.querySelectorAll("h3")].find(x => x.textContent.trim() === "Método"); if(h) h.scrollIntoView({block:"start"}); });
   document.querySelectorAll("dialog [data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
   document.querySelectorAll("dialog").forEach(d => d.addEventListener("click", e => { if(e.target === d) d.close(); }));
   // Esc limpia la vista

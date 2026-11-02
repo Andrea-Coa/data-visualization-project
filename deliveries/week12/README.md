@@ -29,7 +29,7 @@ deliveries/week12/
     js/core.js                   datos, estado, bus de eventos, grupos, selección A y B, estadística
     js/topomap.js                matriz 2 × 3 de topomapas (v4 de EEGLAB/FieldTrip; cúbica de MNE y spline esférico en el selector; isolíneas, p y FDR, filas σθ/μθ o A/B)
     js/scatter.js                dispersión de vulnerabilidad, franja de las 68 personas, lazo, A y B, tabla
-    js/dynamics.js               cinco minutos: media ± EE por época
+    js/dynamics.js               cinco minutos: con μθ, media ± EE por época; con σθ, σθ móvil en ventanas de 40 s
     js/multiverse.js             curva de especificación, franja del azar y mediana de r por decisión
     js/individuals.js            panel flotante Individuos: heatmap persona × electrodo y grafo de similitud arrastrable
     js/report.js                 reporte descargable (HTML autocontenido con la vista, lectura de cada gráfico y CSV)
@@ -38,6 +38,9 @@ deliveries/week12/
     tools/build_multiverse.py    genera data/multiverse.json (448 análisis, 2000 permutaciones)
     tools/build_subject_topo.py  genera data/topo_by_subject.json
     tools/build_coords.py        genera data/coords.json (2D) y data/coords3d.json (3D) desde electrodes.tsv
+    tools/build_topo_stats.py    genera data/topo.json: NS, SD, Δ, t pareada, d_z e IC 95 % por electrodo (68 pareadas)
+    tools/check_app.py           pruebas técnicas: estadística, efecto por electrodo, señal de referencia, consistencia, capturas
+    tools/selftest.html          página que usa check_app.py para leer lo que la app calcula y muestra
     tools/build-data.js          regenera data/data.js desde los JSON
   data/                          los mismos resultados en CSV: multiverse_specs.csv, participants_deltas.csv
   assets/                        capturas de la aplicación
@@ -71,6 +74,10 @@ python tools/build_coords.py
 ```
 
 ```bash
+python tools/build_topo_stats.py
+```
+
+```bash
 python tools/build_multiverse.py --perms 2000
 ```
 
@@ -78,7 +85,15 @@ python tools/build_multiverse.py --perms 2000
 node tools/build-data.js
 ```
 
-`build_multiverse.py` necesita `numpy` y `scipy`; tarda un par de minutos. Imprime un control de consistencia (Δσθ frontal recalculado frente a `merged_summary.csv`) y los estadísticos conjuntos. `build_coords.py` solo usa la biblioteca estándar: lee las posiciones 3D reales de `electrodes.tsv` (ds004902, o la muestra de `deliveries/week04/data/sample`) para el spline esférico de los topomapas y deriva de ellas la proyección 2D. `participants.json`, `topo.json` y `subject_epochs.json` vienen sin cambios de la Semana 10.
+`build_multiverse.py` necesita `numpy` y `scipy`; tarda un par de minutos. Imprime un control de consistencia (Δσθ frontal recalculado frente a `merged_summary.csv`) y los estadísticos conjuntos. `build_coords.py` solo usa la biblioteca estándar: lee las posiciones 3D reales de `electrodes.tsv` (ds004902, o la muestra de `deliveries/week04/data/sample`) para el spline esférico de los topomapas y deriva de ellas la proyección 2D. `build_topo_stats.py` (requiere scipy) reemplaza al `topo.json` de la Semana 10, que no tenía generador: aquel usaba la aproximación normal para los p y calculaba Δ como diferencia de medias no pareadas (69 en NS, 70 en SD); ahora todo usa las 68 personas pareadas y la t exacta (mismos electrodos con p < 0.05; ninguno sobrevive la FDR). `participants.json` y `subject_epochs.json` vienen sin cambios de la Semana 10.
+
+## Pruebas técnicas
+
+```bash
+python3 -I tools/check_app.py --out capturas_pruebas
+```
+
+Requiere Google Chrome y Python con numpy, scipy, statsmodels y mne. Compara la FDR, ρ de Spearman y su IC calculados por la app con statsmodels y scipy; t, p, d_z e IC de `topo.json` con `scipy.stats.ttest_rel`; el cálculo de θ relativa del notebook 02 con señales de valor teórico conocido (ruido blanco, senos de 6 y 10 Hz); el mismo n y los mismos conteos en títulos, «Acerca de», Reporte y tooltip; y guarda capturas a 1365 × 768 y 1600 × 900 en ambos temas para revisarlas a mano. Sale con código 1 si algo falla. No cubre reproducir la app desde el EEG crudo (requiere descargar ds004902).
 
 ## Despliegue (GitHub Pages)
 

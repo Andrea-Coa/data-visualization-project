@@ -143,8 +143,8 @@ const indiv = (() => {
       "Vulnerables y resistentes se definen solo por la conducta (peor o no que la mediana del cambio en el marcador elegido), no por theta.");
     if(b){
       const dA = mC(a), dB = mC(b);
-      setTitle("t-heat", "Δθ por persona y electrodo", nb(`C medio: ${a.name} ${fs2(dA)}, ${b.name} ${fs2(dB)}`), hInfo);
-    } else setTitle("t-heat", "Δθ por persona y electrodo", nb(`${a.name}: |C| ≥ 0.6 en ${strong(a)} de 61, n = ${a.ids.length}`), hInfo);
+      setTitle("t-heat", `Δ${METN[model.met]} por persona y electrodo`, nb(`C medio: ${a.name} ${fs2(dA)}, ${b.name} ${fs2(dB)}`), hInfo);
+    } else setTitle("t-heat", `Δ${METN[model.met]} por persona y electrodo`, nb(`${a.name}: |C| ≥ 0.6 en ${strong(a)} de 61, n = ${a.ids.length}`), hInfo);
     d3.select("#k-heat").html(`<span class="k">Δ${METN[model.met]} SD − NS</span><span class="k"><i style="width:64px;height:7px;border-radius:2px;background:linear-gradient(90deg,${d3.range(0, 1.01, .25).map(C.div).join(",")})"></i>±${fr(model.lim)}</span>`);
   }
   function render(){ build(); titles(); drawHeat(); }

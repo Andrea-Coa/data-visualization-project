@@ -254,7 +254,7 @@ const topo = (() => {
     const sp = spec(), sc = scalesFor(sp.rows);
     // con el interruptor Δ apagado solo se dibujan NS y SD, con su barra de color
     const conds = S.showD ? ["NS", "SD", "D"] : ["NS", "SD"], nC = conds.length, nB = nC-1;
-    const labW = 22, barW = 54, topH = 22, rowGap = 10;
+    const labW = 22, barW = 66, topH = 22, rowGap = 10;
     const s = Math.floor(Math.max(90, Math.min((W-labW-nB*barW-8)/nC, (H-topH-rowGap-4)/2)));
     const usedW = labW+nC*s+nB*barW, x0 = Math.max(0, (W-usedW)/2), y0 = Math.max(0, (H-(topH+2*s+rowGap))/2);
     const X = {lab:x0, NS:x0+labW, SD:x0+labW+s, bar1:x0+labW+2*s+6, D:x0+labW+2*s+barW, bar2:x0+labW+3*s+barW+6};
@@ -275,8 +275,8 @@ const topo = (() => {
       const seqF = v => C.seq((v-dom.seq[0])/((dom.seq[1]-dom.seq[0]) || 1)), divF = v => C.div((v+dom.div)/(2*dom.div));
       svg.append("text").attr("class", "rowhead").attr("transform", `translate(${X.lab+labW/2+2},${y+s/2})${row.label.length > 3 ? " rotate(-90)" : ""}`).style("fill", row.color || null).text(row.label);
       conds.forEach(cond => drawMap(svg, defs, `${ri}${cond}`, X[cond], y, s, row, cond, cond === "D" ? divF : seqF, cond === "D" ? divF : seqF, sp.mode));
-      bar(svg, defs, `s${ri}`, X.bar1, y, s, dom.seq, C.seq, false);
-      if(S.showD) bar(svg, defs, `d${ri}`, X.bar2, y, s, [-dom.div, dom.div], C.div, true);
+      bar(svg, defs, `s${ri}`, X.bar1, y, s, dom.seq, C.seq, false, UNIT[row.met]);
+      if(S.showD) bar(svg, defs, `d${ri}`, X.bar2, y, s, [-dom.div, dom.div], C.div, true, "Δ " + UNIT[row.met]);
     });
     // capa de enlace: anillo del electrodo bajo el cursor (blanco) y del electrodo que manda en la dispersión (ámbar)
     linkG = svg.append("g").style("pointer-events", "none");
@@ -310,8 +310,13 @@ const topo = (() => {
       .on("pointerleave", () => { drawLink(null); hideTip(); })
       .on("click", (e, d) => { hideTip(); setElec(d.e); });
   }
-  function bar(svg, defs, id, x, y, s, dom, ramp, div){
+  // unidades de las barras de color: θ relativa es una fracción de la potencia de 1 a 40 Hz (sin unidades físicas)
+  const UNIT = {mean:"fracción de 1–40 Hz", var:"DE entre épocas"};
+  function bar(svg, defs, id, x, y, s, dom, ramp, div, unit){
     const h = s-30, top = y+18, gid = `tg${id}`;
+    if(unit) svg.append("text").attr("class", "bunit").attr("text-anchor", "middle")
+      .attr("transform", `translate(${x+60},${top+h/2}) rotate(-90)`).text(unit)
+      .append("title").text("θ relativa = potencia 4–8 Hz dividida por la de 1–40 Hz (sin unidades físicas); σθ es su desviación estándar entre las 75 épocas de 4 s y μθ su media.");
     const lg = defs.append("linearGradient").attr("id", gid).attr("x1", "0%").attr("y1", "100%").attr("x2", "0%").attr("y2", "0%");
     d3.range(0, 1.001, .1).forEach(t => lg.append("stop").attr("offset", t).attr("stop-color", div ? ramp(t) : ramp(t)));
     svg.append("rect").attr("x", x).attr("y", top).attr("width", 7).attr("height", h).attr("rx", 3).attr("fill", `url(#${gid})`);
@@ -336,6 +341,9 @@ const topo = (() => {
       const met = row.met, dv = met === "var" ? t.dVar : t.dMean, r = sp.mode === "pair" ? null : elecRho(e, met);
       return `<div class="m" style="margin-top:4px">${row.label}</div>` + trow("NS · SD", `${fr(t.NS[met])} · ${fr(t.SD[met])}`) +
         trow("Δ SD − NS", `${fsr(dv)}${all68 ? ` <span class="m">p ${fp(pOf(t, met))}, q ${fp(qOf(t, met))}</span>` : ""}`) +
+        // tamaño de efecto de la prueba t pareada (solo con las 68 personas, donde hay prueba por electrodo)
+        (all68 && t.tVar != null ? (sf => trow("IC 95 % de Δ", `[${fsr(t["ci"+sf][0])}, ${fsr(t["ci"+sf][1])}]`) +
+          trow(`t(${t.nPaired-1}) · d<sub>z</sub>`, `${f2(t["t"+sf])} · ${f2(t["dz"+sf])}`))(met === "var" ? "Var" : "Mean") : "") +
         (r && !isNaN(r.rho) ? trow(`ρ con ${MK[S.y].short}`, `${f2(r.rho)} <span class="m">n = ${r.n}</span>`) : "");
     }).join("");
   }
