@@ -13,7 +13,7 @@ function readPalette(){
   Object.assign(C, {
     ns:v("--ns"), sd:v("--sd"), vuln:v("--vuln"), rest:v("--rest"), signeg:v("--signeg"), g1:v("--g1"), g2:v("--g2"),
     ink:v("--ink"), ink2:v("--ink2"), muted:v("--muted"), faint:v("--faint"), panel:v("--panel"), rule:v("--rule"), rule2:v("--rule2"),
-    sigpos:v("--sigpos") || "#5EE6A8", edot:v("--edot") || "rgba(232,234,240,.45)", halo:v("--halo") || "#9fb4ff",
+    sigpos:v("--sigpos") || "#5EE6A8", edot:v("--edot") || "rgba(0,0,0,.35)", mark:v("--mark") || "#1B1B1B", halo:v("--halo") || "#9fb4ff",
     // NS y SD: secuencial (inferno en el tema oscuro, o la rampa del tema si la define); Δ: divergente con cero neutro
     seq:(r => r ? d3.interpolateRgbBasis(r.split(",").map(s => s.trim())) : t => d3.interpolateInferno(.1+.86*Math.max(0, Math.min(1, t))))(v("--ramp-seq")),
     div:d3.interpolateRgbBasis(v("--ramp-div").split(",").map(s => s.trim())),

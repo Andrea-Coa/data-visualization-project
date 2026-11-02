@@ -71,7 +71,7 @@ const side = (() => {
       const g = APER.group[k];
       E.forEach((e, i) => { if(!COORDS[e]) return; const sig = !sel && g.p[i] < .05;
         svg.append("circle").attr("cx", cx+COORDS[e][0]*R).attr("cy", cy-COORDS[e][1]*R).attr("r", sig ? 3 : .9)
-          .attr("fill", sig && g.q[i] < .05 ? C.ink : (sig ? "none" : C.edot)).attr("stroke", sig ? C.ink : "none").attr("stroke-width", 1.2); });
+          .attr("fill", sig && g.q[i] < .05 ? C.mark : (sig ? "none" : C.edot)).attr("stroke", sig ? C.mark : "none").attr("stroke-width", 1.2); });
       svg.append("text").attr("class", "mdim").attr("x", cx).attr("y", cy+R+12).attr("text-anchor", "middle").text(`${fsr(-mx)} to ${fsr(mx)}`);
     });
     // ---- 3. Δσθ (θ relativa) frente a Δσθ periódica, por persona, en la región del header

@@ -279,9 +279,18 @@ const topo = (() => {
       const seqF = v => C.seq((v-dom.seq[0])/((dom.seq[1]-dom.seq[0]) || 1)), divF = v => C.div((v+dom.div)/(2*dom.div));
       svg.append("text").attr("class", "rowhead").attr("transform", `translate(${X.lab+labW/2+2},${y+s/2})${row.label.length > 3 ? " rotate(-90)" : ""}`).style("fill", row.color || null).text(row.label);
       conds.forEach(cond => drawMap(svg, defs, `${ri}${cond}`, X[cond], y, s, row, cond, cond === "D" ? divF : seqF, cond === "D" ? divF : seqF, sp.mode));
-      bar(svg, defs, `s${ri}`, X.bar1, y, s, dom.seq, C.seq, false, narrow ? null : UNIT[row.met]);
-      if(S.showD) bar(svg, defs, `d${ri}`, X.bar2, y, s, [-dom.div, dom.div], C.div, true, narrow ? null : "Δ " + UNIT[row.met]);
+      // una barra por fila cuando las filas son métricas distintas (σθ y μθ tienen rangos distintos)
+      if(!shared){
+        bar(svg, defs, `s${ri}`, X.bar1, y, s, dom.seq, C.seq, false, narrow ? null : UNIT[row.met]);
+        if(S.showD) bar(svg, defs, `d${ri}`, X.bar2, y, s, [-dom.div, dom.div], C.div, true, narrow ? null : "Δ " + UNIT[row.met]);
+      }
     });
+    // dos personas o dos grupos: las filas comparten escala, así que basta una barra larga por columna de color
+    if(shared){
+      const y = y0+topH, span = sp.rows.length*s+(sp.rows.length-1)*rowGap, met = sp.rows[0].met;
+      bar(svg, defs, "s", X.bar1, y, span, shared.seq, C.seq, false, narrow ? null : UNIT[met]);
+      if(S.showD) bar(svg, defs, "d", X.bar2, y, span, [-shared.div, shared.div], C.div, true, narrow ? null : "Δ " + UNIT[met]);
+    }
     // capa de enlace: anillo del electrodo bajo el cursor (blanco) y del electrodo que manda en la dispersión (ámbar)
     linkG = svg.append("g").style("pointer-events", "none");
     drawLink(null);
@@ -306,8 +315,8 @@ const topo = (() => {
     const pts = ELEC.filter(e => row.T[e]).map(e => ({e, t:row.T[e], px:cx+COORDS[e][0]*R, py:cy-COORDS[e][1]*R}));
     g.append("g").selectAll("circle").data(pts).join("circle").attr("cx", d => d.px).attr("cy", d => d.py)
       .attr("r", d => marks && pOf(d.t, row.met) < .05 ? 4 : 1.1)
-      .attr("fill", d => marks && qOf(d.t, row.met) < .05 ? C.ink : (marks && pOf(d.t, row.met) < .05 ? "none" : C.edot))
-      .attr("stroke", d => marks && pOf(d.t, row.met) < .05 ? C.ink : "none").attr("stroke-width", 1.5).style("pointer-events", "none");
+      .attr("fill", d => marks && qOf(d.t, row.met) < .05 ? C.mark : (marks && pOf(d.t, row.met) < .05 ? "none" : C.edot))
+      .attr("stroke", d => marks && pOf(d.t, row.met) < .05 ? C.mark : "none").attr("stroke-width", 1.5).style("pointer-events", "none");
     g.append("g").selectAll("circle").data(pts).join("circle").attr("class", "ehit").attr("cx", d => d.px).attr("cy", d => d.py).attr("r", Math.max(5, R*.09))
       .on("pointerenter", (e, d) => { drawLink(d.e); showTip(e, tipFor(d.e)); }).on("pointermove", e => moveTip(e))
       .on("pointerleave", () => { drawLink(null); hideTip(); })
@@ -333,7 +342,7 @@ const topo = (() => {
     const at = (m, k) => ({x:m.cx+COORDS[k][0]*m.R, y:m.cy-COORDS[k][1]*m.R});
     const rings = [];
     if(S.elec && COORDS[S.elec]) MAPS.forEach(m => rings.push({...at(m, S.elec), c:C.vuln, w:2}));
-    if(e && e !== S.elec) MAPS.forEach(m => rings.push({...at(m, e), c:C.ink, w:1.6}));
+    if(e && e !== S.elec) MAPS.forEach(m => rings.push({...at(m, e), c:C.mark, w:1.6}));
     linkG.selectAll("circle").data(rings).join("circle").attr("cx", d => d.x).attr("cy", d => d.y).attr("r", 6).attr("fill", "none").attr("stroke", d => d.c).attr("stroke-width", d => d.w);
   }
   // tooltip: las dos filas del electrodo (NS, SD, Δ) y su relación con el marcador del eje Y

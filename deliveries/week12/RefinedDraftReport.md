@@ -70,7 +70,7 @@
 | T7 Compare groups | Do sex, PSQI or session order matter? (Q7) | Compare selector | Two groups with two colors in every view: map rows, ρ per group, Δ per epoch |
 | T8 Check robustness | Does it depend on analytic decisions? Is it oscillatory? | About, «Robustness»; secondary views | Joint multiverse statistics with their permutation p; periodic vs aperiodic separation; θ synchrony with effects and CIs per pair |
 
-**Encoding and color.** Light theme by default with ColorBrewer palettes; an optional dark "instrument" theme. NS = blue, SD = red. NS and SD share a sequential scale per row so that comparing columns means comparing values; with two people both rows share the scale. Δ uses a diverging scale with a neutral zero. Amber marks the vulnerable quadrant. Selection is marked with a ring (scatter) or an outline (heatmap) without changing the point colors, which keep their meaning. Direct labels instead of distant legends.
+**Encoding and color.** Light theme by default with ColorBrewer palettes; an optional dark "instrument" theme. When the two map rows share a scale (two people or two groups), each color column has a single long bar instead of one per row. NS = blue, SD = red. NS and SD share a sequential scale per row so that comparing columns means comparing values; with two people both rows share the scale. Δ uses a diverging scale with a neutral zero. Amber marks the vulnerable quadrant. Selection is marked with a ring (scatter) or an outline (heatmap) without changing the point colors, which keep their meaning. Direct labels instead of distant legends.
 
 **Typography.** Geist for titles and text, Geist Mono for figures and axes. At least 9–10 px in charts.
 
