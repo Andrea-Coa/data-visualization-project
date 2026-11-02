@@ -35,6 +35,7 @@
 | Controles repartidos en varias barras y dentro de cada tarjeta | Un único header con el título y todos los controles | Ruido visual de los controles |
 | Textos de ayuda ("arrastra para…", "pasa el cursor…") y etiquetas de rol | Sin textos de instrucciones: el título de cada panel es su hallazgo; intro, glosario y método en "Acerca de" | Ruido visual; pedido del equipo |
 | Animaciones de transición y botón Reproducir | Sin animaciones: cada cambio de estado es inmediato | Sin motion graphics |
+| Mapas por distancia inversa (IDW) sobre coordenadas 2D aproximadas a mano | Interpolación biarmónica v4, la de `topoplot` de EEGLAB y `ft_topoplotER` de FieldTrip, sobre las posiciones reales de `electrodes.tsv` en proyección azimutal equidistante; un selector muestra además la cúbica de Clough-Tocher de MNE y el spline esférico (Perrin et al., 1989). Las tres implementaciones reproducen a las originales (EEGLAB y FieldTrip en MATLAB R2022a, MNE 1.8) con error menor a 1e-9 del rango. Con los datos de los 68, el mapa v4 correlaciona r ≥ 0.985 con la cúbica de MNE y r ≥ 0.93 con el spline esférico en los seis mapas | El IDW no es un estándar para topomapas de EEG; usar el método de referencia de la comunidad y mostrar que el patrón no depende de él |
 | Un topomapa con conmutadores σ/μ y NS/SD/Δ | Matriz 2 × 3 de topomapas: columnas NS, SD y Δ; filas σθ y μθ, o las personas A y B elegidas con clic en la dispersión | Comparar condiciones, métricas y personas sin conmutar (T1, T2, T4) |
 | Franjas por región de 20 px | Franja de las 68 personas bajo la dispersión, con el conteo 39 / 29 | El hallazgo central necesitaba evidencia visual |
 | Selección solo con lazo; ρ fijo de los 68 | Lazo + **Comparar dos grupos** (mujeres vs hombres, orden de sesión, PSQI, vulnerables vs resto), con un color por grupo en las cuatro vistas y ρ por grupo | Tarea T7: los moderadores se ven lado a lado, no filtrados de a uno |
@@ -53,7 +54,7 @@
 
 | Tarea | Pregunta | Vista | Cómo la responde |
 |---|---|---|---|
-| T1 Localizar | ¿Dónde cambia theta? (Q1) | Matriz, columna Δ | Mapa interpolado (IDW) con anillo (p < 0.05) y relleno (FDR) |
+| T1 Localizar | ¿Dónde cambia theta? (Q1) | Matriz, columna Δ | Mapa interpolado (v4 de EEGLAB y FieldTrip) con anillo (p < 0.05) y relleno (FDR) |
 | T2 Comparar métricas | ¿Variabilidad o media? (Q2) | Matriz, filas σθ y μθ | Las dos métricas a la vista, una sobre otra |
 | T3 Identificar | ¿Quiénes son vulnerables? (Q3) | Dispersión; heatmap de Individuos | Cuadrante ámbar (sobre ambas medianas), lazo y franja de las 68 personas; una fila por persona |
 | T4 Comparar | ¿Comparten firma espacial? (Q4) | Matriz por grupo; filas A y B; heatmap y grafo de Individuos | Promedio del grupo activo; dos personas con escalas compartidas; C(e) por grupo y vecinos del mismo grupo frente al azar |

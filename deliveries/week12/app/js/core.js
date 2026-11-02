@@ -3,7 +3,7 @@
    Semana 12: sin animaciones; los cambios de estado se dibujan en el acto. */
 
 // ---------- datos (los asigna main.js tras cargar data/*.json) ----------
-let P = [], TOPO = {}, COORDS = {}, SUBEP = {}, EEG = [], EEG_IDS = [], ELEC = [], SUBTOPO = {}, MULTI = null;
+let P = [], TOPO = {}, COORDS = {}, COORDS3 = null, SUBEP = {}, EEG = [], EEG_IDS = [], ELEC = [], SUBTOPO = {}, MULTI = null;
 const $ = id => document.getElementById(id);
 
 // ---------- paleta: se lee de los tokens CSS (una sola fuente de verdad) ----------

@@ -64,7 +64,7 @@
   </div>
   <div class="col col-r">
   <section class="panel p-topo" aria-labelledby="t-topo">
-    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div><button class="tog" id="dtog" type="button" aria-pressed="true" title="Mostrar u ocultar los mapas de diferencia">Δ SD − NS</button></div>
+    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div><select class="isel" id="interpsel" aria-label="Método de interpolación de los topomapas" title="Método de interpolación"><option value="v4">v4 · EEGLAB/FieldTrip</option><option value="ct">Cúbica · MNE</option><option value="spline">Spline esférico</option></select><button class="tog" id="dtog" type="button" aria-pressed="true" title="Mostrar u ocultar los mapas de diferencia">Δ SD − NS</button></div>
     <div class="view" id="topo"></div>
   </section>
   </div>
@@ -107,7 +107,7 @@
       </tbody>
     </table>
     <h3>Método</h3>
-    <p>Procesamiento del equipo (Semana 6): notch de 50 Hz, pasabanda de 1 a 40 Hz, canales malos interpolados, sin ICA, referencia FCz. Mapas por interpolación de distancia inversa. NS y SD comparten una escala secuencial por fila; Δ usa una escala divergente con cero neutro. Con un grupo seleccionado los mapas promedian a esas personas, sin prueba por electrodo. Correlaciones de Spearman con IC 95 %.</p>
+    <p>Procesamiento del equipo (Semana 6): notch de 50 Hz, pasabanda de 1 a 40 Hz, canales malos interpolados, sin ICA, referencia FCz. Mapas por interpolación biarmónica v4, la de EEGLAB y FieldTrip, sobre las posiciones reales de los electrodos (electrodes.tsv de ds004902) en proyección azimutal equidistante; el selector del panel muestra también la cúbica de MNE y el spline esférico (Perrin et al., 1989; m = 4, 20 términos de Legendre, sin regularización). Las tres implementaciones reproducen a las originales (EEGLAB y FieldTrip en MATLAB, MNE 1.8) con error menor a 1e-9 del rango. NS y SD comparten una escala secuencial por fila; Δ usa una escala divergente con cero neutro. Con un grupo seleccionado los mapas promedian a esas personas, sin prueba por electrodo. Correlaciones de Spearman con IC 95 %.</p>
     <h3>Limitaciones</h3>
     <p>PVT pareado para solo 30 personas (baja potencia); preprocesamiento heurístico; Cui et al. usaron referencia promedio, ICA y otro denominador, lo que puede explicar parte de la no replicación.</p>
     <h3 id="h-table">Datos de la dispersión</h3>

@@ -2,12 +2,12 @@
    multiverse.json ya no tiene vista propia, pero trae los lapsos y la DE del TR del PVT (marcadores del eje y).
    Servido por HTTP (GitHub Pages o servidor local) lee data/*.json. Abierto con doble clic (file://)
    el navegador bloquea fetch, así que cae a data/data.js, el mismo contenido empaquetado. */
-const FILES = ["participants", "topo", "coords", "subject_epochs", "topo_by_subject", "multiverse"];
+const FILES = ["participants", "topo", "coords", "subject_epochs", "topo_by_subject", "multiverse", "coords3d"];
 
 function loadData(){
   const base = window.BATIMIX_BASE || "";
   return Promise.all(FILES.map(f => d3.json(`${base}data/${f}.json`)))
-    .then(([p, t, c, s, st, mv]) => ({participants:p, topo:t, coords:c, subEpochs:s, subTopo:st, multiverse:mv}))
+    .then(([p, t, c, s, st, mv, c3]) => ({participants:p, topo:t, coords:c, subEpochs:s, subTopo:st, multiverse:mv, coords3d:c3}))
     .catch(() => new Promise((res, rej) => {
       if(window.BATIMIX_DATA) return res(window.BATIMIX_DATA);
       const sc = document.createElement("script"); sc.src = `${base}data/data.js`;
@@ -18,7 +18,7 @@ function loadData(){
 }
 
 function prepare(D){
-  P = D.participants; TOPO = D.topo; COORDS = D.coords; SUBEP = D.subEpochs; SUBTOPO = D.subTopo || {}; MULTI = D.multiverse || null;
+  P = D.participants; TOPO = D.topo; COORDS = D.coords; SUBEP = D.subEpochs; SUBTOPO = D.subTopo || {}; MULTI = D.multiverse || null; COORDS3 = D.coords3d || null;
   EEG = P.filter(d => d.d_front_var != null); EEG_IDS = EEG.map(d => d.id);
   ELEC = Object.keys(COORDS).filter(e => TOPO[e]);
   const qv = bh(ELEC.map(e => TOPO[e].sigVar)), qm = bh(ELEC.map(e => TOPO[e].sigMean));

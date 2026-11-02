@@ -27,7 +27,7 @@ deliveries/week12/
     index.html                   vista única: header con controles, cuatro paneles y el panel "Acerca de"
     css/styles.css               temas oscuro y claro (tokens de color y tipografía; el claro con data-theme="light"), tablero sin espacios
     js/core.js                   datos, estado, bus de eventos, grupos, selección A y B, estadística
-    js/topomap.js                matriz 2 × 3 de topomapas (IDW, isolíneas, p y FDR, filas σθ/μθ o A/B)
+    js/topomap.js                matriz 2 × 3 de topomapas (v4 de EEGLAB/FieldTrip; cúbica de MNE y spline esférico en el selector; isolíneas, p y FDR, filas σθ/μθ o A/B)
     js/scatter.js                dispersión de vulnerabilidad, franja de las 68 personas, lazo, A y B, tabla
     js/dynamics.js               cinco minutos: media ± EE por época
     js/multiverse.js             curva de especificación, franja del azar y mediana de r por decisión
@@ -37,6 +37,7 @@ deliveries/week12/
     data/*.json                  datos procesados finales (y data.js para abrir con doble clic)
     tools/build_multiverse.py    genera data/multiverse.json (448 análisis, 2000 permutaciones)
     tools/build_subject_topo.py  genera data/topo_by_subject.json
+    tools/build_coords.py        genera data/coords.json (2D) y data/coords3d.json (3D) desde electrodes.tsv
     tools/build-data.js          regenera data/data.js desde los JSON
   data/                          los mismos resultados en CSV: multiverse_specs.csv, participants_deltas.csv
   assets/                        capturas de la aplicación
@@ -66,6 +67,10 @@ python tools/build_subject_topo.py
 ```
 
 ```bash
+python tools/build_coords.py
+```
+
+```bash
 python tools/build_multiverse.py --perms 2000
 ```
 
@@ -73,7 +78,7 @@ python tools/build_multiverse.py --perms 2000
 node tools/build-data.js
 ```
 
-`build_multiverse.py` necesita `numpy` y `scipy`; tarda un par de minutos. Imprime un control de consistencia (Δσθ frontal recalculado frente a `merged_summary.csv`) y los estadísticos conjuntos. `participants.json`, `topo.json`, `coords.json` y `subject_epochs.json` vienen sin cambios de la Semana 10.
+`build_multiverse.py` necesita `numpy` y `scipy`; tarda un par de minutos. Imprime un control de consistencia (Δσθ frontal recalculado frente a `merged_summary.csv`) y los estadísticos conjuntos. `build_coords.py` solo usa la biblioteca estándar: lee las posiciones 3D reales de `electrodes.tsv` (ds004902, o la muestra de `deliveries/week04/data/sample`) para el spline esférico de los topomapas y deriva de ellas la proyección 2D. `participants.json`, `topo.json` y `subject_epochs.json` vienen sin cambios de la Semana 10.
 
 ## Despliegue (GitHub Pages)
 
