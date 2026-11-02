@@ -140,9 +140,9 @@ Full references with verified DOIs are in `research/literatura_verificada.md` (i
 | Snipes et al. (2022), *J Neurosci* 42(45):8569–8586, doi:10.1523/JNEUROSCI.1063-22.2022 | average | 0.5–40 Hz | ICA, ICLabel plus visual review |
 | Lian et al. (2023), *Brain Sci* 13(6):949, doi:10.3390/brainsci13060949 | average | 0.1–70 Hz | ICA (ocular and muscle) |
 | Ma et al. (2023), *Front Neurosci*, doi:10.3389/fnins.2023.1204457 | average | 0.1–40 Hz | ICA (manual, 6.1 components) and ±100 µV |
-| Liu, Xie and Ma (2024), *Nat Sci Sleep* 16 | mastoids | 0.3–80 Hz | ICA (runica, semi-automatic) |
+| Liu, Xie and Ma (2024), *Nat Sci Sleep* 16:1937–1948, doi:10.2147/NSS.S485412 | mastoids | 0.3–80 Hz | ICA (runica, semi-automatic) |
 | Cui et al. (2026), *Front Neurosci*, doi:10.3389/fnins.2026.1910878 (ds004902) | average | 1–30 Hz | ICA (Fp1/Fp2 and ICLabel, 0.85) and 200 µV |
 
-Component labels: ICLabel (Pion-Tonachini, Kreutz-Delgado and Makeig, 2019, *NeuroImage* 198:181–197, doi:10.1016/j.neuroimage.2019.05.026). Whether more preprocessing always helps: Delorme (2023), *Sci Rep* 13:2372, doi:10.1038/s41598-023-27528-0. Bai et al. (2024), on this dataset, could not be checked (subscription only).
+Component labels: ICLabel (Pion-Tonachini, Kreutz-Delgado and Makeig, 2019, *NeuroImage* 198:181–197, doi:10.1016/j.neuroimage.2019.05.026). Whether more preprocessing always helps: Delorme (2023), *Sci Rep* 13:2372, doi:10.1038/s41598-023-27528-0. Bai et al. (2024), on this dataset, could not be checked (subscription only). All entries, with what each method section says, are in `research/literatura_verificada.md`, group E.
 
 *Use of AI: part of the code, the multiverse analysis and the writing was developed with the assistance of Claude (Anthropic) and reviewed by the team.*

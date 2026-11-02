@@ -3,6 +3,8 @@
 **Proyecto:** BATIMIX, DS5343 Visualización de Datos (UTEC, 2026-2). **Equipo:** Jimena Gurbillon, Andrea Coa, Paolo Medrano.
 **Fecha:** 27 de octubre de 2026. **Alcance:** decidir si en las tres semanas previas a la entrega final (18 de noviembre de 2026) se agrega una vista de conectividad funcional a nivel de cuero cabelludo (matriz o grafo; NS, SD y Δ). La entrega de la semana 12 (28 de octubre) no incluye conectividad.
 
+> **Actualización (2 de noviembre de 2026).** Este informe describe la decisión del 27 de octubre. Después se cumplieron las condiciones que pedía para reabrirla: se descargó el EEG crudo, se verificó que el pipeline lo reproduce y el pipeline principal pasó a usar FCz reinsertado, referencia promedio e ICA con ICLabel (`app/tools/eeg_ica.py`), que es la mitigación ocular que proponía la sección 3.3. Con eso, la conectividad se añadió como **vista exploratoria** del panel de validación, no del tablero principal (`app/tools/build_secondary.py`): wPLI² sin sesgo en theta, 10 regiones laterales (45 pares), prueba t pareada por par con FDR y prueba conjunta por permutación. Resultado: la sincronía baja en 44 de 45 pares, ningún par sobrevive a FDR y la prueba conjunta da p = 0.14. Las menciones a «referencia FCz, sin ICA» de este informe se refieren al pipeline de la Semana 6.
+
 **Convención de evidencia.** **[Verificado]**: comprobado en un archivo del repositorio (ruta y línea; en cuadernos, número de celda) o en una fuente abierta durante esta revisión (códigos R1 a R17, con URL en la sección 8). **[Inferencia]**: deducción razonada a partir de lo verificado. **[Propuesta]**: recomendación de este informe. Las rutas son relativas a `data-visualization-project/`.
 
 ## 1. Resumen ejecutivo

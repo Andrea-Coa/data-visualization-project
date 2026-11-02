@@ -1,7 +1,7 @@
 # Literatura verificada para BATIMIX (Semana 12)
 
 Proyecto: BATIMIX, DS5343 Visualización de Datos, UTEC 2026-2 (Jimena Gurbillon, Andrea Coa, Paolo Medrano).
-Fecha de verificación: 27 de octubre de 2026.
+Fecha de verificación: 27 de octubre de 2026; grupo E (preprocesamiento del EEG) añadido el 2 de noviembre de 2026.
 
 ## Cómo se verificó
 
@@ -48,6 +48,12 @@ Fecha de verificación: 27 de octubre de 2026.
 | D8 | Chua et al. (2014) | 10.5665/sleep.3302 | Verificado | Inestabilidad de theta y vulnerabilidad |
 | D9 | Cui et al. (2026) | 10.3389/fnins.2026.1910878 | Verificado (ya revisado) | Métrica y correlación de referencia |
 | D10 | Xiang et al. (2024) y dataset ds004902 | 10.1038/s41597-024-03268-2; 10.18112/openneuro.ds004902.v1.0.4; 10.18112/openneuro.ds004902.v1.0.8 | Verificado (ya revisado) | Datos, referencia FCz, PVT |
+| E1 | Snipes et al. (2022), métodos | 10.1523/JNEUROSCI.1063-22.2022 | Verificado (texto completo) | ICA con ICLabel y referencia promedio en privación de sueño |
+| E2 | Lian et al. (2023) | 10.3390/brainsci13060949 | Verificado (texto completo) | ICA y referencia promedio en EEG de reposo con privación |
+| E3 | Ma et al. (2023) | 10.3389/fnins.2023.1204457 | Verificado (texto completo) | ICA manual, ±100 µV y referencia promedio |
+| E4 | Liu, Xie & Ma (2024) | 10.2147/NSS.S485412 | Verificado (texto completo) | ICA semiautomático en vulnerabilidad a la privación |
+| E5 | Pion-Tonachini, Kreutz-Delgado & Makeig (2019) | 10.1016/j.neuroimage.2019.05.026 | Verificado con salvedad | ICLabel |
+| E6 | Bai, Hu, Jülich & Lei (2024) | 10.1152/jn.00304.2024 | Verificado con salvedad | Aperiódico en ds004902; specparam |
 
 ---
 
@@ -294,7 +300,64 @@ Fecha de verificación: 27 de octubre de 2026.
 - **Abierto:** PDF local `deliveries/week06/reviewed_papers/xiang2024.pdf`; registro Crossref del artículo; registros DataCite de ambas versiones; espejo GitHub de OpenNeuro (`OpenNeuroDatasets/ds004902`: CHANGES, participants.json y estructura de carpetas).
 - **Estado:** [Verificado]
 - **Qué dice que nos importa:** Referencia online en FCz, 500 Hz y 61 electrodos (p. 3). En el PVT reportan t(29) = -7.31 para la DE de RT, t(29) = -4.72 para lapsos y t(29) = 0.04 (p = 0.97) para la mediana de RT (p. 4). Ver en la sección de Cui la inconsistencia de etiquetas que encontramos al recalcular estos t.
-- **Cómo lo usamos en BATIMIX:** Fuente de datos; explica que nuestro pipeline queda referenciado a FCz porque no re-referenciamos.
+- **Cómo lo usamos en BATIMIX:** Fuente de datos. FCz es la referencia de registro: el pipeline de la Semana 6 quedaba en FCz; el principal (desde el 2 de noviembre de 2026) reinserta FCz y usa referencia promedio.
+
+---
+
+## Grupo E. Preprocesamiento del EEG en estudios de privación de sueño (añadido el 2 de noviembre de 2026)
+
+Por qué este grupo: decidir si el pipeline principal debía usar ICA y referencia promedio. Se leyeron los métodos en texto completo (PMC o la editorial en acceso abierto) y los metadatos se confirmaron en Crossref. Conclusión: desde 2022, todos los estudios multicanal leídos usan ICA, y la mayoría referencia promedio; el único sin ICA (Chua et al., 2014, D8) usa un solo canal limpiado a mano. Por eso el pipeline principal de BATIMIX es `app/tools/eeg_ica.py`.
+
+| Estudio | Referencia | Filtro | Limpieza de artefactos |
+|---|---|---|---|
+| Chua et al. (2014), D8 | mastoides | 0.3–35 Hz | inspección manual; solo Cz; DE de la potencia entre épocas de 2 s (la métrica más parecida a σθ) |
+| Snipes et al. (2022), E1 | promedio | 0.5–40 Hz | ICA con ICLabel y revisión visual (≈ 39 componentes, 128 canales) |
+| Lian et al. (2023), E2 | promedio | 0.1–70 Hz | ICA (ojos y músculo), criterio no descrito |
+| Ma et al. (2023), E3 | promedio | 0.1–40 Hz | ICA manual (6.1 componentes) y ±100 µV |
+| Liu, Xie & Ma (2024), E4 | mastoides | 0.3–80 Hz | ICA runica, semiautomático |
+| Cui et al. (2026), D9 | promedio | 1–30 Hz | ICA con Fp1/Fp2 e ICLabel (0.85) y > 200 µV |
+
+### E1. Snipes, Krugliakova, Meier & Huber (2022), métodos
+- **Cita (APA):** ver D6. https://doi.org/10.1523/JNEUROSCI.1063-22.2022
+- **Abierto:** texto completo en PMC (PMC9665934), sección de métodos.
+- **Estado:** [Verificado]
+- **Qué dice:** 128 canales con referencia Cz en el registro y referencia promedio en el análisis; FIR pasa altos de 0.5 Hz, pasa bajos de 40 Hz y notch de 50 Hz; canales malos por inspección visual e interpolados; ICA sobre una copia a 2.5–100 Hz para quitar ojos, corazón y músculo, con ICLabel (componentes con «brain» < 0.1 marcados) y corrección visual; ≈ 39 ± 12 componentes por registro.
+- **Cómo lo usamos en BATIMIX:** Precedente directo de ICA con ICLabel y referencia promedio en privación de sueño; su revisión visual es la diferencia con nuestra selección por regla (limitación declarada).
+
+### E2. Lian, Xu, Song, Peng, Zhang, An, Chen, Zhong & Shao (2023)
+- **Cita (APA):** Lian, J., Xu, L., Song, T., Peng, Z., Zhang, Z., An, X., Chen, S., Zhong, X., & Shao, Y. (2023). Reduced resting-state EEG power spectra and functional connectivity after 24 and 36 hours of sleep deprivation. *Brain Sciences, 13*(6), 949. https://doi.org/10.3390/brainsci13060949
+- **Abierto:** texto completo en PMC (PMC10296734).
+- **Estado:** [Verificado]
+- **Qué dice:** EEG de reposo en 42 adultos con 24 y 36 h de privación; EEGLAB; pasabanda 0.1–70 Hz y referencia promedio; artefactos oculares y musculares quitados con ICA (sin describir el criterio); segmentos de 2 s; potencia por FFT con ventana de Hanning.
+- **Cómo lo usamos en BATIMIX:** Respaldo de la combinación ICA + referencia promedio en reposo con privación.
+
+### E3. Ma, Li, Shao & Weng (2023)
+- **Cita (APA):** Ma, M., Li, Y., Shao, Y., & Weng, X. (2023). Effect of total sleep deprivation on effective EEG connectivity for young male in resting-state networks in different eye states. *Frontiers in Neuroscience, 17*, 1204457. https://doi.org/10.3389/fnins.2023.1204457
+- **Abierto:** texto completo en la editorial (acceso abierto).
+- **Estado:** [Verificado]
+- **Qué dice:** 24 hombres, ojos abiertos y cerrados; EEGLAB; pasabanda 0.1–40 Hz; 0.63 canales malos interpolados por persona; segmentos con artefactos quitados a mano; ICA con 6.1 componentes retirados a mano por persona; rechazo por ±100 µV; referencia promedio.
+- **Cómo lo usamos en BATIMIX:** Otro precedente de ICA y referencia promedio; su rechazo por amplitud apoya el nuestro (> 200 µV pico a pico, como Cui).
+
+### E4. Liu, Xie & Ma (2024)
+- **Cita (APA):** Liu, Z., Xie, T., & Ma, N. (2024). Resting-state EEG microstates dynamics associated with interindividual vulnerability to sleep deprivation. *Nature and Science of Sleep, 16*, 1937–1948. https://doi.org/10.2147/NSS.S485412
+- **Abierto:** texto completo en la editorial (Dove Press, acceso abierto).
+- **Estado:** [Verificado]
+- **Qué dice:** 44 adultos, línea base y 24 h sin dormir, 5 min de reposo con ojos abiertos, 64 canales; EEGLAB; notch de 50 Hz y FIR 0.3–80 Hz; canales malos por inspección e interpolación esférica; ICA (runica) con rechazo semiautomático de parpadeos, movimientos oculares y músculo; re-referencia a mastoides (y a promedio para los microestados); épocas de 2 s.
+- **Cómo lo usamos en BATIMIX:** El estudio más parecido en pregunta (vulnerabilidad individual a la privación): también usa ICA.
+
+### E5. Pion-Tonachini, Kreutz-Delgado & Makeig (2019)
+- **Cita (APA):** Pion-Tonachini, L., Kreutz-Delgado, K., & Makeig, S. (2019). ICLabel: An automated electroencephalographic independent component classifier, dataset, and website. *NeuroImage, 198*, 181–197. https://doi.org/10.1016/j.neuroimage.2019.05.026
+- **Abierto:** registro Crossref.
+- **Estado:** [Verificado con salvedad: solo metadatos; el contenido se conoce por su uso en MNE-ICALabel 0.7]
+- **Qué dice:** Clasificador automático de componentes independientes de EEG en siete clases (cerebro, músculo, ojo, corazón, ruido de línea, ruido de canal, otro), entrenado con etiquetas de expertos.
+- **Cómo lo usamos en BATIMIX:** Selección de componentes musculares (p > 0.85, como Cui) y oculares (p > 0.85, junto con la correlación con Fp1/Fp2) en `tools/eeg_ica.py`.
+
+### E6. Bai, Hu, Jülich & Lei (2024)
+- **Cita (APA):** Bai, D., Hu, J., Jülich, S., & Lei, X. (2024). Impact of sleep deprivation on aperiodic activity: A resting-state EEG study. *Journal of Neurophysiology, 132*(5), 1577–1588. https://doi.org/10.1152/jn.00304.2024
+- **Abierto:** registro de Europe PMC (resumen); el texto completo está tras suscripción.
+- **Estado:** [Verificado con salvedad: no se pudo leer su preprocesamiento]
+- **Qué dice:** Con ds004902, el offset aperiódico aumenta tras la privación, sobre todo en regiones occipitales, y se asocia con menor alerta subjetiva; la potencia alfa no cambia.
+- **Cómo lo usamos en BATIMIX:** Ajustes de specparam de la vista «Oscillatory or 1/f?». Con ICA, el aumento del offset que veíamos sin ICA desaparece (d_z +0.26 → +0.01): no podemos decir si su pipeline limpiaba artefactos de otra forma.
 
 ---
 
@@ -329,6 +392,8 @@ En resumen: correlación de Spearman, Δ variabilidad (SD - NS) contra Δ median
 Coincide en: ds004902 con ojos abiertos, épocas de 4 s con tope de 75, theta 4-8 Hz relativa, DE por canal y promedio por ROI, mismas listas de ROI, Δ = SD - NS y Spearman.
 Difiere en: versión 1.0.8; notch de 50 Hz y pasa banda 1-40 Hz; canales malos por log-varianza |z| > 3 con interpolación esférica; sin re-referencia (queda en FCz, la referencia online según Xiang et al., p. 3); sin ICA; sin rechazo de épocas (8 registros tienen menos de 75 épocas); PSD de Welch con parámetros por defecto de MNE sobre 1-40 Hz; **denominador de 1-40 Hz**; 68 pares EEG y 30 con PVT; Δ PVT = `PVT_item2` de `participants.tsv`. Resultado: ROI frontal, ρ = -0.10 (p = 0.60), n = 30.
 
+**Actualización (2 de noviembre de 2026).** El pipeline principal ya coincide con Cui en referencia promedio, ICA y rechazo de épocas > 200 µV (`app/tools/eeg_ica.py`; difiere en 1-40 Hz, 30 componentes y la regla ocular adaptativa). Resultado: ROI frontal, ρ = -0.04 [-0.40, 0.32], n = 30. Y repitiendo el pipeline exacto de Cui (`app/tools/build_cui_variant.py`): ρ = -0.06 frontal y -0.01 centro-temporal.
+
 ### Hallazgo nuevo sobre la variable conductual (cálculo propio sobre `participants.tsv`)
 
 1. **La mediana de RT de Cui no es la columna pública.** Con `PVT_item2` (mediana de RT según `participants.json`), la mediana del cambio en los 18 hombres con PVT es 47.5 ms; Cui reporta 51.50 ms para sus 18 hombres (§3.4, p. 11). Como solo hay 18 hombres con PVT, deberían ser los mismos. En mujeres, Cui reporta 27.75 ms (n = 10); quitando cualquier par de las 12 mujeres con PVT, la mediana posible va de 31.25 a 48.25 ms, nunca 27.75. Conclusión: la variable conductual de Cui no coincide con la columna pública, lo que encaja con que recalcularon la mediana con exclusiones por ensayo (< 100 ms y > 2000 ms).
@@ -347,9 +412,9 @@ Difiere en: versión 1.0.8; notch de 50 Hz y pasa banda 1-40 Hz; canales malos p
 
 ### Comprobaciones que proponemos (alimentan el multiverso)
 
-- Añadir una especificación "tipo Cui": 1-30 Hz, re-referencia promedio, ICA con los umbrales de Cui, rechazo > 200 µV y denominador 4-30 Hz, y marcarla en la curva.
-- Recalcular con los tres marcadores PVT (mediana, lapsos, DE) y reportar la inconsistencia de etiquetas.
-- Distribución de ρ dejando dos fuera sobre las 435 parejas posibles de los 30, para ver si alguna exclusión de 2 personas acerca el resultado a lo reportado por Cui.
+- Hecho (2 de noviembre de 2026): especificación "tipo Cui" (1-30 Hz, re-referencia promedio, ICA con los umbrales de Cui, rechazo > 200 µV, denominador 4-30 Hz) en `app/tools/build_cui_variant.py`: 2.4 componentes por registro, ρ = -0.06 frontal; el pipeline con ICA es además dimensión del multiverso (896 análisis).
+- Hecho: los tres marcadores PVT (mediana, lapsos, DE) están en el multiverso, y la inconsistencia de etiquetas está reportada.
+- Hecho: ρ dejando dos fuera sobre las 435 parejas posibles de los 30, con el pipeline tipo Cui: de -0.24 a +0.10 (frontal) y de -0.16 a +0.14 (centro-temporal). Ninguna exclusión de 2 personas se acerca a lo reportado por Cui, así que la razón 5 (muestra) no explica la diferencia.
 - Reportar siempre IC y n junto a ρ.
 
 ---
@@ -400,6 +465,7 @@ Entradas: tabla E (68 sujetos × Δ EEG para cada ROI × {media, variabilidad}) 
 - **Dragicevic et al. (2019), texto completo:** HAL respondió con una protección anti-bot; se usaron Crossref, el resumen y el sitio complementario.
 - **Kosara & Mackinlay (2013), texto completo:** la copia de Tableau devolvió 403; solo se leyó el resumen.
 - **Padilla, Kay & Hullman, "2022 handbook":** no encontramos en Crossref una versión de 2022; citamos la entrada de 2021 en Wiley StatsRef.
+- **Bai et al. (2024, E6), texto completo:** tras suscripción en journals.physiology.org (403); se usó el registro de Europe PMC. Su preprocesamiento no se pudo leer.
 - **Resultados finales de EEGManyPipelines:** no localizamos un artículo revisado por pares con resultados; solo se cita el artículo de diseño (2024).
 
 ---
@@ -772,5 +838,57 @@ Entradas: tabla E (68 sujetos × Δ EEG para cada ROI × {media, variabilidad}) 
   year      = {2025},
   publisher = {OpenNeuro},
   doi       = {10.18112/openneuro.ds004902.v1.0.8}
+}
+
+@article{lian2023reduced,
+  author  = {Lian, Jie and Xu, Lin and Song, Tao and Peng, Ziyi and Zhang, Zheyuan and An, Xin and Chen, Shufang and Zhong, Xiao and Shao, Yongcong},
+  title   = {Reduced Resting-State {EEG} Power Spectra and Functional Connectivity after 24 and 36 Hours of Sleep Deprivation},
+  journal = {Brain Sciences},
+  volume  = {13},
+  number  = {6},
+  pages   = {949},
+  year    = {2023},
+  doi     = {10.3390/brainsci13060949}
+}
+
+@article{ma2023effect,
+  author  = {Ma, Mengke and Li, Yutong and Shao, Yongcong and Weng, Xiechuan},
+  title   = {Effect of total sleep deprivation on effective {EEG} connectivity for young male in resting-state networks in different eye states},
+  journal = {Frontiers in Neuroscience},
+  volume  = {17},
+  pages   = {1204457},
+  year    = {2023},
+  doi     = {10.3389/fnins.2023.1204457}
+}
+
+@article{liu2024microstates,
+  author  = {Liu, Zehui and Xie, Tian and Ma, Ning},
+  title   = {Resting-State {EEG} Microstates Dynamics Associated with Interindividual Vulnerability to Sleep Deprivation},
+  journal = {Nature and Science of Sleep},
+  volume  = {16},
+  pages   = {1937--1948},
+  year    = {2024},
+  doi     = {10.2147/NSS.S485412}
+}
+
+@article{piontonachini2019iclabel,
+  author  = {Pion-Tonachini, Luca and Kreutz-Delgado, Ken and Makeig, Scott},
+  title   = {{ICLabel}: An automated electroencephalographic independent component classifier, dataset, and website},
+  journal = {NeuroImage},
+  volume  = {198},
+  pages   = {181--197},
+  year    = {2019},
+  doi     = {10.1016/j.neuroimage.2019.05.026}
+}
+
+@article{bai2024aperiodic,
+  author  = {Bai, Duo and Hu, J. and J{\"u}lich, S. and Lei, Xu},
+  title   = {Impact of sleep deprivation on aperiodic activity: a resting-state {EEG} study},
+  journal = {Journal of Neurophysiology},
+  volume  = {132},
+  number  = {5},
+  pages   = {1577--1588},
+  year    = {2024},
+  doi     = {10.1152/jn.00304.2024}
 }
 ```
