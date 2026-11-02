@@ -41,6 +41,7 @@ deliveries/week12/
     tools/check_app.py           technical tests: statistics, per-electrode effects, reference signals, consistency, secondary views, screenshots
     tools/selftest.html          page used by check_app.py to read what the app computes and shows
     tools/check_reproduction.py  reproduces the processed CSVs from the raw EEG (notebook 02) and compares them with the repository
+    tools/check_pvt_trials.py    diagnostic: the trial-level PVT files do not match the dataset summaries (not used by the app)
     tools/build_data.py          regenerates data/data.js from the JSON files (Python, no Node)
     tools/build-data.js          the same with Node.js
   data/                          the same results as CSV: multiverse_specs.csv, participants_deltas.csv

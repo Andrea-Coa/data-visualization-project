@@ -109,6 +109,7 @@ The 26 significant analyses are all PANAS+ with μθ: the larger the increase in
 - Per-electrode tests are not shown for subgroups (small n); small groups are exploratory.
 - Three eyes-open recordings (`sub-01`, `sub-28` and `sub-44`, session 2) are truncated in the OpenNeuro bucket and MNE cannot read them; this was verified with a download on 2 November 2026, so downloading again does not fix them.
 - Xiang et al. (2024) appear to assign the PVT t values to indicators different from those in the dataset dictionary; we follow the dictionary.
+- The trial-level PVT files of ds004902 are not consistent with the dataset summary columns (median RT matches in 11 of 66 sessions) and, with the session-to-condition mapping used for the EEG, only 11 of 29 people are slower after deprivation; we therefore use only the summary columns (`app/tools/check_pvt_trials.py`). The PVT was recorded separately from the resting EEG, which has no event markers, so no ERP or time-locked analysis is possible.
 - User evaluation still pending.
 
 ## 7. Functional connectivity: from postponed to an exploratory secondary view
