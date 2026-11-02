@@ -53,16 +53,31 @@ button,select{font:inherit;color:inherit}
   .btn:not(:disabled):hover,.ctrls select:hover{border-color:var(--rule2);background:#1B2029}
 }
 
-/* ---------- tablero: cuatro paneles sin huecos ---------- */
-/* la matriz de topomapas es el gráfico principal: ocupa toda la columna derecha. A la izquierda, arriba la dispersión
-   y el heatmap lado a lado; abajo la serie por época a todo el ancho */
-.board{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr)}
+/* ---------- tablero: tres columnas sin huecos ---------- */
+/* centro: la matriz de topomapas (protagonista) y debajo la serie en el tiempo; izquierda: las personas
+   (dispersión compacta y mapa de calor alto); derecha: vistas secundarias plegables. Los anchos son variables
+   para que el interruptor Δ, el intercambio de columnas y el plegado de la derecha se combinen sin repetir reglas */
+.board{display:grid;--wl:minmax(0,.95fr);--wc:minmax(0,2fr);--ws:minmax(250px,.82fr);grid-template-columns:var(--wl) var(--wc) var(--ws)}
 .col{display:grid;min-height:0;min-width:0}
-.col-l{grid-template-rows:minmax(0,1.6fr) minmax(0,1fr)}
-.col-r{grid-template-rows:minmax(0,1fr)}
-.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:0;min-width:0}
+.col-l{grid-template-rows:minmax(0,.9fr) minmax(0,1.25fr)}
+.col-c{grid-template-rows:minmax(0,1.6fr) minmax(0,1fr)}
+.col-s{display:flex;flex-direction:column;border-left:1px solid var(--rule);background:var(--panel)}
+.side-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 8px 8px 16px;border-bottom:1px solid var(--rule);flex:none}
+.side-title{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.side-body{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+.sec{display:flex;flex-direction:column;min-height:0;border-bottom:1px solid var(--rule)}
+.sec[data-open="true"]{flex:1 1 0}
+.sec-btn{flex:none;display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font-size:12.5px;font-weight:600;padding:9px 16px;cursor:pointer}
+.sec-btn::before{content:"▸";font-size:10px;color:var(--muted);transition:transform .12s}
+.sec-btn[aria-expanded="true"]::before{transform:rotate(90deg)}
+.sec-body{display:none;flex:1 1 0;min-height:0;flex-direction:column;padding:0 16px 10px}
+.sec[data-open="true"] .sec-body{display:flex}
+.sec-body .ph h2{font-size:12px;font-weight:500;color:var(--ink2)}
+.board.side-off{--ws:40px}
+.board.side-off .side-body,.board.side-off .side-title{display:none}
+.board.side-off .side-head{padding:8px 4px;justify-content:center}
 .panel{background:linear-gradient(180deg,#11151D 0%,var(--panel) 38%);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);display:flex;flex-direction:column;min-width:0;min-height:0;padding:9px 14px 8px}
-.col-r .panel{border-right:0}
+.col-c .panel{border-right:0}
 .ph{display:flex;align-items:baseline;justify-content:space-between;gap:4px 14px;flex:none;min-height:20px}
 .ph h2{margin:0;font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.005em;line-height:1.35}
 .ph h2 .m{color:var(--muted);font-weight:500}
@@ -98,13 +113,12 @@ button,select{font:inherit;color:inherit}
 @media (min-width:1101px){
   html,body{overflow:hidden}
   .board{height:calc(100vh - var(--bar-h));height:calc(100svh - var(--bar-h))}
-  .board.no-d{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}   /* sin Δ: dos columnas de mapas, más espacio a la izquierda */
-  /* columnas intercambiadas: los mapas pasan a la izquierda con el mismo ancho que tenían */
-  .board.swap{grid-template-columns:minmax(0,1.08fr) minmax(0,1fr)}
-  .board.swap.no-d{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr)}
-  .board.swap .col-r{order:-1}
-  .board.swap .col-r .panel{border-right:1px solid var(--rule)}
-  .board.swap .p-heat,.board.swap .p-dyn{border-right:0}
+  .board.no-d{--wl:minmax(0,1.3fr);--wc:minmax(0,1.6fr)}   /* sin Δ: dos columnas de mapas, más espacio a la izquierda */
+  /* columnas intercambiadas: personas a la derecha y vistas secundarias a la izquierda; el centro no se mueve */
+  .board.swap{grid-template-columns:var(--ws) var(--wc) var(--wl)}
+  .board.swap .col-s{order:-1;border-left:0;border-right:1px solid var(--rule)}
+  .board.swap .col-l{order:5}
+  .board.swap .col-c .panel{border-right:1px solid var(--rule)}
 }
 
 /* ---------- SVG ---------- */
@@ -172,8 +186,13 @@ button,select{font:inherit;color:inherit}
   .bar{height:auto;flex-wrap:wrap;padding:10px 12px;gap:8px}
   .ctrls{flex-wrap:wrap;width:100%}
   .ctrls select{min-width:0}
-  .board,.col,.pair{grid-template-columns:minmax(0,1fr);grid-template-rows:none!important}
+  .board,.col{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:none!important}
+  .board .col-c{order:-1}   /* en pantallas angostas los mapas van primero */
   .panel{border-right:0}
+  .col-s{border-left:0}
+  .side-body,.sec[data-open="true"],.sec-body{flex:none}   /* apilado: sin alto fijo, cada sección mide su contenido */
+  .sec[data-open="true"] .sec-body{min-height:520px}
+  .sec-body .view{min-height:470px}
   .p-topo .view{min-height:440px}
   .p-scatter .view{min-height:380px}
   .p-dyn .view{min-height:240px}

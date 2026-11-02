@@ -6,12 +6,14 @@ const FILES = ["participants", "topo", "coords", "subject_epochs", "topo_by_subj
 
 function loadData(){
   const base = window.BATIMIX_BASE || "";
-  return Promise.all(FILES.map(f => d3.json(`${base}data/${f}.json`)))
-    .then(([p, t, c, s, st, mv, c3]) => ({participants:p, topo:t, coords:c, subEpochs:s, subTopo:st, multiverse:mv, coords3d:c3}))
+  // las vistas secundarias son opcionales: si faltan sus JSON, la app funciona igual
+  const opt = f => d3.json(`${base}data/${f}.json`).catch(() => null);
+  return Promise.all([Promise.all(FILES.map(f => d3.json(`${base}data/${f}.json`))), opt("aperiodic"), opt("connectivity")])
+    .then(([[p, t, c, s, st, mv, c3], ap, cn]) => ({participants:p, topo:t, coords:c, subEpochs:s, subTopo:st, multiverse:mv, coords3d:c3, aperiodic:ap, connectivity:cn}))
     .catch(() => new Promise((res, rej) => {
       if(window.BATIMIX_DATA) return res(window.BATIMIX_DATA);
       const sc = document.createElement("script"); sc.src = `${base}data/data.js`;
-      sc.onload = () => window.BATIMIX_DATA ? res(window.BATIMIX_DATA) : rej(new Error("data.js sin contenido"));
+      sc.onload = () => window.BATIMIX_DATA ? res(window.BATIMIX_DATA) : rej(new Error("data.js is empty"));
       sc.onerror = () => rej(new Error("no se pudo leer data/"));
       document.head.appendChild(sc);
     }));
@@ -19,6 +21,7 @@ function loadData(){
 
 function prepare(D){
   P = D.participants; TOPO = D.topo; COORDS = D.coords; SUBEP = D.subEpochs; SUBTOPO = D.subTopo || {}; MULTI = D.multiverse || null; COORDS3 = D.coords3d || null;
+  APER = D.aperiodic || null; CONN = D.connectivity || null;
   EEG = P.filter(d => d.d_front_var != null); EEG_IDS = EEG.map(d => d.id);
   ELEC = Object.keys(COORDS).filter(e => TOPO[e]);
   const qv = bh(ELEC.map(e => TOPO[e].sigVar)), qm = bh(ELEC.map(e => TOPO[e].sigMean));
@@ -30,7 +33,7 @@ function prepare(D){
   } else { delete MK.d_pvtl; delete MK.d_pvtsd; }
   const cov = k => EEG.filter(d => d[k] != null).length;
   document.querySelectorAll("[data-k='covLong']").forEach(n => n.textContent =
-    `${EEG.length} tienen EEG en ambas condiciones; entre ellas, PVT ${cov("d_pvt")}, KSS ${cov("d_kss")}, SSS ${cov("d_sss")} y PANAS ${cov("d_panasP")}.`);
+    `${EEG.length} have EEG in both conditions; of these, PVT ${cov("d_pvt")}, KSS ${cov("d_kss")}, SSS ${cov("d_sss")} and PANAS ${cov("d_panasP")}.`);
 }
 
 // ---------- controles del header ----------
@@ -41,14 +44,14 @@ function setTheme(t){
   if(light) document.documentElement.dataset.theme = "light"; else delete document.documentElement.dataset.theme;
   try{ localStorage.setItem("batimix-tema", t); }catch(e){}
   document.querySelector('meta[name="theme-color"]').content = light ? "#FFFFFF" : "#0B0D12";
-  const b = $("themebtn"), next = light ? "oscuro" : "claro";
-  b.setAttribute("aria-label", `Cambiar a tema ${next}`); b.title = `Tema ${next}`;
-  if(new URLSearchParams(location.search).has("tema")) history.replaceState(null, "", location.pathname + location.hash);
+  const b = $("themebtn"), next = light ? "dark" : "light";
+  b.setAttribute("aria-label", `Switch to ${next} theme`); b.title = `${next[0].toUpperCase()+next.slice(1)} theme`;
+  if(["tema", "theme"].some(k => new URLSearchParams(location.search).has(k))) history.replaceState(null, "", location.pathname + location.hash);
   readPalette(); drawAll();
   if(document.fonts) document.fonts.ready.then(drawAll);   // las fuentes del otro tema cambian la medida del texto
 }
 const themeNow = () => document.documentElement.dataset.theme === "light" ? "light" : "dark";
-function drawAll(){ scatter.render(); topo.render(); dyn.render(); indiv.render(); updateStatus(); }
+function drawAll(){ scatter.render(); topo.render(); dyn.render(); indiv.render(); side.render(); updateStatus(); }
 function setY(v){ S.y = v; $("ysel").value = v; scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 function setRoi(v){ S.roi = v; S.elec = null; segRoi.set(v); computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 function setMet(v){ S.met = v; segMet.set(v); computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
@@ -75,7 +78,7 @@ function setShowD(on){
 }
 function fillCmp(){
   d3.select("#cmpsel").selectAll("option").data(COMPARES).join("option").attr("value", c => c.k)
-    .text(c => c.g ? `${c.name} (${c.g.map(([, f]) => EEG.filter(f).length).join(" y ")})` : (S.selected ? `Tu selección (${S.selected.length})` : `${c.name} (${EEG.length})`));
+    .text(c => c.g ? `${c.name} (${c.g.map(([, f]) => EEG.filter(f).length).join(" and ")})` : (S.selected ? `Your selection (${S.selected.length})` : `${c.name} (${EEG.length})`));
 }
 function updateStatus(){
   fillCmp(); $("cmpsel").value = S.cmp;
@@ -100,16 +103,28 @@ loadData().then(D => {
     const on = document.querySelector(".board").classList.toggle("swap");
     this.setAttribute("aria-pressed", on);
   });
+  // columna de vistas secundarias: se pliega a una franja; el centro y la izquierda ganan el espacio
+  d3.select("#sidebtn").on("click", function(){
+    const off = document.querySelector(".board").classList.toggle("side-off");
+    this.setAttribute("aria-expanded", !off); this.textContent = off ? "‹" : "›"; this.title = off ? "Show secondary views" : "Collapse secondary views";
+  });
+  // acordeón: una vista secundaria abierta a la vez, que ocupa todo el alto disponible
+  document.querySelectorAll(".sec-btn").forEach(b => b.addEventListener("click", () => {
+    const sec = b.closest(".sec"), open = sec.dataset.open !== "true";
+    document.querySelectorAll(".sec").forEach(s => { s.dataset.open = "false"; s.querySelector(".sec-btn").setAttribute("aria-expanded", "false"); });
+    if(open){ sec.dataset.open = "true"; b.setAttribute("aria-expanded", "true"); }
+    side.render();
+  }));
   d3.select("#cmpsel").on("change", function(){ setCmp(this.value); });
   d3.select("#resetbtn").on("click", resetAll);
   d3.select("#xchip").on("click", () => S.win ? setWin(null) : setElec(S.elec));
   d3.select("#reportbtn").on("click", () => report.download());
   d3.select("#themebtn").on("click", () => setTheme(themeNow() === "light" ? "dark" : "light"));
-  if(themeNow() === "light"){ $("themebtn").setAttribute("aria-label", "Cambiar a tema oscuro"); $("themebtn").title = "Tema oscuro"; }
+  if(themeNow() === "light"){ $("themebtn").setAttribute("aria-label", "Switch to dark theme"); $("themebtn").title = "Dark theme"; }
   d3.select("#aboutbtn").on("click", () => { const d = $("about"); d.showModal ? d.showModal() : d.setAttribute("open", ""); });
   // el chip de pipeline abre Acerca de en la sección de método
   d3.select("#pipebtn").on("click", () => { const d = $("about"); d.showModal ? d.showModal() : d.setAttribute("open", "");
-    const h = [...d.querySelectorAll("h3")].find(x => x.textContent.trim() === "Método"); if(h) h.scrollIntoView({block:"start"}); });
+    const h = [...d.querySelectorAll("h3")].find(x => x.textContent.trim() === "Method"); if(h) h.scrollIntoView({block:"start"}); });
   document.querySelectorAll("dialog [data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
   document.querySelectorAll("dialog").forEach(d => d.addEventListener("click", e => { if(e.target === d) d.close(); }));
   // Esc limpia la vista
@@ -117,7 +132,7 @@ loadData().then(D => {
   bus.on("select.status", updateStatus); bus.on("pin.status", updateStatus); bus.on("axes.status", updateStatus);
 
   $("boot").classList.add("done");   // la rejilla se muestra antes de dibujar para que cada vista mida su espacio real
-  scatter.render(); topo.render(); dyn.render(); indiv.render();
+  scatter.render(); topo.render(); dyn.render(); indiv.render(); side.render();
   updateStatus();
   if(document.fonts) document.fonts.ready.then(drawAll);
   // cada vista se redibuja cuando cambia el tamaño real de su contenedor
@@ -128,9 +143,9 @@ loadData().then(D => {
       if(!old || Math.abs(old[0]-r.width) > 2 || Math.abs(old[1]-r.height) > 2){ sizes.set(e.target, [r.width, r.height]); if(old) changed = true; } });
     if(changed){ clearTimeout(rt); rt = setTimeout(drawAll, 120); }
   });
-  ["scatter", "topo", "dyn", "heat"].forEach(id => ro.observe($(id)));
+  ["scatter", "topo", "dyn", "heat", "aper", "conn"].forEach(id => ro.observe($(id)));
 }).catch(err => {
   console.error(err);
   const b = $("boot"); b.classList.add("err");
-  b.innerHTML = `<b>No se pudieron cargar los datos.</b><span>Abre la carpeta con un servidor local (ver README) o verifica que exista <code>data/</code>.</span><span style="color:var(--muted)">${err.message}</span>`;
+  b.innerHTML = `<b>The data could not be loaded.</b><span>Open the folder with a local server (see README) or check that <code>data/</code> exists.</span><span style="color:var(--muted)">${err.message}</span>`;
 });

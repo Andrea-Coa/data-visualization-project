@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>BATIMIX</title>
-<meta name="description" content="Explorador enlazado en D3.js sobre la vulnerabilidad individual a la privación de sueño en EEG de reposo (OpenNeuro ds004902, 68 personas).">
+<meta name="description" content="Linked D3.js explorer of individual vulnerability to sleep deprivation in resting-state EEG (OpenNeuro ds004902, 68 people).">
 <meta name="theme-color" content="#0B0D12">
 <script>
   // tema antes de pintar (sin parpadeo): ?tema=claro|oscuro en la URL, si no la última elección guardada; por defecto, claro
-  try{ const q = new URLSearchParams(location.search).get("tema"), t = q === "claro" ? "light" : q === "oscuro" ? "dark" : localStorage.getItem("batimix-tema");
+  try{ const u = new URLSearchParams(location.search), q = u.get("theme") || u.get("tema"), t = q === "light" || q === "claro" ? "light" : q === "dark" || q === "oscuro" ? "dark" : localStorage.getItem("batimix-tema");
     if(t !== "dark"){ document.documentElement.dataset.theme = "light"; document.querySelector('meta[name="theme-color"]').content = "#FFFFFF"; } }catch(e){}
 </script>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -18,37 +18,38 @@
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-<div class="boot" id="boot" role="status">Cargando 68 registros</div>
+<div class="boot" id="boot" role="status">Loading 68 recordings</div>
 <div id="tooltip" role="status" aria-live="polite"></div>
 
 <header class="bar">
   <div class="brand">
     <span class="logo">BATIMIX</span>
-    <button class="pipe" id="pipebtn" type="button" aria-haspopup="dialog" title="Con qué datos se calculó todo: banda theta 4 a 8 Hz como fracción de la potencia de 1 a 40 Hz (Welch); referencia FCz, la de la grabación; 75 épocas de 4 s por registro; ojos abiertos; sin ICA. Clic: método completo en Acerca de.">θ 4–8 / 1–40 Hz · ref. FCz · 75 × 4 s · sin ICA</button>
+    <button class="pipe" id="pipebtn" type="button" aria-haspopup="dialog" title="What everything was computed from: theta band 4–8 Hz as a fraction of 1–40 Hz power (Welch); FCz reference, as recorded; 75 4-s epochs per recording; eyes open; no ICA. Click: full method in About.">θ 4–8 / 1–40 Hz · ref. FCz · 75 × 4 s · no ICA</button>
   </div>
-  <div class="ctrls" role="region" aria-label="Controles">
-    <div class="seg" id="roiseg" role="group" aria-label="Región EEG">
+  <div class="ctrls" role="region" aria-label="Controls">
+    <div class="seg" id="roiseg" role="group" aria-label="EEG region">
       <button data-v="front" aria-pressed="true">Frontal</button>
-      <button data-v="ct" aria-pressed="false">Centro-temporal</button>
+      <button data-v="ct" aria-pressed="false">Centrotemporal</button>
     </div>
-    <div class="seg" id="metseg" role="group" aria-label="Métrica theta">
+    <div class="seg" id="metseg" role="group" aria-label="Theta metric">
       <button data-v="var" aria-pressed="true">σθ</button>
       <button data-v="mean" aria-pressed="false">μθ</button>
     </div>
-    <button class="chip" id="xchip" hidden aria-label="Quitar el origen del eje x"></button>
-    <select id="cmpsel" aria-label="Comparar dos grupos"></select>
-    <select id="ysel" aria-label="Marcador conductual del eje Y"></select>
-    <button class="btn" id="resetbtn" disabled>Limpiar</button>
-    <button class="btn" id="reportbtn">Reporte</button>
-    <button class="btn" id="aboutbtn" aria-haspopup="dialog">Acerca de</button>
-    <button class="btn btn-icon" id="swapbtn" type="button" aria-pressed="false" aria-label="Intercambiar columnas" title="Intercambiar columnas">⇄</button>
-    <button class="btn btn-icon" id="themebtn" aria-label="Cambiar a tema claro" title="Tema claro">◐</button>
+    <button class="chip" id="xchip" hidden aria-label="Remove the x-axis source"></button>
+    <select id="cmpsel" aria-label="Compare two groups"></select>
+    <select id="ysel" aria-label="Behavioral marker on the Y-axis"></select>
+    <button class="btn" id="resetbtn" disabled>Clear</button>
+    <button class="btn" id="reportbtn">Report</button>
+    <button class="btn" id="aboutbtn" aria-haspopup="dialog">About</button>
+    <button class="btn btn-icon" id="swapbtn" type="button" aria-pressed="false" aria-label="Swap columns" title="Swap columns">⇄</button>
+    <button class="btn btn-icon" id="themebtn" aria-label="Switch to light theme" title="Light theme">◐</button>
   </div>
 </header>
 
 <main class="board">
+  <!-- izquierda: las personas (dispersión y mapa de calor); centro: los mapas, protagonistas, y la serie en el
+       tiempo; derecha: vistas secundarias plegables (Chen et al.: vistas grandes al centro, paneles laterales angostos) -->
   <div class="col col-l">
-  <div class="pair">
   <section class="panel p-scatter" aria-labelledby="t-sc">
     <div class="ph"><h2 id="t-sc"></h2><div class="key" id="k-sc"></div></div>
     <div class="view" id="scatter"></div>
@@ -58,78 +59,93 @@
     <div class="view" id="heat"></div>
   </section>
   </div>
+  <div class="col col-c">
+  <section class="panel p-topo" aria-labelledby="t-topo">
+    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div><select class="isel" id="interpsel" aria-label="Topomap interpolation method" title="Map interpolation: only changes the drawing between electrodes, not the values or the tests (see About)"><option value="v4">Interp. v4 · EEGLAB/FieldTrip</option><option value="ct">Interp. cubic · MNE</option><option value="spline">Interp. spherical spline</option></select><button class="tog" id="dtog" type="button" aria-pressed="true" title="Show or hide the difference maps">Δ SD − NS</button></div>
+    <div class="view" id="topo"></div>
+  </section>
   <section class="panel p-dyn" aria-labelledby="t-dyn">
     <div class="ph"><h2 id="t-dyn"></h2><div class="key" id="k-dyn"></div></div>
     <div class="view" id="dyn"></div>
   </section>
   </div>
-  <div class="col col-r">
-  <section class="panel p-topo" aria-labelledby="t-topo">
-    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div><select class="isel" id="interpsel" aria-label="Método de interpolación de los topomapas" title="Interpolación de los mapas: solo cambia el dibujo entre electrodos, no los valores ni las pruebas (ver Acerca de)"><option value="v4">Interp. v4 · EEGLAB/FieldTrip</option><option value="ct">Interp. cúbica · MNE</option><option value="spline">Interp. spline esférico</option></select><button class="tog" id="dtog" type="button" aria-pressed="true" title="Mostrar u ocultar los mapas de diferencia">Δ SD − NS</button></div>
-    <div class="view" id="topo"></div>
-  </section>
-  </div>
+  <aside class="col col-s" id="side" aria-label="Secondary views">
+    <div class="side-head"><span class="side-title">Secondary views</span><button class="btn btn-icon" id="sidebtn" type="button" aria-expanded="true" aria-controls="side-body" title="Collapse secondary views">›</button></div>
+    <div class="side-body" id="side-body">
+      <section class="sec" data-open="true" aria-labelledby="b-aper">
+        <button class="sec-btn" id="b-aper" type="button" aria-expanded="true">Oscillatory or aperiodic</button>
+        <div class="sec-body"><div class="ph"><h2 id="t-aper"></h2></div><div class="view" id="aper"></div></div>
+      </section>
+      <section class="sec" data-open="false" aria-labelledby="b-conn">
+        <button class="sec-btn" id="b-conn" type="button" aria-expanded="false">θ synchrony between regions</button>
+        <div class="sec-body"><div class="ph"><h2 id="t-conn"></h2></div><div class="view" id="conn"></div></div>
+      </section>
+    </div>
+  </aside>
 </main>
 
 <dialog class="sheet" id="about" aria-labelledby="h-about">
-  <div class="sheet-head"><h2 id="h-about">Acerca de BATIMIX</h2><button class="btn" data-close>Cerrar</button></div>
+  <div class="sheet-head"><h2 id="h-about">About BATIMIX</h2><button class="btn" data-close>Close</button></div>
   <div class="sheet-body">
-    <p class="lead">Ante la misma noche sin dormir, algunas personas se deterioran mucho y otras casi nada. Cui et al. (2026) propusieron que el aumento de la variabilidad de la potencia theta en el EEG de reposo predice ese deterioro (ρ ≈ 0.55 con el tiempo de reacción, n = 28). BATIMIX pone a prueba esa idea, persona por persona, con datos públicos. Es una herramienta de screening exploratorio para investigadores del sueño, no un diagnóstico.</p>
-    <h3>Conclusión preliminar</h3>
-    <p>Sin dormir, la theta de cada persona cambia en direcciones distintas, y ese cambio no predice de forma robusta quién se deteriora: en 448 análisis alternativos ningún estadístico conjunto supera al azar. La única pista consistente es con el ánimo (afecto positivo), no con la vigilancia.</p>
-    <h3>Datos</h3>
-    <p>OpenNeuro ds004902 (Xiang, Fan, Bai, Lv y Lei, 2024, <i>Scientific Data</i>, CC0): 71 personas registradas tras dormir normal (NS) y tras 24 a 30 horas sin dormir (SD), en orden contrabalanceado. EEG de reposo con ojos abiertos, 61 electrodos, 500 Hz. <span data-k="covLong"></span></p>
-    <h3>Glosario</h3>
+    <p class="lead">After the same sleepless night, some people deteriorate a lot and others barely at all. Cui et al. (2026) proposed that the increase in the variability of theta power in resting EEG predicts that deterioration (ρ ≈ 0.55 with reaction time, n = 28). BATIMIX tests that idea, person by person, on public data. It is an exploratory screening tool for sleep researchers, not a diagnosis.</p>
+    <h3>Preliminary conclusion</h3>
+    <p>Without sleep, each person's theta changes in different directions, and that change does not robustly predict who deteriorates: across 448 alternative analyses no joint statistic exceeds chance. The only consistent hint is with mood (positive affect), not with vigilance.</p>
+    <h3>Data</h3>
+    <p>OpenNeuro ds004902 (Xiang, Fan, Bai, Lv and Lei, 2024, <i>Scientific Data</i>, CC0): 71 people recorded after normal sleep (NS) and after 24–30 hours without sleep (SD), in counterbalanced order. Eyes-open resting EEG, 61 electrodes, 500 Hz. <span data-k="covLong"></span></p>
+    <h3>Glossary</h3>
     <table class="tasks">
       <tbody>
-        <tr><td>Theta (θ)</td><td>Actividad eléctrica cerebral de 4 a 8 Hz; aumenta con la presión de sueño.</td></tr>
-        <tr><td>μθ, σθ</td><td>Potencia theta relativa (4 a 8 Hz dividida por 1 a 40 Hz, sin unidades): su media (μθ) y su variabilidad entre 75 épocas de 4 s (σθ).</td></tr>
-        <tr><td>Δ</td><td>Cambio SD menos NS. Positivo = aumenta tras la privación.</td></tr>
-        <tr><td>PVT</td><td>Psychomotor Vigilance Task: tarea de vigilancia; mediana del tiempo de reacción (TR, ms), lapsos y DE del TR.</td></tr>
-        <tr><td>KSS, SSS</td><td>Escalas de somnolencia de Karolinska y Stanford (puntos).</td></tr>
-        <tr><td>PANAS+, PANAS−</td><td>Afecto positivo y negativo (puntos).</td></tr>
-        <tr><td>Cuadrante vulnerable</td><td>Sobre la mediana del cambio theta y peor que la mediana del marcador elegido.</td></tr>
-        <tr><td>t, d<sub>z</sub>, IC 95 %</td><td>Prueba t pareada por electrodo con las 68 personas: t con 67 grados de libertad; d<sub>z</sub> = media de Δ dividida por su desviación estándar (tamaño de efecto pareado; 0.2 pequeño, 0.5 mediano); IC 95 % de la media de Δ. Se muestran al pasar el cursor por un electrodo.</td></tr>
-        <tr><td>FDR</td><td>Corrección de Benjamini y Hochberg para 61 pruebas t pareadas, una por electrodo.</td></tr>
-        <tr><td>C(e)</td><td>Consistencia de un grupo en el electrodo e: proporción de personas cuyo Δ sube menos la proporción cuyo Δ baja (de −1 a +1). Cerca de ±1 = el grupo cambia en la misma dirección.</td></tr>
-        <tr><td>Vulnerables, resistentes</td><td>Grupos del heatmap, definidos solo por la conducta: peor o no que la mediana del cambio en el marcador elegido. No usan theta, para que la firma theta de cada grupo no sea circular.</td></tr>
+        <tr><td>Theta (θ)</td><td>Brain electrical activity at 4–8 Hz; it rises with sleep pressure.</td></tr>
+        <tr><td>μθ, σθ</td><td>Relative theta power (4–8 Hz divided by 1–40 Hz, unitless): its mean (μθ) and its variability across 75 4-s epochs (σθ).</td></tr>
+        <tr><td>Δ</td><td>Change SD minus NS. Positive = increases after deprivation.</td></tr>
+        <tr><td>PVT</td><td>Psychomotor Vigilance Task: median reaction time (RT, ms), lapses and RT SD.</td></tr>
+        <tr><td>KSS, SSS</td><td>Karolinska and Stanford sleepiness scales (points).</td></tr>
+        <tr><td>PANAS+, PANAS−</td><td>Positive and negative affect (points).</td></tr>
+        <tr><td>Vulnerable quadrant</td><td>Above the median theta change and worse than the median of the chosen marker.</td></tr>
+        <tr><td>t, d<sub>z</sub>, 95% CI</td><td>Paired t-test per electrode with all 68 people: t with 67 degrees of freedom; d<sub>z</sub> = mean Δ divided by its standard deviation (paired effect size; 0.2 small, 0.5 medium); 95% CI of the mean Δ. Shown when hovering over an electrode.</td></tr>
+        <tr><td>FDR</td><td>Benjamini–Hochberg correction for 61 paired t-tests, one per electrode.</td></tr>
+        <tr><td>C(e)</td><td>Consistency of a group at electrode e: share of people whose Δ rises minus share whose Δ falls (from −1 to +1). Close to ±1 = the group changes in the same direction.</td></tr>
+        <tr><td>Vulnerable, resilient</td><td>Heatmap groups, defined by behavior only: worse or not than the median change in the chosen marker. They do not use theta, so that each group's theta signature is not circular.</td></tr>
       </tbody>
     </table>
-    <h3>Tareas y vistas</h3>
+    <h3>Tasks and views</h3>
     <table class="tasks">
-      <thead><tr><th>Tarea</th><th>Pregunta</th><th>Vista</th></tr></thead>
+      <thead><tr><th>Task</th><th>Question</th><th>View</th></tr></thead>
       <tbody>
-        <tr><td>T1 Localizar</td><td>¿Dónde cambia theta? (Q1)</td><td>Matriz de topomapas, columna Δ con marcas de p y FDR</td></tr>
-        <tr><td>T2 Comparar métricas</td><td>¿Variabilidad o media? (Q2)</td><td>Matriz, filas σθ y μθ</td></tr>
-        <tr><td>T3 Identificar</td><td>¿Quiénes son vulnerables? (Q3)</td><td>Dispersión con cuadrante y lazo; heatmap, una fila por persona</td></tr>
-        <tr><td>T4 Comparar</td><td>¿Comparten firma espacial? (Q4)</td><td>Matriz por grupo; Mayús + clic en dos puntos, o clic en dos filas del heatmap = filas A y B (un clic simple en un punto la suma a la selección); heatmap persona × electrodo con C(e) por grupo</td></tr>
-        <tr><td>T5 Correlacionar</td><td>¿Converge con cada marcador? (Q5)</td><td>Dispersión, marcador del eje Y y ρ con su n</td></tr>
-        <tr><td>T6 Describir tendencia</td><td>¿Cambia dentro del registro? (Q6)</td><td>Cinco minutos: con μθ, media ± EE por época; con σθ, σθ móvil en ventanas de 40 s (Doran et al., 2001: inestabilidad de estado; ventana según Gudmundsson et al., 2007)</td></tr>
-        <tr><td>T7 Comparar grupos</td><td>¿Influyen sexo, PSQI u orden de sesión? (Q7)</td><td>Selector Comparar: dos grupos con dos colores en las cuatro vistas</td></tr>
+        <tr><td>T1 Locate</td><td>Where does theta change? (Q1)</td><td>Topomap matrix, Δ column with p and FDR marks</td></tr>
+        <tr><td>T2 Compare metrics</td><td>Variability or mean? (Q2)</td><td>Matrix, σθ and μθ rows</td></tr>
+        <tr><td>T3 Identify</td><td>Who is vulnerable? (Q3)</td><td>Scatter with quadrant and lasso; heatmap, one column per person</td></tr>
+        <tr><td>T4 Compare</td><td>Do they share a spatial signature? (Q4)</td><td>Matrix by group; selecting exactly two people (click on points or heatmap columns) shows one row per person; heatmap person × electrode with C(e) per group</td></tr>
+        <tr><td>T5 Correlate</td><td>Does it converge with each marker? (Q5)</td><td>Scatter, Y-axis marker and ρ with its n</td></tr>
+        <tr><td>T6 Describe trend</td><td>Does it change within the recording? (Q6)</td><td>Five minutes: with μθ, mean ± SE per epoch; with σθ, moving σθ in 40-s windows (Doran et al., 2001: state instability; window after Gudmundsson et al., 2007)</td></tr>
+        <tr><td>T7 Compare groups</td><td>Do sex, PSQI or session order matter? (Q7)</td><td>Compare selector: two groups with two colors in all views</td></tr>
+        <tr><td>T8 Check robustness</td><td>Is the effect oscillatory or 1/f? Does synchrony change?</td><td>Secondary views: oscillatory or aperiodic; θ synchrony between regions</td></tr>
       </tbody>
     </table>
-    <h3>Método</h3>
-    <p>Procesamiento del equipo (Semana 6): notch de 50 Hz, pasabanda de 1 a 40 Hz, canales malos interpolados, sin ICA, referencia FCz. Mapas por interpolación biarmónica v4, la de EEGLAB y FieldTrip, sobre las posiciones reales de los electrodos (electrodes.tsv de ds004902) en proyección azimutal equidistante; el selector del panel muestra también la cúbica de MNE y el spline esférico (Perrin et al., 1989; m = 4, 20 términos de Legendre, sin regularización). Las tres implementaciones reproducen a las originales (EEGLAB y FieldTrip en MATLAB, MNE 1.8) con error menor a 1e-9 del rango. NS y SD comparten una escala secuencial por fila; Δ usa una escala divergente con cero neutro. Con un grupo seleccionado los mapas promedian a esas personas, sin prueba por electrodo. Correlaciones de Spearman con IC 95 %.</p>
-    <h3 id="h-interp">Interpolación de los mapas</h3>
-    <p>El selector «Interp.» del panel de topomapas solo cambia cómo se pinta el espacio <i>entre</i> electrodos. Los valores de cada electrodo, las pruebas t, los q de la FDR, los anillos y los rellenos son los mismos con cualquier método. v4 (por defecto) es la interpolación biarmónica de <i>topoplot</i> de EEGLAB y de <i>ft_topoplotER</i> de FieldTrip; «Cúbica · MNE» es la de <i>plot_topomap</i> de MNE-Python; «Spline esférico» interpola sobre las posiciones 3D (Perrin et al., 1989). Si un patrón aparece con un método y no con los otros, es un efecto del dibujo, no de los datos.</p>
-    <h3 id="h-robust">Robustez: multiverso de 448 análisis</h3>
-    <p>Para responder con honestidad a la no replicación de Cui et al. (2026) se calcularon 448 especificaciones: 4 regiones × 2 métricas (σθ, μθ) × 2 formas de cambio (absoluto, relativo) × 7 marcadores conductuales × 2 correlaciones (Spearman, Pearson) × 2 reglas de atípicos. La inferencia conjunta permuta las filas conductuales entre las 68 personas 2000 veces (Simonsohn, Simmons y Nelson, 2020). Ningún estadístico conjunto supera al azar:</p>
+    <h3>Method</h3>
+    <p>Team processing (Week 6): 50 Hz notch, 1–40 Hz band-pass, bad channels interpolated, no ICA, FCz reference. Maps by biharmonic v4 interpolation, as in EEGLAB and FieldTrip, on the real electrode positions (electrodes.tsv of ds004902) in azimuthal equidistant projection; the panel selector also shows MNE's cubic interpolation and the spherical spline (Perrin et al., 1989; m = 4, 20 Legendre terms, no regularization). All three implementations reproduce the originals (EEGLAB and FieldTrip in MATLAB, MNE 1.8) with an error below 1e-9 of the range. NS and SD share a sequential scale per row; Δ uses a diverging scale with a neutral zero. With a selected group the maps average those people, without a per-electrode test. Spearman correlations with 95% CI.</p>
+    <h3 id="h-interp">Map interpolation</h3>
+    <p>The «Interp.» selector of the topomap panel only changes how the space <i>between</i> electrodes is painted. The values at each electrode, the t-tests, the FDR q values, the rings and the fills are the same with any method. v4 (default) is the biharmonic interpolation of EEGLAB <i>topoplot</i> and FieldTrip <i>ft_topoplotER</i>; «cubic · MNE» is that of MNE-Python <i>plot_topomap</i>; «spherical spline» interpolates on the 3D positions (Perrin et al., 1989). If a pattern appears with one method and not with the others, it is an effect of the drawing, not of the data.</p>
+    <h3 id="h-robust">Robustness: multiverse of 448 analyses</h3>
+    <p>To respond honestly to the non-replication of Cui et al. (2026), 448 specifications were computed: 4 regions × 2 metrics (σθ, μθ) × 2 forms of change (absolute, relative) × 7 behavioral markers × 2 correlations (Spearman, Pearson) × 2 outlier rules. Joint inference permutes the behavioral rows among the 68 people 2000 times (Simonsohn, Simmons and Nelson, 2020). No joint statistic exceeds chance:</p>
     <table class="tasks">
-      <thead><tr><th>Prueba</th><th>Mediana de r</th><th>Significativos con r &gt; 0</th><th>Z de Stouffer</th></tr></thead>
+      <thead><tr><th>Test</th><th>Median r</th><th>Significant with r &gt; 0</th><th>Stouffer Z</th></tr></thead>
       <tbody>
-        <tr><td>Solo σθ (224)</td><td>+0.035 (p = 0.32)</td><td>0</td><td>+4.57 (p = 0.22)</td></tr>
-        <tr><td>Completo (448)</td><td>+0.012 (p = 0.42)</td><td>26; el azar llega a 56 (p = 0.15)</td><td>+3.13 (p = 0.33)</td></tr>
+        <tr><td>σθ only (224)</td><td>+0.035 (p = 0.32)</td><td>0</td><td>+4.57 (p = 0.22)</td></tr>
+        <tr><td>Full (448)</td><td>+0.012 (p = 0.42)</td><td>26; chance reaches 56 (p = 0.15)</td><td>+3.13 (p = 0.33)</td></tr>
       </tbody>
     </table>
-    <p>Los 448 resultados: <a href="../data/multiverse_specs.csv">multiverse_specs.csv</a>. Se generan con <code>tools/build_multiverse.py</code>.</p>
-    <h3>Limitaciones</h3>
-    <p>PVT pareado para solo 30 personas (baja potencia); preprocesamiento heurístico; Cui et al. usaron referencia promedio, ICA y otro denominador, lo que puede explicar parte de la no replicación.</p>
-    <h3 id="h-table">Datos de la dispersión</h3>
+    <p>All 448 results: <a href="../data/multiverse_specs.csv">multiverse_specs.csv</a>. Generated with <code>tools/build_multiverse.py</code>.</p>
+    <h3 id="h-sec">Secondary views</h3>
+    <p>The right column collapses with ›. «Oscillatory or aperiodic» separates the rhythmic part from the 1/f background of the spectrum with specparam (settings of Bai et al., 2024, on this same dataset) and compares each person's change in σθ with that of their periodic theta: they match (ρ = 0.70 to 0.87), so theta variability is not an effect of the 1/f background. «θ synchrony between regions» uses wPLI² with average reference between 10 regions: it decreases in all 45 pairs, but none survives FDR; it is exploratory. Both follow your selection (without a statistical test in subgroups) and are generated from the raw EEG with <code>tools/build_secondary.py</code>.</p>
+    <h3>Limitations</h3>
+    <p>PVT paired for only 30 people (low power); heuristic preprocessing; Cui et al. used average reference, ICA and a different denominator, which may explain part of the non-replication.</p>
+    <h3 id="h-table">Scatter data</h3>
     <div class="tscroll"><table id="dtable"></table></div>
-    <h3>Tema</h3>
-    <p>Oscuro (instrumento) o claro (clásico, paletas de ColorBrewer) con el botón ◐ del header; la elección se recuerda en este navegador. Enlaces directos: <a href="?tema=oscuro">oscuro</a> y <a href="?tema=claro">claro</a>.</p>
-    <h3>Créditos</h3>
-    <p>Jimena Gurbillon, Andrea Coa y Paolo Medrano, DS5343 Data Visualization, UTEC 2026-2. D3.js 7.8.5 (ISC); fuente Geist (OFL). Inspiración: Bai et al. (2024), Cui et al. (2026), Dragicevic et al. (2019), Simonsohn et al. (2020). Parte del código y de la redacción se desarrolló con asistencia de IA (Claude) y fue revisada por el equipo.</p>
+    <h3>Theme</h3>
+    <p>Light (classic, ColorBrewer palettes; default) or dark (instrument) with the ◐ button in the header; the choice is remembered in this browser. Direct links: <a href="?theme=light">light</a> and <a href="?theme=dark">dark</a>.</p>
+    <h3>Credits</h3>
+    <p>Jimena Gurbillon, Andrea Coa and Paolo Medrano, DS5343 Data Visualization, UTEC 2026-2. D3.js 7.8.5 (ISC); Geist font (OFL). Inspiration: Bai et al. (2024), Cui et al. (2026), Dragicevic et al. (2019), Simonsohn et al. (2020). Part of the code and writing was developed with AI assistance (Claude) and reviewed by the team.</p>
   </div>
 </dialog>
 
@@ -139,6 +155,7 @@
 <script src="js/topomap.js"></script>
 <script src="js/dynamics.js"></script>
 <script src="js/individuals.js"></script>
+<script src="js/secondary.js"></script>
 <script src="js/report.js"></script>
 <script src="js/main.js"></script>
 </body>

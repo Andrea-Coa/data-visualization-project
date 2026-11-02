@@ -1,6 +1,6 @@
 # BATIMIX: Una noche sin dormir no le pasa igual a todos (Semana 12)
 
-Borrador refinado y respuesta a la crítica. Explorador enlazado en D3.js, **en una sola vista y con un único header**, sobre la vulnerabilidad individual a la privación de sueño en EEG de reposo (OpenNeuro ds004902, 68 personas con EEG pareado). Cuatro paneles sin espacio entre ellos: dispersión de vulnerabilidad, mapa de calor persona × electrodo, cinco minutos (σθ móvil o μθ por época) y matriz 2 × 3 de topomapas (NS, SD, Δ por σθ y μθ, o por las personas A y B elegidas en la dispersión). El multiverso de 448 análisis ya no es un panel: queda como análisis de robustez en «Acerca de», en el Reporte y en `RefinedDraftReport.md` (sección 4).
+Borrador refinado y respuesta a la crítica. Explorador enlazado en D3.js, **en una sola vista y con un único header**, sobre la vulnerabilidad individual a la privación de sueño en EEG de reposo (OpenNeuro ds004902, 68 personas con EEG pareado). Tres columnas sin espacio entre ellas: al centro, la matriz 2 × 3 de topomapas (protagonista) y debajo cinco minutos (σθ móvil o μθ por época); a la izquierda, las personas (dispersión de vulnerabilidad y mapa de calor persona × electrodo); a la derecha, vistas secundarias plegables: «Oscilatoria o aperiódica» (specparam) y «Sincronía θ entre regiones» (wPLI). El multiverso de 448 análisis queda como análisis de robustez en «Acerca de», en el Reporte y en `RefinedDraftReport.md` (sección 4).
 
 - **Aplicación:** [`app/index.html`](app/index.html), con tema claro (clásico, por defecto) u oscuro (instrumento) desde el botón ◐ del header; enlaces directos con `?tema=oscuro` o `?tema=claro`
 - **Despliegue (GitHub Pages):** https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/ (verificar tras el push; ver "Despliegue")
@@ -9,7 +9,7 @@ Borrador refinado y respuesta a la crítica. Explorador enlazado en D3.js, **en 
 
 ![Vista única a 1365 × 768](assets/dashboard-1365x768.png)
 
-![Tema claro (clásico)](assets/dashboard-claro-1600x900.png)
+![Tema oscuro (instrumento)](assets/dashboard-oscuro-1600x900.png)
 
 ## Contenido de la carpeta
 
@@ -29,12 +29,14 @@ deliveries/week12/
     js/scatter.js                dispersión de vulnerabilidad, franja de las 68 personas, lazo, A y B, tabla
     js/dynamics.js               cinco minutos: con μθ, media ± EE por época; con σθ, σθ móvil en ventanas de 40 s
     js/individuals.js            mapa de calor persona × electrodo con dos grupos definidos por la conducta y su consistencia C(e)
+    js/secondary.js              vistas secundarias: oscilatoria o aperiódica (espectro, Δ exponente y offset, Δσθ periódica) y sincronía θ (wPLI)
     js/report.js                 reporte descargable (HTML autocontenido con la vista, lectura de cada gráfico y CSV)
     js/main.js                   carga de datos, controles y arranque
     data/*.json                  datos procesados finales (y data.js para abrir con doble clic)
     tools/build_multiverse.py    genera data/multiverse.json (448 análisis, 2000 permutaciones)
     tools/build_subject_topo.py  genera data/topo_by_subject.json
     tools/build_coords.py        genera data/coords.json (2D) y data/coords3d.json (3D) desde electrodes.tsv
+    tools/build_secondary.py     genera data/aperiodic.json (specparam) y data/connectivity.json (wPLI) desde el EEG crudo
     tools/build_topo_stats.py    genera data/topo.json: NS, SD, Δ, t pareada, d_z e IC 95 % por electrodo (68 pareadas)
     tools/check_app.py           pruebas técnicas: estadística, efecto por electrodo, señal de referencia, consistencia, capturas
     tools/selftest.html          página que usa check_app.py para leer lo que la app calcula y muestra
@@ -85,6 +87,14 @@ python3 tools/build_data.py      # o, con Node.js: node tools/build-data.js
 ```
 
 `build_multiverse.py` necesita `numpy` y `scipy`; tarda un par de minutos. Imprime un control de consistencia (Δσθ frontal recalculado frente a `merged_summary.csv`) y los estadísticos conjuntos. `build_coords.py` solo usa la biblioteca estándar: lee las posiciones 3D reales de `electrodes.tsv` (ds004902, o la muestra de `deliveries/week04/data/sample`) para el spline esférico de los topomapas y deriva de ellas la proyección 2D. `build_topo_stats.py` (requiere scipy) reemplaza al `topo.json` de la Semana 10, que no tenía generador: aquel usaba la aproximación normal para los p y calculaba Δ como diferencia de medias no pareadas (69 en NS, 70 en SD); ahora todo usa las 68 personas pareadas y la t exacta (mismos electrodos con p < 0.05; ninguno sobrevive la FDR). `participants.json` y `subject_epochs.json` vienen sin cambios de la Semana 10.
+
+## Vistas secundarias (desde el EEG crudo)
+
+```bash
+python3 tools/build_secondary.py --procs 6
+```
+
+Con el mismo preprocesamiento del notebook 02: separa la parte periódica de la aperiódica con specparam (ajustes de Bai et al., 2024, sobre este dataset) y calcula wPLI² theta entre 10 regiones con referencia promedio. Requiere `mne-connectivity` y `fooof==1.1.0` (en `requirements.txt`); tarda unos 5 minutos. Si faltan `data/aperiodic.json` o `data/connectivity.json`, la app funciona igual y la columna derecha lo indica.
 
 ## Reproducir desde el EEG crudo
 

@@ -38,10 +38,10 @@ td{border-bottom:1px solid var(--rule);padding:4px 8px}a{color:var(--ns)}
 @media print{main{padding:12px}section.fig{break-inside:avoid}.btns{display:none}}`;
 
   const READ = {
-    topo:"Cada círculo es la cabeza vista desde arriba (nariz arriba) con 61 electrodos interpolados. Columnas: tras dormir normal (NS), tras la privación (SD) y su diferencia Δ = SD − NS. NS y SD comparten la escala secuencial de su fila; Δ usa una escala divergente con el cero oscuro: magenta = sube tras la privación, cian = baja. Anillo = p < 0.05 sin corregir; relleno = sobrevive la corrección FDR (solo con las 68 personas). Con dos personas o dos grupos, las filas pasan a ser esas personas o grupos, con escalas compartidas.",
-    scatter:"Cada punto es una persona: en x, el cambio theta (SD − NS) de la región, el electrodo o la ventana elegidos; en y, el cambio en el marcador conductual (arriba = peor). Las líneas punteadas son las medianas y el área ámbar es el cuadrante vulnerable (sobre ambas medianas). ρ es la correlación de Spearman con su IC 95 %.",
-    dyn:"Sigue a la métrica elegida. Con μθ: potencia theta relativa en cada una de las 75 épocas de 4 s del registro de 5 minutos. Con σθ: σθ móvil, la desviación estándar de la theta regional en ventanas de 40 s (10 épocas) que avanzan de a una época; muestra cuándo aparece la inestabilidad dentro del registro, pero su escala es menor que la σθ de la dispersión porque parte de la serie ya promediada por región. En ambos casos: media del grupo activo ± error estándar, tras dormir normal (NS) y tras la privación (SD). La línea punteada es la tendencia lineal. Con una comparación de grupos se muestra el cambio Δ = SD − NS de cada grupo. Un recuadro ámbar indica la ventana de tiempo elegida.",
-    heat:"Cada fila es una persona y cada columna un electrodo, agrupados en frontal, centro-temporal y posterior (de adelante hacia atrás). El color es su cambio Δ = SD − NS: magenta = sube tras la privación, cian = baja, oscuro = sin cambio. Las filas forman dos grupos definidos solo por la conducta (vulnerables: peor que la mediana del marcador; resistentes: el resto), o los dos grupos de la comparación, y se ordenan por su cambio medio en la región elegida. Sobre cada bloque, C(e) es la consistencia del grupo (proporción que sube menos la que baja); arriba, la media de todos. Una firma compartida se ve como un bloque del mismo color; si el efecto lo dominan pocas personas, se ven una o dos filas muy intensas.",
+    topo:"Each circle is the head seen from above (nose up) with 61 interpolated electrodes. Columns: after normal sleep (NS), after deprivation (SD) and their difference Δ = SD − NS. NS and SD share the sequential scale of their row; Δ uses a diverging scale centered at zero: warm = increases after deprivation, cool = decreases. Ring = uncorrected p < 0.05; filled = survives FDR correction (only with all 68 people). With two people or two groups, the rows become those people or groups, with shared scales.",
+    scatter:"Each point is a person: on x, the theta change (SD − NS) in the chosen region, electrode or time window; on y, the change in the behavioral marker (up = worse). Dotted lines are the medians and the amber area is the vulnerable quadrant (above both medians). ρ is the Spearman correlation with its 95% CI.",
+    dyn:"Follows the chosen metric. With μθ: relative theta power in each of the 75 4-s epochs of the 5-minute recording. With σθ: moving σθ, the standard deviation of regional theta in 40-s windows (10 epochs) sliding by one epoch; it shows when instability appears within the recording, but its scale is smaller than the scatter σθ because it starts from the region-averaged series. In both cases: mean of the active group ± standard error, after normal sleep (NS) and after deprivation (SD). The dotted line is the linear trend. With a group comparison, the change Δ = SD − NS of each group is shown. An amber box marks the chosen time window.",
+    heat:"Each column is a person and each row an electrode, grouped into frontal, centrotemporal and posterior (front to back). The color is the change Δ = SD − NS: warm = increases after deprivation, cool = decreases, neutral = no change. Columns form two groups defined by behavior only (vulnerable: worse than the marker median; resilient: the rest), or the two groups of the comparison, ordered by their mean change in the chosen region. Next to each block, C(e) is the group consistency (share that increases minus share that decreases); the mean of everyone is shown alongside. A shared signature appears as a block of the same color; if a few people dominate the effect, one or two very intense columns stand out.",
   };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;"}[c]));
   const svgOf = id => { const s = document.querySelector(`#${id} svg`); if(!s) return ""; const c = s.cloneNode(true); c.removeAttribute("style"); c.setAttribute("xmlns", "http://www.w3.org/2000/svg"); return c.outerHTML; };
@@ -49,61 +49,61 @@ td{border-bottom:1px solid var(--rule);padding:4px 8px}a{color:var(--ns)}
 
   function state(){
     const c = COMPARES.find(c => c.k === S.cmp), rows = [
-      ["Región EEG", ROI[S.roi].name, S.elec ? "sustituida por un electrodo" : ""],
-      ["Métrica theta", S.met === "var" ? "σθ, variabilidad entre épocas" : "μθ, media", ""],
-      ["Marcador del eje Y", MK[S.y].name, ""],
-      ["Eje x", xName(), ""],
-      ["Comparación", c ? c.name : "Sin comparación", ""],
-      ["Personas activas", S.selected ? `${S.selected.length} (tu selección con lazo)` : `${EEG.length} (todas con EEG pareado)`, ""],
-      ["Personas A y B", S.pair.length ? S.pair.map((d, i) => `${"AB"[i]} ${d.id}`).join(", ") : "ninguna", ""],
+      ["EEG region", ROI[S.roi].name, S.elec ? "replaced by one electrode" : ""],
+      ["Theta metric", S.met === "var" ? "σθ, variability across epochs" : "μθ, mean", ""],
+      ["Y-axis marker", MK[S.y].name, ""],
+      ["X-axis", xName(), ""],
+      ["Comparison", c ? c.name : "No comparison", ""],
+      ["Active people", S.selected ? `${S.selected.length} (your selection)` : `${EEG.length} (all with paired EEG)`, ""],
+      ["People A and B", S.pair.length ? S.pair.map((d, i) => `${"AB"[i]} ${d.id}`).join(", ") : "none", ""],
     ];
-    if(S.win) rows.push(["Ventana de tiempo", winTxt(S.win), "dentro del registro de 5 min"]);
+    if(S.win) rows.push(["Time window", winTxt(S.win), "within the 5-min recording"]);
     return rows;
   }
   function people(){
     const xk = S.xKey(), yk = yK(), G = cmpGroups(), ids = new Set(activeIds());
     return P.filter(d => d[xk] != null && ids.has(d.id)).map(d => ({
-      id:d.id, sexo:d.gender === "F" ? "mujer" : "hombre", edad:d.age, psqi:d.psqi ?? "", x:d[xk], y:d[yk] ?? "",
-      grupo:G ? ((G.find(g => g.set.has(d.id)) || {}).name || "") : "", vulnerable:S.vuln.has(d.id) ? "sí" : "", AB:pairLetter(d) || "",
+      id:d.id, sexo:d.gender === "F" ? "woman" : "man", edad:d.age, psqi:d.psqi ?? "", x:d[xk], y:d[yk] ?? "",
+      grupo:G ? ((G.find(g => g.set.has(d.id)) || {}).name || "") : "", vulnerable:S.vuln.has(d.id) ? "yes" : "", AB:pairLetter(d) || "",
     })).sort((a, b) => b.x-a.x);
   }
   function csv(rows){
-    const head = ["participante", "sexo", "edad", "psqi", xName(), mkY().ax2, "grupo", "cuadrante_vulnerable", "A_B"];
+    const head = ["participant", "sex", "age", "psqi", xName(), mkY().ax2, "group", "vulnerable_quadrant", "A_B"];
     const lines = rows.map(r => [r.id, r.sexo, r.edad, r.psqi, r.x, r.y, r.grupo, r.vulnerable, r.AB].map(v => /[",;\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v).join(","));
     return [head.map(h => `"${h}"`).join(",")].concat(lines).join("\n");
   }
   function build(){
-    const now = new Date(), stamp = now.toLocaleString("es-PE", {dateStyle:"long", timeStyle:"short"});
+    const now = new Date(), stamp = now.toLocaleString("en-US", {dateStyle:"long", timeStyle:"short"});
     const rows = people(), csvTxt = csv(rows), csvHref = "data:text/csv;charset=utf-8," + encodeURIComponent("﻿" + csvTxt);
     const st = state().map(([k, v, n]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b>${n ? `<span>${esc(n)}</span>` : ""}</div>`).join("");
     const fig = (id, tid, key) => `<section class="fig"><div class="t">${titleOf(tid)}</div><p>${READ[key]}</p>${svgOf(id)}</section>`;
-    const tbl = `<table><thead><tr><th>Participante</th><th>Sexo</th><th>Edad</th><th>PSQI</th><th>${esc(xName())}</th><th>${esc(mkY().ax2)}</th><th>Grupo</th><th>Vulnerable</th><th>A/B</th></tr></thead><tbody>` +
-      rows.map(r => `<tr><td>${r.id}</td><td>${r.sexo}</td><td>${r.edad ?? ""}</td><td>${r.psqi}</td><td>${fsr(r.x)}</td><td>${r.y === "" ? "sin dato" : fsr(r.y)}</td><td>${esc(r.grupo)}</td><td>${r.vulnerable}</td><td>${r.AB}</td></tr>`).join("") + "</tbody></table>";
-    return `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BATIMIX, reporte de la vista (${esc(stamp)})</title>
+    const tbl = `<table><thead><tr><th>Participant</th><th>Sex</th><th>Age</th><th>PSQI</th><th>${esc(xName())}</th><th>${esc(mkY().ax2)}</th><th>Group</th><th>Vulnerable</th><th>A/B</th></tr></thead><tbody>` +
+      rows.map(r => `<tr><td>${r.id}</td><td>${r.sexo}</td><td>${r.edad ?? ""}</td><td>${r.psqi}</td><td>${fsr(r.x)}</td><td>${r.y === "" ? "no data" : fsr(r.y)}</td><td>${esc(r.grupo)}</td><td>${r.vulnerable}</td><td>${r.AB}</td></tr>`).join("") + "</tbody></table>";
+    return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BATIMIX, view report (${esc(stamp)})</title>
 ${[...document.querySelectorAll('link[href*="fonts.googleapis"][rel="stylesheet"]')].map(l => l.outerHTML).join("")}
 <style>${CSS()}</style></head><body><main>
 <h1>BATIMIX</h1>
-<p class="sub">Reporte de la vista generado el ${esc(stamp)}; EEG de reposo de 68 personas tras dormir normal (NS) y tras 24 a 30 horas sin dormir (SD); OpenNeuro ds004902 (Xiang et al., 2024), CC0.</p>
+<p class="sub">View report generated on ${esc(stamp)}; resting EEG of 68 people after normal sleep (NS) and after 24–30 hours without sleep (SD); OpenNeuro ds004902 (Xiang et al., 2024), CC0.</p>
 <div class="state">${st}</div>
-<div class="btns"><button onclick="print()">Imprimir o guardar como PDF</button><a download="BATIMIX_datos_vista.csv" href="${csvHref}">Descargar los datos (CSV)</a></div>
-<h2>Lo que muestra la vista</h2>
+<div class="btns"><button onclick="print()">Print or save as PDF</button><a download="BATIMIX_view_data.csv" href="${csvHref}">Download the data (CSV)</a></div>
+<h2>What the view shows</h2>
 ${fig("scatter", "t-sc", "scatter")}
 ${fig("heat", "t-heat", "heat")}
 ${fig("topo", "t-topo", "topo")}
 ${fig("dyn", "t-dyn", "dyn")}
-<h2>Conclusión preliminar del proyecto</h2>
-<p>Sin dormir, la theta de cada persona cambia en direcciones distintas, y ese cambio no predice de forma robusta quién se deteriora: en 448 análisis alternativos ningún estadístico conjunto supera al azar. La única pista consistente es con el ánimo (afecto positivo), no con la vigilancia. Es una herramienta de screening exploratorio, no un diagnóstico.</p>
-<h2>Personas en esta vista (${rows.length})</h2>
+<h2>Preliminary conclusion of the project</h2>
+<p>Without sleep, each person\'s theta changes in different directions, and that change does not robustly predict who deteriorates: across 448 alternative analyses no joint statistic exceeds chance. The only consistent hint is with mood (positive affect), not with vigilance. This is an exploratory screening tool, not a diagnosis.</p>
+<h2>People in this view (${rows.length})</h2>
 ${tbl}
-<h2>Método en breve</h2>
-<p class="m">Potencia theta relativa (4 a 8 Hz dividida por 1 a 40 Hz, Welch) en 75 épocas de 4 s por registro, ojos abiertos, 61 electrodos, referencia FCz, sin ICA. σθ = desviación estándar entre épocas; μθ = media; Δ = SD − NS. Electrodos: t pareada con corrección FDR de Benjamini y Hochberg. Asociaciones: Spearman con IC 95 % (Fisher). Multiverso: 448 especificaciones con inferencia conjunta por permutación (Simonsohn, Simmons y Nelson, 2020). Equipo: Jimena Gurbillon, Andrea Coa y Paolo Medrano, DS5343 Data Visualization, UTEC 2026-2.</p>
+<h2>Method in brief</h2>
+<p class="m">Relative theta power (4–8 Hz divided by 1–40 Hz, Welch) in 75 4-s epochs per recording, eyes open, 61 electrodes, FCz reference, no ICA. σθ = standard deviation across epochs; μθ = mean; Δ = SD − NS. Electrodes: paired t-test with Benjamini–Hochberg FDR correction. Associations: Spearman with 95% CI (Fisher). Multiverse: 448 specifications with joint permutation inference (Simonsohn, Simmons and Nelson, 2020). Team: Jimena Gurbillon, Andrea Coa and Paolo Medrano, DS5343 Data Visualization, UTEC 2026-2.</p>
 </main></body></html>`;
   }
   function download(){
     const html = build(), blob = new Blob([html], {type:"text/html;charset=utf-8"}), url = URL.createObjectURL(blob);
     const d = new Date(), pad = n => String(n).padStart(2, "0");
-    const a = document.createElement("a"); a.href = url; a.download = `BATIMIX_reporte_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.html`;
+    const a = document.createElement("a"); a.href = url; a.download = `BATIMIX_report_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.html`;
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
   return {download, build};

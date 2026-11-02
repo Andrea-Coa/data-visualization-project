@@ -3,7 +3,7 @@
    Semana 12: sin animaciones; los cambios de estado se dibujan en el acto. */
 
 // ---------- datos (los asigna main.js tras cargar data/*.json) ----------
-let P = [], TOPO = {}, COORDS = {}, COORDS3 = null, SUBEP = {}, EEG = [], EEG_IDS = [], ELEC = [], SUBTOPO = {}, MULTI = null;
+let P = [], TOPO = {}, COORDS = {}, COORDS3 = null, APER = null, CONN = null, SUBEP = {}, EEG = [], EEG_IDS = [], ELEC = [], SUBTOPO = {}, MULTI = null;
 const $ = id => document.getElementById(id);
 
 // ---------- paleta: se lee de los tokens CSS (una sola fuente de verdad) ----------
@@ -23,24 +23,24 @@ function readPalette(){
 // ---------- formato (signo menos tipográfico) ----------
 const L = d3.formatLocale({decimal:".", thousands:" ", grouping:[3], currency:["",""], minus:"−"});
 const f2 = L.format(".2f"), f3 = L.format(".3f"), fpc = L.format("+.1%");
-const fsr = v => v == null || isNaN(v) ? "n/d" : (Math.abs(v) < 1 ? L.format("+.3r")(v) : L.format("+.1f")(v));
-const fr = v => v == null || isNaN(v) ? "n/d" : (Math.abs(v) < 1 ? L.format(".3r")(v) : L.format(".1f")(v));
-const fp = p => p == null ? "n/d" : (p < 0.001 ? "< 0.001" : L.format(".3f")(p));
+const fsr = v => v == null || isNaN(v) ? "n/a" : (Math.abs(v) < 1 ? L.format("+.3r")(v) : L.format("+.1f")(v));
+const fr = v => v == null || isNaN(v) ? "n/a" : (Math.abs(v) < 1 ? L.format(".3r")(v) : L.format(".1f")(v));
+const fp = p => p == null ? "n/a" : (p < 0.001 ? "< 0.001" : L.format(".3f")(p));
 const fTick = (f) => v => Math.abs(v) < 1e-12 ? "0" : f(v);   // "0" en vez de "+0" o "−0.00"
 
 // ---------- marcadores, regiones ----------
 const MK = {
-  d_pvt:   {name:"PVT · mediana del TR",      short:"PVT TR", axis:"Δ PVT, mediana del tiempo de reacción (ms)", ax2:"Δ TR (ms)",        worse: 1},
-  d_pvtl:  {name:"PVT · lapsos",              short:"lapsos", axis:"Δ PVT, lapsos (número)",                     ax2:"Δ lapsos",         worse: 1},
-  d_pvtsd: {name:"PVT · variabilidad del TR", short:"DE TR",  axis:"Δ PVT, desviación estándar del TR (ms)",     ax2:"Δ DE TR (ms)",     worse: 1},
-  d_kss:   {name:"KSS · somnolencia",         short:"KSS",    axis:"Δ KSS, somnolencia (puntos)",                ax2:"Δ KSS (puntos)",   worse: 1},
-  d_sss:   {name:"SSS · somnolencia",         short:"SSS",    axis:"Δ SSS, somnolencia (puntos)",                ax2:"Δ SSS (puntos)",   worse: 1},
-  d_panasP:{name:"PANAS · afecto positivo",   short:"PANAS+", axis:"Δ PANAS, afecto positivo (puntos)",          ax2:"Δ PANAS+ (puntos)",worse:-1},
-  d_panasN:{name:"PANAS · afecto negativo",   short:"PANAS−", axis:"Δ PANAS, afecto negativo (puntos)",          ax2:"Δ PANAS− (puntos)",worse: 1},
+  d_pvt:   {name:"PVT · median RT",           short:"PVT RT", axis:"Δ PVT, median reaction time (ms)",         ax2:"Δ RT (ms)",        worse: 1},
+  d_pvtl:  {name:"PVT · lapses",              short:"lapses", axis:"Δ PVT, lapses (count)",                      ax2:"Δ lapses",         worse: 1},
+  d_pvtsd: {name:"PVT · RT variability",      short:"RT SD",  axis:"Δ PVT, SD of reaction time (ms)",           ax2:"Δ RT SD (ms)",     worse: 1},
+  d_kss:   {name:"KSS · sleepiness",          short:"KSS",    axis:"Δ KSS, sleepiness (points)",                ax2:"Δ KSS (points)",   worse: 1},
+  d_sss:   {name:"SSS · sleepiness",          short:"SSS",    axis:"Δ SSS, sleepiness (points)",                ax2:"Δ SSS (points)",   worse: 1},
+  d_panasP:{name:"PANAS · positive affect",   short:"PANAS+", axis:"Δ PANAS, positive affect (points)",          ax2:"Δ PANAS+ (points)",worse:-1},
+  d_panasN:{name:"PANAS · negative affect",   short:"PANAS−", axis:"Δ PANAS, negative affect (points)",          ax2:"Δ PANAS− (points)",worse: 1},
 };
 const ROI = {
   front:{name:"frontal",         var:"d_front_var", mean:"d_front_pow", pref:"f"},
-  ct:   {name:"centro-temporal", var:"d_ct_var",    mean:"d_ct_pow",    pref:"c"},
+  ct:   {name:"centrotemporal",  var:"d_ct_var",    mean:"d_ct_pow",    pref:"c"},
 };
 const METN = {var:"σθ", mean:"μθ"};
 
@@ -52,7 +52,7 @@ const S = {
   // origen del eje x de la dispersión: ventana de tiempo > electrodo > región
   xKey(){ return this.win ? "wx" : (this.elec ? "ex" : ROI[this.roi][this.met]); },
 };
-const winTxt = w => `${w[0]*4} a ${(w[1]+1)*4} s`;
+const winTxt = w => `${w[0]*4}–${(w[1]+1)*4} s`;
 // valores por persona del electrodo elegido en un mapa, o de la ventana de tiempo elegida en la serie
 function computeX(){
   P.forEach(d => { d.ex = null; d.wx = null; });
@@ -76,7 +76,7 @@ const yK = () => S.y;
 const mkY = () => MK[S.y];
 function xName(){
   if(S.win) return `Δ${METN[S.met]} ${ROI[S.roi].name}, ${winTxt(S.win)}`;
-  if(S.elec) return `Δ${METN[S.met]} en ${S.elec}`;
+  if(S.elec) return `Δ${METN[S.met]} at ${S.elec}`;
   return `Δ${METN[S.met]} ${ROI[S.roi].name}`;
 }
 function hover(d){ if(S.hovered === (d || null)) return; S.hovered = d || null; bus.call("hover", null, S.hovered); }
@@ -105,21 +105,21 @@ function togglePick(d){
 // Comparaciones de dos grupos (tarea T7): cada moderador se ve lado a lado, con dos colores propios,
 // en las cuatro vistas a la vez (filas de mapas, ρ por grupo, Δ por época por grupo)
 const COMPARES = [
-  {k:"none",  name:"Sin comparación"},
-  {k:"sex",   name:"Mujeres vs hombres", g:[["Mujeres", d => d.gender === "F"], ["Hombres", d => d.gender === "M"]]},
-  {k:"order", name:"Orden de sesión", g:[["Normal primero", d => d.order === "NS->SD"], ["Privación primero", d => d.order === "SD->NS"]]},
-  {k:"psqi",  name:"Sueño habitual (PSQI)", g:[["PSQI > 5", d => d.psqi != null && d.psqi > 5], ["PSQI ≤ 5", d => d.psqi != null && d.psqi <= 5]]},
-  {k:"vuln",  name:"Vulnerables vs resto", g:[["Vulnerables", d => S.vuln.has(d.id)], ["Resto", d => !S.vuln.has(d.id)]]},
+  {k:"none",  name:"No comparison"},
+  {k:"sex",   name:"Women vs men", g:[["Women", d => d.gender === "F"], ["Men", d => d.gender === "M"]]},
+  {k:"order", name:"Session order", g:[["Normal sleep first", d => d.order === "NS->SD"], ["Deprivation first", d => d.order === "SD->NS"]]},
+  {k:"psqi",  name:"Habitual sleep (PSQI)", g:[["PSQI > 5", d => d.psqi != null && d.psqi > 5], ["PSQI ≤ 5", d => d.psqi != null && d.psqi <= 5]]},
+  {k:"vuln",  name:"Vulnerable vs rest", g:[["Vulnerable", d => S.vuln.has(d.id)], ["Rest", d => !S.vuln.has(d.id)]]},
 ];
 function cmpGroups(){
   const c = COMPARES.find(c => c.k === S.cmp); if(!c || !c.g) return null;
   return c.g.map(([name, f], i) => { const ids = EEG.filter(f).map(d => d.id); return {name, ids, set:new Set(ids), color:i ? C.g2 : C.g1}; });
 }
-const groupName = () => S.selected ? "Tu selección" : "";
+const groupName = () => S.selected ? "Your selection" : "";
 // título de panel: qué muestra, en pocas palabras, la cifra principal en tono apagado y, en el ícono ⓘ,
 // los detalles y la lectura del gráfico (tooltip al pasar el cursor o al enfocarlo con el teclado)
 function setTitle(id, head, sub, info){
-  const h = $(id), icon = `<span class="info" tabindex="0" role="button" aria-label="Detalles del gráfico">i</span>`;
+  const h = $(id), icon = `<span class="info" tabindex="0" role="button" aria-label="Chart details">i</span>`;
   // el ícono va pegado a la última palabra (span sin cortes de línea): nunca queda solo en otra línea
   const glue = s => { const k = s.lastIndexOf(" "); return `${s.slice(0, k+1)}<span class="nw">${s.slice(k+1)}&nbsp;${icon}</span>`; };
   h.innerHTML = info ? (sub ? `${head} <span class="m">${glue(sub)}</span>` : glue(head)) : `${head}${sub ? ` <span class="m">${sub}</span>` : ""}`;
@@ -214,14 +214,6 @@ function moveTip(e){
 }
 const hideTip = () => { tipEl.style.opacity = 0; };
 const trow = (k, v, col) => `<div class="row"><span>${col ? `<i class="lk" style="background:${col}"></i>` : ""}${k}</span><b>${v}</b></div>`;
-
-// ---------- brillo suave (filtro SVG estático) para líneas y puntos clave: estética de instrumento ----------
-function addGlow(svg, id, sd = 2){
-  const f = svg.append("defs").append("filter").attr("id", id).attr("x", "-50%").attr("y", "-50%").attr("width", "200%").attr("height", "200%");
-  f.append("feGaussianBlur").attr("stdDeviation", sd).attr("result", "b");
-  const mg = f.append("feMerge"); mg.append("feMergeNode").attr("in", "b"); mg.append("feMergeNode").attr("in", "SourceGraphic");
-  return `url(#${id})`;
-}
 
 // ---------- control segmentado ----------
 function setupSeg(id, onPick){

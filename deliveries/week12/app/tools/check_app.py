@@ -144,18 +144,18 @@ def test_consistency(R):
     st = R["state"]; key = next(r for r in R["rho"] if r["roi"] == st["roi"] and r["met"] == st["met"] and r["y"] == st["y"])
     n_title = int(re.search(r"n = (\d+)", R["titles"]["sc"]).group(1))
     rep = R["report"]; rows = re.findall(r"<tr><td>(sub-\d+)</td>(.*?)</tr>", rep)
-    n_report = sum("sin dato" not in r[1] for r in rows)
+    n_report = sum("no data" not in r[1] for r in rows)
     label = {"d_pvt": "PVT", "d_pvtl": "PVT", "d_pvtsd": "PVT", "d_kss": "KSS", "d_sss": "SSS", "d_panasP": "PANAS", "d_panasN": "PANAS"}[st["y"]]
     m_about = re.search(label + r" (\d+)", R["about"])
     n_about = int(m_about.group(1)) if m_about else None
     check("n de la dispersión", n_title == key["n"] == n_report and (n_about is None or n_about == n_title),
           f"título {n_title}, cálculo {key['n']}, filas con dato en el Reporte {n_report}, Acerca de {n_about}")
-    q_title = int(re.search(r"(\d+) de 61 electrodos con q", R["titles"]["topo"]).group(1))
+    q_title = int(re.search(r"(\d+) of 61 electrodes with q", R["titles"]["topo"]).group(1))
     q_true = sum(int((multipletests([r[k] for r in R["topo"]], method="fdr_bh")[1] < .05).sum()) for k in ("pv", "pm"))
-    check("electrodos con q < 0.05", q_title == q_true and f"{q_title} de 61 electrodos con q" in html.unescape(rep),
+    check("electrodos con q < 0.05", q_title == q_true and f"{q_title} of 61 electrodes with q" in html.unescape(rep),
           f"título {q_title}, statsmodels {q_true}, mismo texto en el Reporte")
     n_dyn = int(re.search(r"n = (\d+)", R["titles"]["dyn"]).group(1)); n_leg = int(re.search(r"n = (\d+)", R["legendDyn"]).group(1))
-    n_state = int(re.search(r"Personas activas</span><b>(\d+)", rep).group(1)); n_long = int(re.search(r"(\d+) tienen EEG", R["about"]).group(1))
+    n_state = int(re.search(r"Active people</span><b>(\d+)", rep).group(1)); n_long = int(re.search(r"(\d+) have EEG", R["about"]).group(1))
     check("n de Cinco minutos", n_dyn == n_leg == n_state == n_long, f"título {n_dyn}, leyenda {n_leg}, Reporte {n_state}, Acerca de {n_long}")
     sub_ep = json.loads((APP / "data" / "subject_epochs.json").read_text(encoding="utf-8"))
     worst = 0.0
@@ -178,6 +178,23 @@ def test_consistency(R):
     want = [round(rec["tVar"], 2), round(rec["dzVar"], 2)]
     check("tooltip del electrodo con t y d_z", len(shown) == 2 and np.allclose(shown, want, atol=.006),
           f"{tip['e']}: muestra t · d_z = {shown}, topo.json {want}")
+
+
+def test_secondary():
+    print("\n6. Vistas secundarias (cifras del resumen contra los datos por persona)")
+    ap, cn = APP / "data" / "aperiodic.json", APP / "data" / "connectivity.json"
+    if not (ap.exists() and cn.exists()):
+        check("datos de las vistas secundarias", False, "faltan data/aperiodic.json o data/connectivity.json (tools/build_secondary.py)"); return
+    A = json.loads(ap.read_text(encoding="utf-8")); Cn = json.loads(cn.read_text(encoding="utf-8"))
+    worst = 0.0
+    for roi in ("front", "ct"):
+        v = np.array(list(A["sigma"][roi]["persons"].values()), float)
+        worst = max(worst, abs(stats.spearmanr(v[:, 0], v[:, 1]).statistic - A["sigma"][roi]["rho_periodic"]))
+    check("ρ de Δσθ frente a Δσθ periódica", worst < 1e-3, f"diferencia máx. {worst:.1e}")
+    d = np.array([np.array(s[1]) - np.array(s[0]) for s in Cn["persons"].values()]); g = d.mean(1)
+    dz = g.mean() / g.std(ddof=1); down = int((d.mean(0) < 0).sum())
+    check("conectividad: d_z global y pares que bajan", abs(dz - Cn["global"]["dz"]) < 1e-3 and down == Cn["global"]["pairs_down"],
+          f"d_z {dz:+.3f} frente a {Cn['global']['dz']:+.3f}; {down} de 45 frente a {Cn['global']['pairs_down']}")
 
 
 def take_screenshots(binary, base, profile, out):
@@ -205,6 +222,7 @@ def main():
         test_effect_sizes()
         test_reference_signal()
         test_consistency(R)
+        test_secondary()
         take_screenshots(a.chrome, base, profile, out)
     srv.shutdown()
     bad = [n for n, ok, _ in RESULTS if not ok]

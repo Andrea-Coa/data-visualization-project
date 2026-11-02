@@ -16,15 +16,15 @@ const dyn = (() => {
   const ex = i => dx(XS[i]);           // tiempo (s) del punto i: centro de la época o de la ventana móvil
   const isVar = () => S.met === "var";
   const nearest = t => Math.max(0, Math.min(XS.length-1, Math.round((t-XS[0])/4)));
-  const spanTxt = i => isVar() ? `${XS[i]-ROLL_W*2} a ${XS[i]+ROLL_W*2} s` : `${XS[i]-2} a ${XS[i]+2} s`;
+  const spanTxt = i => isVar() ? `${XS[i]-ROLL_W*2}–${XS[i]+ROLL_W*2} s` : `${XS[i]-2}–${XS[i]+2} s`;
 
   function render(){
     d3.select(el).selectAll("*").remove();
     W = el.clientWidth || 600; H = Math.round(Math.max(120, el.clientHeight || 220));
     const met = S.met;
     svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").attr("role", "img")
-      .attr("aria-label", isVar() ? "σθ móvil en ventanas de 40 s, NS y SD, media y error estándar del grupo activo"
-        : "Potencia theta por época, NS y SD, media y error estándar del grupo activo");
+      .attr("aria-label", isVar() ? "Moving σθ in 40-s windows, NS and SD, mean and standard error of the active group"
+        : "Theta power per epoch, NS and SD, mean and standard error of the active group");
     svg.append("defs").append("clipPath").attr("id", "dclip").append("rect").attr("x", m.l).attr("y", m.t).attr("width", W-m.l-m.r).attr("height", H-m.t-m.b);
     g = svg.append("g");
     const pref = ROI[S.roi].pref, ids = activeIds();
@@ -33,8 +33,8 @@ const dyn = (() => {
     cur = G ? {D:G.map(gr => epochDiffStats(gr.ids, pref, met))} : {NS:epochStats(ids, pref, "NS", met), SD:epochStats(ids, pref, "SD", met)};
     XS = (G ? cur.D[0] : cur.SD).xs;
     // la leyenda dice qué es la banda sombreada (error estándar, no desviación estándar) y con cuántas personas
-    d3.select("#k-dyn").html(G ? G.map(gr => `<span class="k"><i class="ln" style="background:${gr.color}"></i>${gr.name}</span>`).join("") + `<span class="k m">banda: Δ media ± EE</span>`
-      : `<span class="k"><i class="ln ns"></i>NS</span><span class="k"><i class="ln sd"></i>SD</span><span class="k"><i class="dash"></i>tendencia</span><span class="k m">banda: media ± EE, n = ${cur.SD.n}</span>`);
+    d3.select("#k-dyn").html(G ? G.map(gr => `<span class="k"><i class="ln" style="background:${gr.color}"></i>${gr.name}</span>`).join("") + `<span class="k m">band: Δ mean ± SE</span>`
+      : `<span class="k"><i class="ln ns"></i>NS</span><span class="k"><i class="ln sd"></i>SD</span><span class="k"><i class="dash"></i>trend</span><span class="k m">band: mean ± SE, n = ${cur.SD.n}</span>`);
     const series = G ? cur.D : [cur.NS, cur.SD];
     const vals = series.flatMap(s => s.mean.flatMap((v, i) => v == null ? [] : [v-s.sem[i], v+s.sem[i]])).concat(G ? [0] : []);
     const [lo, hi] = d3.extent(vals), pad = (hi-lo)*.08;
@@ -42,7 +42,7 @@ const dyn = (() => {
     g.append("g").attr("class", "gridl").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(dy).ticks(4).tickSize(-(W-m.l-m.r)).tickFormat(""));
     g.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(dy).ticks(4).tickSizeOuter(0).tickFormat(L.format(isVar() ? ".3~f" : ".2~f"))).call(a => a.select(".domain").remove());
     g.append("g").attr("class", "axis").attr("transform", `translate(0,${H-m.b})`).call(d3.axisBottom(dx).tickValues(d3.range(0, 301, W < 500 ? 60 : 30)).tickSizeOuter(0).tickFormat(d => d === 300 ? "300 s" : d));
-    const yTitle = isVar() ? (G ? "Δ σθ móvil (SD − NS)" : "σθ móvil (DE en 40 s)") : (G ? "Δ potencia θ (SD − NS)" : "potencia θ relativa");
+    const yTitle = isVar() ? (G ? "Δ moving σθ (SD − NS)" : "moving σθ (SD within 40 s)") : (G ? "Δ θ power (SD − NS)" : "relative θ power");
     g.append("text").attr("class", "atitle").attr("text-anchor", "middle").attr("transform", "rotate(-90)").attr("x", -(m.t+H-m.b)/2).attr("y", 10).text(yTitle);
     // ventana de tiempo (debajo de las series para no taparlas)
     brushG = g.append("g").attr("class", "brush");
@@ -79,27 +79,27 @@ const dyn = (() => {
   function title(){
     // puntos dentro de la ventana elegida (por su tiempo central), o todos
     const idx = d3.range(XS.length).filter(i => !S.win || (XS[i] >= S.win[0]*4 && XS[i] <= (S.win[1]+1)*4));
-    const post = S.win ? `, ${winTxt(S.win)}` : "", unit = isVar() ? "ventanas" : "épocas";
-    const what = isVar() ? `σθ móvil (DE de la θ regional en ventanas de ${ROLL_W} épocas = ${ROLL_W*4} s, que avanzan de a una época)`
-      : "Potencia theta relativa (4 a 8 Hz sobre 1 a 40 Hz) por época de 4 s";
-    const scale = isVar() ? "La σθ de la dispersión promedia la DE de cada electrodo; aquí se usa la serie ya promediada por región, así que los valores son menores: compara la forma en el tiempo, no las cifras. Exploratoria: Cui et al. (2026) resumen la variabilidad en un solo número por registro." : "";
+    const post = S.win ? `, ${winTxt(S.win)}` : "", unit = isVar() ? "windows" : "epochs";
+    const what = isVar() ? `Moving σθ (SD of regional θ in windows of ${ROLL_W} epochs = ${ROLL_W*4} s, sliding by one epoch)`
+      : "Relative theta power (4–8 Hz over 1–40 Hz) per 4-s epoch";
+    const scale = isVar() ? "The scatter σθ averages the SD of each electrode; here the series is already averaged over the region, so values are smaller: compare the shape over time, not the numbers. Exploratory: Cui et al. (2026) summarize variability as a single number per recording." : "";
     const upOf = s => idx.filter(i => s.mean[i] != null && s.mean[i] > 0).length;
     if(G){
       const u = cur.D.map(upOf);
-      setTitle("t-dyn", `${isVar() ? "Δσθ móvil" : "Δθ por época"}: dos grupos${post}`, nb(`n = ${cur.D[0].n} y ${cur.D[1].n}`),
-        notes(`Δ (SD − NS) de la ${what.charAt(0).toLowerCase()+what.slice(1)}, persona a persona; media ± error estándar de cada grupo.`,
-          `Δ &gt; 0 en ${u[0]} (${G[0].name}) y ${u[1]} (${G[1].name}) de ${idx.length} ${unit}.`, scale, "Arrastrar sobre el gráfico elige una ventana de tiempo para la dispersión."));
+      setTitle("t-dyn", `${isVar() ? "Δ moving σθ" : "Δθ per epoch"}: two groups${post}`, nb(`n = ${cur.D[0].n} and ${cur.D[1].n}`),
+        notes(`Δ (SD − NS) of ${what.charAt(0).toLowerCase()+what.slice(1)}, person by person; mean ± standard error of each group.`,
+          `Δ &gt; 0 in ${u[0]} (${G[0].name}) and ${u[1]} (${G[1].name}) of ${idx.length} ${unit}.`, scale, "Drag over the chart to choose a time window for the scatter."));
       return;
     }
     const d = idx.map(i => cur.SD.mean[i]-cur.NS.mean[i]), up = d.filter(v => v > 0).length;
-    setTitle("t-dyn", `${isVar() ? "σθ móvil (ventanas de 40 s)" : "θ relativa por época"}: NS y SD${S.selected ? ", tu selección" : ""}${post}`, nb(`n = ${cur.SD.n}`),
-      notes(`${what}; media ± error estándar entre personas. Líneas discontinuas: tendencia lineal.`,
-        `SD &gt; NS en ${up} de ${idx.length} ${unit}${S.win ? `; Δ medio ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : `; pendiente de SD ${fsr(slopePerMin(cur.SD.mean, XS))}/min`}.`,
-        scale, "Arrastrar sobre el gráfico elige una ventana de tiempo para la dispersión."));
+    setTitle("t-dyn", `${isVar() ? "Moving σθ (40-s windows)" : "Relative θ per epoch"}: NS and SD${S.selected ? ", your selection" : ""}${post}`, nb(`n = ${cur.SD.n}`),
+      notes(`${what}; mean ± standard error across people. Dashed lines: linear trend.`,
+        `SD &gt; NS in ${up} of ${idx.length} ${unit}${S.win ? `; mean Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : `; SD slope ${fsr(slopePerMin(cur.SD.mean, XS))}/min`}.`,
+        scale, "Drag over the chart to choose a time window for the scatter."));
   }
   function tipFor(i){
     const r = s => s.mean[i] != null ? `${f3(s.mean[i])} <span class="m">± ${f3(s.sem[i])}</span>` : "n/d";
-    const head = isVar() ? `Ventana ${i+1} <span class="m">${spanTxt(i)}</span>` : `Época ${i+1} <span class="m">${spanTxt(i)}</span>`;
+    const head = isVar() ? `Window ${i+1} <span class="m">${spanTxt(i)}</span>` : `Epoch ${i+1} <span class="m">${spanTxt(i)}</span>`;
     return `<div class="h">${head}</div>` +
       (G ? G.map((gr, k) => trow(`${gr.name}, Δ`, r(cur.D[k]), gr.color)).join("") : trow("NS", r(cur.NS), C.ns) + trow("SD", r(cur.SD), C.sd));
   }

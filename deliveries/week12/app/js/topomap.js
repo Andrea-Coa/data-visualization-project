@@ -61,9 +61,9 @@ const topo = (() => {
   // Las tres implementaciones se verificaron contra las originales (MATLAB R2022a con EEGLAB y FieldTrip; MNE 1.8):
   // la diferencia máxima es del orden de 1e-10 del rango del mapa.
   const METHODS = {
-    v4:"Interpolación biarmónica v4 (Sandwell, 1987), la de topoplot de EEGLAB y ft_topoplotER de FieldTrip.",
-    ct:"Interpolación cúbica de Clough-Tocher 2D con anillo de borde, la de plot_topomap de MNE.",
-    spline:"Interpolación por spline esférico (Perrin et al., 1989) sobre las posiciones 3D de los 61 electrodos."};
+    v4:"Biharmonic v4 interpolation (Sandwell, 1987), as in EEGLAB topoplot and FieldTrip ft_topoplotER.",
+    ct:"2D Clough-Tocher cubic interpolation with a border ring, as in MNE plot_topomap.",
+    spline:"Spherical spline interpolation (Perrin et al., 1989) on the 3D positions of the 61 electrodes."};
   const DEFAULT_METHOD = "v4";
   let METHOD = (q => METHODS[q] ? q : DEFAULT_METHOD)(new URLSearchParams(location.search).get("interp"));
   const SPL_M = 4, SPL_K = 20;
@@ -265,11 +265,8 @@ const topo = (() => {
     const usedW = labW+nC*s+nB*barW, x0 = Math.max(0, (W-usedW)/2), y0 = Math.max(0, (H-(topH+2*s+rowGap))/2);
     const X = {lab:x0, NS:x0+labW, SD:x0+labW+s, bar1:x0+labW+2*s+6, D:x0+labW+2*s+barW, bar2:x0+labW+3*s+barW+6};
     const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
-      .attr("role", "img").attr("aria-label", `Matriz de topomapas: columnas ${S.showD ? "NS, SD y Δ" : "NS y SD"}; filas ${sp.rows.map(r => r.label).join(" y ")}`);
+      .attr("role", "img").attr("aria-label", `Topomap matrix: columns ${S.showD ? "NS, SD and Δ" : "NS and SD"}; rows ${sp.rows.map(r => r.label).join(" and ")}`);
     const defs = svg.append("defs");
-    const halo = defs.append("radialGradient").attr("id", "thalo");
-    halo.append("stop").attr("offset", "62%").attr("stop-color", C.halo).attr("stop-opacity", .10);
-    halo.append("stop").attr("offset", "100%").attr("stop-color", C.halo).attr("stop-opacity", 0);
     [["NS", "NS", ""], ["SD", "SD", ""], ["D", "Δ", " SD − NS"]].filter(([k]) => conds.includes(k)).forEach(([k, a, b]) => {
       const t = svg.append("text").attr("class", "colhead").attr("x", X[k]+s/2).attr("y", y0+14);
       t.append("tspan").text(a); t.append("tspan").attr("class", "m").text(b);
@@ -295,7 +292,6 @@ const topo = (() => {
     defs.append("clipPath").attr("id", cid).append("circle").attr("cx", cx).attr("cy", cy).attr("r", R);
     const f = field(row.T, cond, row.met, color);
     const g = svg.append("g");
-    g.append("circle").attr("cx", cx).attr("cy", cy).attr("r", R*1.22).attr("fill", "url(#thalo)").style("pointer-events", "none");
     g.append("image").attr("x", cx-R).attr("y", cy-R).attr("width", 2*R).attr("height", 2*R).attr("preserveAspectRatio", "none").attr("clip-path", `url(#${cid})`).attr("href", f.href);
     const proj = d3.geoTransform({point(px, py){ this.stream.point(cx-R+px*2*R/GN, cy-R+py*2*R/GN); }});
     const dom = d3.extent(f.grid);
@@ -317,12 +313,12 @@ const topo = (() => {
       .on("click", (e, d) => { hideTip(); setElec(d.e); });
   }
   // unidades de las barras de color: θ relativa es una fracción de la potencia de 1 a 40 Hz (sin unidades físicas)
-  const UNIT = {mean:"fracción de 1–40 Hz", var:"DE entre épocas"};
+  const UNIT = {mean:"fraction of 1–40 Hz", var:"SD across epochs"};
   function bar(svg, defs, id, x, y, s, dom, ramp, div, unit){
     const h = s-30, top = y+18, gid = `tg${id}`;
     if(unit) svg.append("text").attr("class", "bunit").attr("text-anchor", "middle")
       .attr("transform", `translate(${x+60},${top+h/2}) rotate(-90)`).text(unit)
-      .append("title").text("θ relativa = potencia 4–8 Hz dividida por la de 1–40 Hz (sin unidades físicas); σθ es su desviación estándar entre las 75 épocas de 4 s y μθ su media.");
+      .append("title").text("Relative θ = 4–8 Hz power divided by 1–40 Hz power (unitless); σθ is its standard deviation across the 75 4-s epochs and μθ its mean.");
     const lg = defs.append("linearGradient").attr("id", gid).attr("x1", "0%").attr("y1", "100%").attr("x2", "0%").attr("y2", "0%");
     d3.range(0, 1.001, .1).forEach(t => lg.append("stop").attr("offset", t).attr("stop-color", div ? ramp(t) : ramp(t)));
     svg.append("rect").attr("x", x).attr("y", top).attr("width", 7).attr("height", h).attr("rx", 3).attr("fill", `url(#${gid})`);
@@ -348,32 +344,32 @@ const topo = (() => {
       return `<div class="m" style="margin-top:4px">${row.label}</div>` + trow("NS · SD", `${fr(t.NS[met])} · ${fr(t.SD[met])}`) +
         trow("Δ SD − NS", `${fsr(dv)}${all68 ? ` <span class="m">p ${fp(pOf(t, met))}, q ${fp(qOf(t, met))}</span>` : ""}`) +
         // tamaño de efecto de la prueba t pareada (solo con las 68 personas, donde hay prueba por electrodo)
-        (all68 && t.tVar != null ? (sf => trow("IC 95 % de Δ", `[${fsr(t["ci"+sf][0])}, ${fsr(t["ci"+sf][1])}]`) +
+        (all68 && t.tVar != null ? (sf => trow("95% CI of Δ", `[${fsr(t["ci"+sf][0])}, ${fsr(t["ci"+sf][1])}]`) +
           trow(`t(${t.nPaired-1}) · d<sub>z</sub>`, `${f2(t["t"+sf])} · ${f2(t["dz"+sf])}`))(met === "var" ? "Var" : "Mean") : "") +
-        (r && !isNaN(r.rho) ? trow(`ρ con ${MK[S.y].short}`, `${f2(r.rho)} <span class="m">n = ${r.n}</span>`) : "");
+        (r && !isNaN(r.rho) ? trow(`ρ with ${MK[S.y].short}`, `${f2(r.rho)} <span class="m">n = ${r.n}</span>`) : "");
     }).join("");
   }
   function header(sp){
     const k = d3.select("#k-topo"); k.selectAll("*").remove();
     const meanD = (T, met) => d3.mean(ELEC.filter(e => T[e]).map(e => met === "var" ? T[e].dVar : T[e].dMean));
     const up = (T, met) => ELEC.filter(e => T[e] && (met === "var" ? T[e].dVar : T[e].dMean) > 0).length;
-    const base = ["NS: sueño normal; SD: tras 24 a 30 h sin dormir; Δ = SD − NS. σθ: variabilidad de la potencia theta relativa entre 75 épocas de 4 s; μθ: su media.",
-      (METHODS[stats.method] || "") + " NS y SD comparten una escala secuencial por fila; Δ usa una divergente centrada en 0."];
+    const base = ["NS: normal sleep; SD: after 24–30 h without sleep; Δ = SD − NS. σθ: variability of relative theta power across 75 4-s epochs; μθ: its mean.",
+      (METHODS[stats.method] || "") + " NS and SD share a sequential scale per row; Δ uses a diverging scale centered at 0."];
     if(sp.mode === "pair" || sp.mode === "cmp"){
       const [r0, r1] = sp.rows, m0 = meanD(r0.T, S.met), m1 = meanD(r1.T, S.met);
       const n0 = sp.mode === "pair" ? sp.names[0] : sp.G[0].name, n1 = sp.mode === "pair" ? sp.names[1] : sp.G[1].name;
-      setTitle("t-topo", `Topomapas θ: ${sp.mode === "pair" ? "dos personas" : "dos grupos"}`,
-        `Δ${METN[S.met]} medio: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`, notes(...base, "Ambas filas comparten las mismas escalas. Sin prueba por electrodo."));
+      setTitle("t-topo", `θ topomaps: ${sp.mode === "pair" ? "two people" : "two groups"}`,
+        `mean Δ${METN[S.met]}: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`, notes(...base, "Both rows share the same scales. No per-electrode test."));
       return;
     }
     if(sp.mode === "group"){
-      setTitle("t-topo", sp.n === 1 && S.selected ? `Topomapas θ: ${S.selected[0]}` : "Topomapas θ: tu selección", nb(`n = ${sp.n}`),
-        notes(...base, `Δσθ &gt; 0 en ${up(sp.rows[0].T, "var")} de 61 electrodos. Sin prueba por electrodo en subgrupos.`));
+      setTitle("t-topo", sp.n === 1 && S.selected ? `θ topomaps: ${S.selected[0]}` : "θ topomaps: your selection", nb(`n = ${sp.n}`),
+        notes(...base, `Δσθ &gt; 0 at ${up(sp.rows[0].T, "var")} of 61 electrodes. No per-electrode test in subgroups.`));
       return;
     }
     const v = sigCount("var"), m = sigCount("mean");
-    setTitle("t-topo", S.showD ? "Topomapas θ: NS, SD y Δ" : "Topomapas θ: NS y SD", `${v.q + m.q} de 61 electrodos con q &lt; 0.05`,
-      notes(...base, `Prueba t pareada por electrodo, n = 68. Anillo: p &lt; 0.05 sin corregir (σθ ${v.p}, μθ ${m.p}); punto lleno: q &lt; 0.05 tras FDR de Benjamini y Hochberg (σθ ${v.q}, μθ ${m.q}).`));
+    setTitle("t-topo", S.showD ? "θ topomaps: NS, SD and Δ" : "θ topomaps: NS and SD", `${v.q + m.q} of 61 electrodes with q &lt; 0.05`,
+      notes(...base, `Paired t-test per electrode, n = 68. Ring: uncorrected p &lt; 0.05 (σθ ${v.p}, μθ ${m.p}); filled dot: q &lt; 0.05 after Benjamini–Hochberg FDR (σθ ${v.q}, μθ ${m.q}).`));
     // las marcas de p y FDR solo se dibujan sobre los mapas Δ
     if(S.showD) k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);
   }
@@ -389,5 +385,7 @@ const topo = (() => {
     });
   }
   bus.on("pin.topo", () => render());
-  return {render, rebuild(){}, stats};
+  // mapa suelto para las vistas secundarias: mismo método de interpolación que la matriz
+  function mini(values, color){ const T = {}; for(const e in values) if(values[e] != null) T[e] = {dMean:values[e]}; return field(T, "D", "mean", color); }
+  return {render, rebuild(){}, stats, mini};
 })();

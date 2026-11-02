@@ -11,7 +11,7 @@ const indiv = (() => {
   const FRONTAL = ["Fp1", "Fp2", "Fpz", "AF3", "AF4", "AF7", "AF8", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "Fz"];
   const CT = ["FC1", "FC2", "FC3", "FC4", "FC5", "FC6", "FT7", "FT8", "C1", "C2", "C3", "C4", "C5", "C6", "Cz", "T7", "T8",
     "CP1", "CP2", "CP3", "CP4", "CP5", "CP6", "CPz", "TP7", "TP8", "TP9", "TP10"];
-  const REG = ["Frontal", "Centro-temporal", "Posterior"], REG_SHORT = ["F", "C-T", "P"];
+  const REG = ["Frontal", "Centrotemporal", "Posterior"], REG_SHORT = ["F", "C-T", "P"];
   let model = null, hv = {row:null, col:null};
 
   const regionOf = e => FRONTAL.includes(e) ? 0 : (CT.includes(e) ? 1 : 2);
@@ -29,7 +29,7 @@ const indiv = (() => {
     if(G) groups = G.map(g => ({name:g.name, color:g.color, ids:g.ids.filter(id => D.has(id))}));
     // la selección no reagrupa: se marca con un contorno en paintHeat, así las columnas no se mueven
     else { const w = mk.worse || 1, med = d3.median(withY, id => byId.get(id)[yk]), worse = id => w*(byId.get(id)[yk]-med) > 0;
-      groups = [{name:"Vulnerables", color:C.vuln, ids:withY.filter(worse)}, {name:"Resistentes", color:C.rest, ids:withY.filter(id => !worse(id))}]; }
+      groups = [{name:"Vulnerable", color:C.vuln, ids:withY.filter(worse)}, {name:"Resilient", color:C.rest, ids:withY.filter(id => !worse(id))}]; }
     groups = groups.filter(g => g.ids.length).map(g => {
       const ids = g.ids.slice().sort((a, b) => rowMean(b)-rowMean(a));
       const cons = E.map((e, i) => { const v = ids.map(id => D.get(id)[i]).filter(x => x != null); return v.length ? (v.filter(x => x > 0).length-v.filter(x => x < 0).length)/v.length : 0; });
@@ -50,7 +50,7 @@ const indiv = (() => {
     const cw = Math.min(16, (W-labW-mW-4-groups.length*(cS+3)-(groups.length-1)*gGap-2)/nP);
     const rowY = i => top0+i*rh+regionOf(E[i])*regGap, bottom = rowY(E.length-1)+rh;
     const svg = d3.select(heatEl).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").attr("role", "img")
-      .attr("aria-label", `Heatmap de 61 electrodos por ${nP} personas con su cambio ${METN[model.met]}`);
+      .attr("aria-label", `Heatmap of 61 electrodes by ${nP} people with their ${METN[model.met]} change`);
     const col = v => v == null ? "transparent" : C.div((Math.max(-lim, Math.min(lim, v))+lim)/(2*lim));
     // rótulo vertical sobre una columna, en la banda entre los nombres de grupo y las celdas
     const vlab = (x, txt, size) => svg.append("text").attr("class", "alab").attr("transform", `translate(${x},${top0-4}) rotate(-90)`).attr("dy", ".35em").style("font-size", size+"px").text(txt);
@@ -73,7 +73,7 @@ const indiv = (() => {
     });
     if(elecLab) svg.append("g").selectAll("text").data(E).join("text").attr("class", "alab").attr("x", labW-3).attr("y", (e, i) => rowY(i)+rh/2).attr("dy", ".35em")
       .attr("text-anchor", "end").style("font-size", Math.min(9, rh)+"px").text(e => e);
-    vlab(mX+mW/2, "media", 9);
+    vlab(mX+mW/2, "mean", 9);
     svg.append("g").selectAll("rect").data(mean).join("rect").attr("x", mX).attr("y", (v, i) => rowY(i)).attr("width", mW).attr("height", rh+.3).attr("fill", col);
     const cells = svg.append("g");
     groups.forEach(g => {
@@ -110,7 +110,7 @@ const indiv = (() => {
   function tipHeat(h){
     const e = h.col != null ? model.E[h.col] : null;
     if(!h.row) return `<div class="h">${e} <span class="m">${REG[regionOf(e)]}</span></div>` +
-      model.groups.map(g => trow(`C(e) ${g.name.toLowerCase()}`, fs2(g.cons[h.col]), g.color)).join("") + trow(`Δ${METN[model.met]} medio`, fsr(model.mean[h.col]));
+      model.groups.map(g => trow(`C(e) ${g.name.toLowerCase()}`, fs2(g.cons[h.col]), g.color)).join("") + trow(`mean Δ${METN[model.met]}`, fsr(model.mean[h.col]));
     const p = P.find(d => d.id === h.row), t = e && SUBTOPO[h.row][e], g = model.groups.find(g => g.ids.includes(h.row)), yk = yK();
     return `<div class="h">${h.row}${e ? ` · ${e}` : ""} <span class="m">${g ? g.name.toLowerCase() : ""}</span></div>` +
       (t ? trow("NS → SD", `${fr(t.NS[model.met])} → ${fr(t.SD[model.met])}`) + trow(`Δ${METN[model.met]}`, fsr(model.D.get(h.row)[h.col])) : "") +
@@ -137,14 +137,14 @@ const indiv = (() => {
   // ---------------- títulos ----------------
   function titles(){
     const [a, b] = model.groups, mC = g => d3.mean(g.cons), strong = g => g.cons.filter(c => Math.abs(c) >= .6).length;
-    const hInfo = notes(`Una columna por persona y una fila por electrodo, por región de adelante hacia atrás: Δ${METN[model.met]} (SD − NS). Columna "media": promedio de todas las personas.`,
-      "C(e), una columna por grupo: proporción del grupo cuyo Δ sube menos la proporción cuyo Δ baja en el electrodo e (de −1 a +1); la barra va a la derecha si sube.",
-      "Clic en una columna: esa persona entra o sale de la selección; Mayús + clic: persona A o B. Clic en una fila: ese electrodo pasa al eje x de la dispersión.",
-      "Vulnerables y resistentes se definen solo por la conducta (peor o no que la mediana del cambio en el marcador elegido), no por theta.");
+    const hInfo = notes(`One column per person and one row per electrode, by region from front to back: Δ${METN[model.met]} (SD − NS). "Mean" column: average of all people.`,
+      "C(e), one column per group: share of the group whose Δ rises minus the share whose Δ falls at electrode e (from −1 to +1); the bar points right if it rises.",
+      "Click a column to add that person to or remove them from the selection; Shift + click: person A or B. Click a row to put that electrode on the scatter x-axis.",
+      "Vulnerable and resilient are defined by behavior only (worse or not than the median change in the chosen marker), not by theta.");
     if(b){
       const dA = mC(a), dB = mC(b);
-      setTitle("t-heat", `Δ${METN[model.met]} por persona y electrodo`, nb(`C medio: ${a.name} ${fs2(dA)}, ${b.name} ${fs2(dB)}`), hInfo);
-    } else setTitle("t-heat", `Δ${METN[model.met]} por persona y electrodo`, nb(`${a.name}: |C| ≥ 0.6 en ${strong(a)} de 61, n = ${a.ids.length}`), hInfo);
+      setTitle("t-heat", `Δ${METN[model.met]} by person and electrode`, nb(`mean C: ${a.name} ${fs2(dA)}, ${b.name} ${fs2(dB)}`), hInfo);
+    } else setTitle("t-heat", `Δ${METN[model.met]} by person and electrode`, nb(`${a.name}: |C| ≥ 0.6 at ${strong(a)} of 61, n = ${a.ids.length}`), hInfo);
     d3.select("#k-heat").html(`<span class="k">Δ${METN[model.met]} SD − NS</span><span class="k"><i style="width:64px;height:7px;border-radius:2px;background:linear-gradient(90deg,${d3.range(0, 1.01, .25).map(C.div).join(",")})"></i>±${fr(model.lim)}</span>`);
   }
   function render(){ build(); titles(); drawHeat(); }

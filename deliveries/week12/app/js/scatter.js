@@ -14,11 +14,9 @@ const scatter = (() => {
     W = el.clientWidth || 600; H = Math.round(Math.max(170, el.clientHeight || 400));
     plotB = H-38;   // debajo: marcas y título del eje x
     svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").attr("role", "img")
-      .attr("aria-label", "Dispersión del cambio theta frente al marcador conductual; los datos están en Acerca de");
-    const glow = addGlow(svg, "sglow", 1.6);
+      .attr("aria-label", "Scatter of the theta change against the behavioral marker; the data are listed in About");
     g = svg.append("g");
     sx = d3.scaleLinear().range([m.l, W-m.r]); sy = d3.scaleLinear().range([plotB, m.t]);
-    g.attr("data-glow", glow);
     surface = g.append("rect").attr("class", "lasso-surface").attr("x", m.l).attr("y", m.t).attr("width", W-m.l-m.r).attr("height", plotB-m.t);
     surface.on("pointerdown", ev => {
       if(ev.button !== 0 || ev.isPrimary === false || brushing) return;
@@ -125,38 +123,38 @@ const scatter = (() => {
   }
   // título: qué se cruza y el estadístico principal; la lectura del gráfico va en el ícono ⓘ
   function title(){
-    const xk = S.xKey(), yk = yK(), head = "Δθ vs. Δ conductual";
-    const info = notes("Cada punto es una persona con EEG y marcador conductual pareados; Δ = SD − NS.",
-      "Líneas punteadas: medianas de ambos ejes. Área sombreada: cuadrante vulnerable (Δθ sobre la mediana y marcador peor que la mediana).",
-      "ρ de Spearman con IC 95 % (transformación z de Fisher). Clic en un punto: entra o sale de la selección; Mayús + clic: persona A o B; arrastrar: selección con lazo.");
+    const xk = S.xKey(), yk = yK(), head = "Δθ vs. Δ behavior";
+    const info = notes("Each point is a person with paired EEG and behavioral marker; Δ = SD − NS.",
+      "Dotted lines: medians of both axes. Shaded area: vulnerable quadrant (Δθ above the median and marker worse than the median).",
+      "Spearman ρ with 95% CI (Fisher z transform). Click a point to add it to or remove it from the selection; Shift + click: person A or B; drag: lasso selection.");
     const G = cmpGroups();
     if(G){
-      setTitle("t-sc", `${head}: dos grupos`, "", info);   // el ρ de cada grupo va en su leyenda
+      setTitle("t-sc", `${head}: two groups`, "", info);   // el ρ de cada grupo va en su leyenda
       return;
     }
     const rows = S.selected ? EEG.filter(d => S.selected.includes(d.id)) : EEG, r = spearman(rows, xk, yk);
-    setTitle("t-sc", S.selected ? `${head}: tu selección` : head,
+    setTitle("t-sc", S.selected ? `${head}: your selection` : head,
       nb(isNaN(r.rho) ? `n = ${r.n}` : `ρ = ${f2(r.rho)} [${f2(r.lo)}, ${f2(r.hi)}], n = ${r.n}`), info);
   }
   function key(){
     const G = cmpGroups();
     const rg = G ? G.map(g => spearman(EEG.filter(d => g.set.has(d.id)), S.xKey(), yK())) : [];
-    d3.select("#k-sc").html(G ? G.map((g, i) => `<span class="k"><i class="dot" style="background:${g.color}"></i>${g.name} ${nb(`ρ = ${isNaN(rg[i].rho) ? "n/d" : f2(rg[i].rho)}, n = ${rg[i].n}`)}</span>`).join("")
-      : `<span class="k"><i class="dot" style="background:var(--vuln)"></i>cuadrante vulnerable</span><span class="k"><i class="dash"></i>mediana</span>` + (S.selected ? `<span class="k"><i class="ring"></i>tu selección</span>` : ""));
+    d3.select("#k-sc").html(G ? G.map((g, i) => `<span class="k"><i class="dot" style="background:${g.color}"></i>${g.name} ${nb(`ρ = ${isNaN(rg[i].rho) ? "n/a" : f2(rg[i].rho)}, n = ${rg[i].n}`)}</span>`).join("")
+      : `<span class="k"><i class="dot" style="background:var(--vuln)"></i>vulnerable quadrant</span><span class="k"><i class="dash"></i>median</span>` + (S.selected ? `<span class="k"><i class="ring"></i>your selection</span>` : ""));
   }
   function tipFor(d){
     const xk = S.xKey(), yk = yK(), L2 = pairLetter(d);
-    return `<div class="h">${d.id}${L2 ? ` (${L2})` : ""} <span class="m">${d.gender === "F" ? "mujer" : "hombre"}${d.age != null ? ", "+d.age+" años" : ""}</span></div>` +
-      trow(xName(), fsr(d[xk])) + trow(mkY().ax2, d[yk] != null ? fsr(d[yk]) : "sin dato") + (d.psqi != null ? trow("PSQI", d.psqi) : "");
+    return `<div class="h">${d.id}${L2 ? ` (${L2})` : ""} <span class="m">${d.gender === "F" ? "woman" : "man"}${d.age != null ? ", "+d.age+" y" : ""}</span></div>` +
+      trow(xName(), fsr(d[xk])) + trow(mkY().ax2, d[yk] != null ? fsr(d[yk]) : "no data") + (d.psqi != null ? trow("PSQI", d.psqi) : "");
   }
   const rowClass = (d, ss) => [ss && ss.has(d.id) ? "sel" : "", ss && !ss.has(d.id) ? "dim" : "", pairLetter(d) ? "pin" : ""].join(" ");
   function table(){
     const xk = S.xKey(), yk = yK(), ss = S.selected ? new Set(S.selected) : null, tb = d3.select("#dtable");
-    tb.html(`<thead><tr><th>Participante</th><th>Sexo</th><th>Edad</th><th>PSQI</th><th>${xName()}</th><th>${mkY().ax2}</th><th>Perfil</th></tr></thead><tbody></tbody>`);
+    tb.html(`<thead><tr><th>Participant</th><th>Sex</th><th>Age</th><th>PSQI</th><th>${xName()}</th><th>${mkY().ax2}</th><th>Profile</th></tr></thead><tbody></tbody>`);
     tb.select("tbody").selectAll("tr").data(all.slice().sort((a, b) => b[xk]-a[xk]), d => d.id).join("tr")
       .attr("tabindex", 0).attr("class", d => rowClass(d, ss))
       .on("click", (e, d) => pin(d)).on("keydown", (e, d) => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); pin(d); } })
-      .html(d => `<td>${d.id}${pairLetter(d) ? ` (${pairLetter(d)})` : ""}</td><td>${d.gender === "F" ? "mujer" : "hombre"}</td><td>${d.age ?? "n/d"}</td><td>${d.psqi ?? "n/d"}</td><td>${fsr(d[xk])}</td><td>${d[yk] != null ? fsr(d[yk]) : "sin dato"}</td><td>${S.vuln.has(d.id) ? "vulnerable" : ""}</td>`);
+      .html(d => `<td>${d.id}${pairLetter(d) ? ` (${pairLetter(d)})` : ""}</td><td>${d.gender === "F" ? "woman" : "man"}</td><td>${d.age ?? "n/a"}</td><td>${d.psqi ?? "n/a"}</td><td>${fsr(d[xk])}</td><td>${d[yk] != null ? fsr(d[yk]) : "no data"}</td><td>${S.vuln.has(d.id) ? "vulnerable" : ""}</td>`);
   }
   bus.on("hover.sc", () => paint());
   bus.on("pin.sc", () => { paint(); key(); table(); });
