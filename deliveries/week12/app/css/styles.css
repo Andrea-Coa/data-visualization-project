@@ -101,19 +101,14 @@ button,select{font:inherit;color:inherit}
 .ph{flex-wrap:wrap}
 .ph h2{flex:1 1 220px}
 .btn-icon{padding:5px 9px;font-size:14px;line-height:1}
-/* interruptor de los mapas Δ en la cabecera de los topomapas */
+/* selector de interpolación en la cabecera de los topomapas */
 .isel{flex:none;appearance:none;-webkit-appearance:none;background:var(--raise);border:1px solid var(--rule2);border-radius:999px;color:var(--ink);font-size:11px;font-weight:500;padding:1px 22px 1px 9px;cursor:pointer;
   background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);
   background-position:calc(100% - 12px) 55%,calc(100% - 8px) 55%;background-size:4px 4px,4px 4px;background-repeat:no-repeat}
 .isel option{background:#161A22;color:var(--ink)}
-.tog{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule2);background:var(--raise);color:var(--ink2);border-radius:999px;padding:1px 9px 1px 4px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap}
-.tog::before{content:"";width:22px;height:12px;border-radius:6px;background:var(--rule2) radial-gradient(circle at 6px 50%,var(--ink2) 3.5px,transparent 4px)}
-.tog[aria-pressed="true"]{color:var(--ink)}
-.tog[aria-pressed="true"]::before{background:var(--ink) radial-gradient(circle at 16px 50%,var(--bg) 3.5px,transparent 4px)}
 @media (min-width:1101px){
   html,body{overflow:hidden}
   .board{height:calc(100vh - var(--bar-h));height:calc(100svh - var(--bar-h))}
-  .board.no-d{--wl:minmax(0,1.3fr);--wc:minmax(0,1.6fr)}   /* sin Δ: dos columnas de mapas, más espacio a la izquierda */
   /* columnas intercambiadas: personas a la derecha y vistas secundarias a la izquierda; el centro no se mueve */
   .board.swap{grid-template-columns:var(--ws) var(--wc) var(--wl)}
   .board.swap .col-s{order:-1;border-left:0;border-right:1px solid var(--rule)}
