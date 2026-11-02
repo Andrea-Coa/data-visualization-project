@@ -230,7 +230,8 @@ const scatter = (() => {
     const head = "Δθ vs. Δ behavior";
     const info = notes("One point per person: Δθ (deprivation − normal) vs. Δ of the behavioral marker. Shaded: vulnerable quadrant (both above the median).",
       "Box: Spearman ρ, 95% CI and n (drag to move, click to minimize). Click: select a person; drag: lasso.");
-    setTitle("t-sc", cmpGroups() ? `${head}: two groups` : (S.selected ? `${head}: your selection` : head), "", info);
+    // el título no cambia con la selección (los anillos y la leyenda ya la muestran): así la caja no cambia de alto
+    setTitle("t-sc", cmpGroups() ? `${head}: two groups` : head, "", info);
   }
   function key(){
     const G = cmpGroups();

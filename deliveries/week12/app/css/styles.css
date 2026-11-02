@@ -355,3 +355,6 @@ body{background:var(--page)}
 .sec.is-max .sec-btn{pointer-events:none}
 .is-max .vx{color:var(--ink);border-color:var(--rule2)}
 .is-max .view{flex:1 1 0!important;height:auto!important;min-height:0!important;max-height:none!important}
+/* cabeceras de vista de alto fijo: título y leyenda en una línea, para que seleccionar no mueva las vistas de abajo */
+.p-scatter .ph{flex-wrap:nowrap}
+.p-scatter .ph h2{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
