@@ -238,7 +238,7 @@ const scatter = (() => {
   function tipFor(d){
     const xk = S.xKey(), yk = yK(), L2 = pairLetter(d);
     return `<div class="h">${d.id}${L2 ? ` (${L2})` : ""} <span class="m">${d.gender === "F" ? "woman" : "man"}${d.age != null ? ", "+d.age+" y" : ""}</span></div>` +
-      trow(xName(), fsr(d[xk])) + trow(mkY().ax2, d[yk] != null ? fsr(d[yk]) : "no data") + (d.psqi != null ? trow("PSQI", d.psqi) : "");
+      trow(xName(), fsr(d[xk])) + trow(mkY().ax2, d[yk] != null ? fsr(d[yk]) : "no data") + (d.psqi != null ? trow("PSQI", d.psqi) : "") + qualRows(d.id);
   }
   const rowClass = (d, ss) => [ss && ss.has(d.id) ? "sel" : "", ss && !ss.has(d.id) ? "dim" : "", pairLetter(d) ? "pin" : ""].join(" ");
   function table(){

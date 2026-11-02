@@ -114,7 +114,7 @@ const indiv = (() => {
     const p = P.find(d => d.id === h.row), t = e && SUBTOPO[h.row][e], g = model.groups.find(g => g.ids.includes(h.row)), yk = yK();
     return `<div class="h">${h.row}${e ? ` · ${e}` : ""} <span class="m">${g ? g.name.toLowerCase() : ""}</span></div>` +
       (t ? trow("NS → SD", `${fr(t.NS[model.met])} → ${fr(t.SD[model.met])}`) + trow(`Δ${METN[model.met]}`, fsr(model.D.get(h.row)[h.col])) : "") +
-      (p && p[yk] != null ? trow(model.mk.ax2, fsr(p[yk])) : "");
+      (p && p[yk] != null ? trow(model.mk.ax2, fsr(p[yk])) : "") + qualRows(h.row);
   }
   function setHover(row, col){
     if(hv.row === row && hv.col === col) return;

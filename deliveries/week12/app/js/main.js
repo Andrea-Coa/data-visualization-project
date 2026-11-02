@@ -8,8 +8,8 @@ function loadData(){
   const base = window.BATIMIX_BASE || "";
   // las vistas secundarias son opcionales: si faltan sus JSON, la app funciona igual
   const opt = f => d3.json(`${base}data/${f}.json`).catch(() => null);
-  return Promise.all([Promise.all(FILES.map(f => d3.json(`${base}data/${f}.json`))), opt("aperiodic"), opt("connectivity")])
-    .then(([[p, t, c, s, st, mv, c3], ap, cn]) => ({participants:p, topo:t, coords:c, subEpochs:s, subTopo:st, multiverse:mv, coords3d:c3, aperiodic:ap, connectivity:cn}))
+  return Promise.all([Promise.all(FILES.map(f => d3.json(`${base}data/${f}.json`))), opt("aperiodic"), opt("connectivity"), opt("quality")])
+    .then(([[p, t, c, s, st, mv, c3], ap, cn, ql]) => ({participants:p, topo:t, coords:c, subEpochs:s, subTopo:st, multiverse:mv, coords3d:c3, aperiodic:ap, connectivity:cn, quality:ql}))
     .catch(() => new Promise((res, rej) => {
       if(window.BATIMIX_DATA) return res(window.BATIMIX_DATA);
       const sc = document.createElement("script"); sc.src = `${base}data/data.js`;
@@ -21,7 +21,7 @@ function loadData(){
 
 function prepare(D){
   P = D.participants; TOPO = D.topo; COORDS = D.coords; SUBEP = D.subEpochs; SUBTOPO = D.subTopo || {}; MULTI = D.multiverse || null; COORDS3 = D.coords3d || null;
-  APER = D.aperiodic || null; CONN = D.connectivity || null;
+  APER = D.aperiodic || null; CONN = D.connectivity || null; QUAL = D.quality || null;
   EEG = P.filter(d => d.d_front_var != null); EEG_IDS = EEG.map(d => d.id);
   ELEC = Object.keys(COORDS).filter(e => TOPO[e]);
   const qv = bh(ELEC.map(e => TOPO[e].sigVar)), qm = bh(ELEC.map(e => TOPO[e].sigMean));
@@ -135,7 +135,7 @@ loadData().then(D => {
       if(!old || Math.abs(old[0]-r.width) > 2 || Math.abs(old[1]-r.height) > 2){ sizes.set(e.target, [r.width, r.height]); if(old) changed = true; } });
     if(changed){ clearTimeout(rt); rt = setTimeout(drawAll, 120); }
   });
-  ["scatter", "topo", "dyn", "heat", "aper", "conn"].forEach(id => ro.observe($(id)));
+  ["scatter", "topo", "dyn", "heat", "aper", "conn", "eye"].forEach(id => ro.observe($(id)));
 }).catch(err => {
   console.error(err);
   const b = $("boot"); b.classList.add("err");

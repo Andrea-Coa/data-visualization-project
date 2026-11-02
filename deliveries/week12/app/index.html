@@ -72,10 +72,16 @@
   <aside class="col col-s" id="side" aria-label="Secondary views">
     <div class="side-head"><span class="side-title">Secondary views</span><button class="btn btn-icon" id="sidebtn" type="button" aria-expanded="true" aria-controls="side-body" title="Collapse secondary views">›</button></div>
     <div class="side-body" id="side-body">
+      <div class="sec-group"><b>Robustness checks</b> · can I trust the effect?</div>
       <section class="sec" data-open="true" aria-labelledby="b-aper">
-        <button class="sec-btn" id="b-aper" type="button" aria-expanded="true">Oscillatory or aperiodic</button>
+        <button class="sec-btn" id="b-aper" type="button" aria-expanded="true">Oscillatory or 1/f?</button>
         <div class="sec-body"><div class="ph"><h2 id="t-aper"></h2></div><div class="view" id="aper"></div></div>
       </section>
+      <section class="sec" data-open="false" aria-labelledby="b-eye">
+        <button class="sec-btn" id="b-eye" type="button" aria-expanded="false">Driven by blinks?</button>
+        <div class="sec-body"><div class="ph"><h2 id="t-eye"></h2></div><div class="view" id="eye"></div></div>
+      </section>
+      <div class="sec-group"><b>Exploratory</b> · a separate hypothesis</div>
       <section class="sec" data-open="false" aria-labelledby="b-conn">
         <button class="sec-btn" id="b-conn" type="button" aria-expanded="false">θ synchrony between regions</button>
         <div class="sec-body"><div class="ph"><h2 id="t-conn"></h2></div><div class="view" id="conn"></div></div>
@@ -119,7 +125,7 @@
         <tr><td>T5 Correlate</td><td>Does it converge with each marker? (Q5)</td><td>Scatter, Y-axis marker and ρ with its n</td></tr>
         <tr><td>T6 Describe trend</td><td>Does it change within the recording? (Q6)</td><td>Five minutes: with μθ, mean ± SE per epoch; with σθ, moving σθ in 40-s windows (Doran et al., 2001: state instability; window after Gudmundsson et al., 2007)</td></tr>
         <tr><td>T7 Compare groups</td><td>Do sex, PSQI or session order matter? (Q7)</td><td>Compare selector: two groups with two colors in all views</td></tr>
-        <tr><td>T8 Check robustness</td><td>Is the effect oscillatory or 1/f? Does synchrony change?</td><td>Secondary views: oscillatory or aperiodic; θ synchrony between regions</td></tr>
+        <tr><td>T8 Check robustness</td><td>Is the effect oscillatory or 1/f? Does synchrony change?</td><td>Secondary views: robustness checks (oscillatory or 1/f?, driven by blinks?) and exploratory θ synchrony</td></tr>
       </tbody>
     </table>
     <h3>Method</h3>
@@ -137,7 +143,7 @@
     </table>
     <p>All 448 results: <a href="../data/multiverse_specs.csv">multiverse_specs.csv</a>. Generated with <code>tools/build_multiverse.py</code>.</p>
     <h3 id="h-sec">Secondary views</h3>
-    <p>The right column collapses with ›. «Oscillatory or aperiodic» separates the rhythmic part from the 1/f background of the spectrum with specparam (settings of Bai et al., 2024, on this same dataset) and compares each person's change in σθ with that of their periodic theta: they match (ρ = 0.70 to 0.87), so theta variability is not an effect of the 1/f background. «θ synchrony between regions» uses wPLI² with average reference between 10 regions: it decreases in all 45 pairs, but none survives FDR; it is exploratory. Both follow your selection (without a statistical test in subgroups) and are generated from the raw EEG with <code>tools/build_secondary.py</code>.</p>
+    <p>The right column collapses with ›. Its first two views are <b>robustness checks</b> that defend the main finding; the third is <b>exploratory</b>. «Oscillatory or 1/f?» separates the rhythmic part from the 1/f background of the spectrum with specparam (settings of Bai et al., 2024, on this same dataset) and compares each person's change in σθ with that of their periodic theta: they match (ρ = 0.70 to 0.87), so theta variability is not an effect of the 1/f background. «θ synchrony between regions» uses wPLI² with average reference between 10 regions: it decreases in all 45 pairs, but none survives FDR; it is exploratory. «Driven by blinks?» detects blinks on Fp1/Fp2 (there is no EOG channel and no ICA) and recomputes σθ without the windows that touch a blink: each person's Δσθ barely changes (ρ = 0.85 frontal, 0.96 centrotemporal), so blinks do not drive it. All views follow your selection (without a statistical test in subgroups) and are generated from the raw EEG with <code>tools/build_secondary.py</code> and <code>tools/build_quality.py</code>. Hover any person in the scatter or heatmap to see their EEG quality.</p>
     <h3>Limitations</h3>
     <p>PVT paired for only 30 people (low power); heuristic preprocessing; Cui et al. used average reference, ICA and a different denominator, which may explain part of the non-replication.</p>
     <h3 id="h-table">Scatter data</h3>

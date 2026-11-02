@@ -197,6 +197,20 @@ def test_secondary():
           f"d_z {dz:+.3f} frente a {Cn['global']['dz']:+.3f}; {down} de 45 frente a {Cn['global']['pairs_down']}")
 
 
+def test_quality():
+    print("\n7. Data quality and blink check (data/quality.json)")
+    qf = APP / "data" / "quality.json"
+    if not qf.exists():
+        check("blink-check data", False, "missing data/quality.json (tools/build_quality.py)"); return
+    Q = json.loads(qf.read_text(encoding="utf-8")); worst_app = max(s["check_vs_app_max_abs_diff"] for s in Q["summary"].values())
+    check("σθ recomputed with all epochs equals the app's σθ", worst_app < 1e-5, f"max difference {worst_app:.1e}")
+    worst = 0.0
+    for roi, s in Q["summary"].items():
+        v = np.array([[p[f"d_sigma_{roi}_win"], p[f"d_sigma_{roi}_clean"]] for p in Q["persons"].values() if p.get(f"d_sigma_{roi}_clean") is not None], float)
+        worst = max(worst, abs(stats.spearmanr(v[:, 0], v[:, 1]).statistic - s["rho_clean_vs_all"]))
+    check("ρ with vs without blinks", worst < 1e-3, f"max difference {worst:.1e}")
+
+
 def take_screenshots(binary, base, profile, out):
     print(f"\n5. Regresión visual (capturas para revisar a mano en {out})")
     for w, h in ((1365, 768), (1600, 900)):
@@ -223,6 +237,7 @@ def main():
         test_reference_signal()
         test_consistency(R)
         test_secondary()
+        test_quality()
         take_screenshots(a.chrome, base, profile, out)
     srv.shutdown()
     bad = [n for n, ok, _ in RESULTS if not ok]

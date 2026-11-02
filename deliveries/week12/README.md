@@ -1,6 +1,6 @@
 # BATIMIX: One sleepless night does not affect everyone the same way (Week 12)
 
-Refined draft and peer-critique response. A linked D3.js explorer, **in a single view with a single header**, of individual vulnerability to sleep deprivation in resting-state EEG (OpenNeuro ds004902, 68 people with paired EEG). Three columns with no gaps between them: in the center, the 2 × 3 topomap matrix (the main view) with the five-minute series below (moving σθ or μθ per epoch); on the left, the people (vulnerability scatter and person × electrode heatmap); on the right, collapsible secondary views: «Oscillatory or aperiodic» (specparam) and «θ synchrony between regions» (wPLI). The 448-analysis multiverse is kept as a robustness analysis in About, in the Report and in `RefinedDraftReport.md` (section 4).
+Refined draft and peer-critique response. A linked D3.js explorer, **in a single view with a single header**, of individual vulnerability to sleep deprivation in resting-state EEG (OpenNeuro ds004902, 68 people with paired EEG). Three columns with no gaps between them: in the center, the 2 × 3 topomap matrix (the main view) with the five-minute series below (moving σθ or μθ per epoch); on the left, the people (vulnerability scatter and person × electrode heatmap); on the right, collapsible secondary views, grouped by purpose: two robustness checks, «Oscillatory or 1/f?» (specparam) and «Driven by blinks?», and one exploratory view, «θ synchrony between regions» (wPLI). Hovering any person shows their EEG quality (epochs used, interpolated channels, blinks). The 448-analysis multiverse is kept as a robustness analysis in About, in the Report and in `RefinedDraftReport.md` (section 4).
 
 - **Application:** [`app/index.html`](app/index.html), with a light theme (classic, default) or a dark theme (instrument) from the ◐ button in the header; direct links with `?theme=light` or `?theme=dark`
 - **Deployment (GitHub Pages):** https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/ (verify after the push; see "Deployment")
@@ -29,7 +29,7 @@ deliveries/week12/
     js/scatter.js                vulnerability scatter, lasso, click selection, A and B, data table
     js/dynamics.js               five minutes: with μθ, mean ± SE per epoch; with σθ, moving σθ in 40-s windows
     js/individuals.js            person × electrode heatmap with two behavior-defined groups and their consistency C(e)
-    js/secondary.js              secondary views: oscillatory or aperiodic (spectrum, Δ exponent and offset, Δσθ periodic) and θ synchrony (wPLI graph and effect per pair)
+    js/secondary.js              secondary views: oscillatory or aperiodic (spectrum, Δ exponent and offset, Δσθ periodic) and θ synchrony (wPLI graph and effect per pair) and eye-blink check
     js/report.js                 downloadable report (self-contained HTML with the view, how to read each chart, and CSV)
     js/main.js                   data loading, controls and start-up
     data/*.json                  final processed data (and data.js to open the page by double-click)
@@ -38,6 +38,7 @@ deliveries/week12/
     tools/build_coords.py        generates data/coords.json (2D) and data/coords3d.json (3D) from electrodes.tsv
     tools/build_topo_stats.py    generates data/topo.json: NS, SD, Δ, paired t, d_z and 95% CI per electrode (68 paired people)
     tools/build_secondary.py     generates data/aperiodic.json (specparam) and data/connectivity.json (wPLI) from the raw EEG
+    tools/build_quality.py       generates data/quality.json: per-person EEG quality and the blink check of σθ (raw EEG)
     tools/check_app.py           technical tests: statistics, per-electrode effects, reference signals, consistency, secondary views, screenshots
     tools/selftest.html          page used by check_app.py to read what the app computes and shows
     tools/check_reproduction.py  reproduces the processed CSVs from the raw EEG (notebook 02) and compares them with the repository
@@ -96,6 +97,14 @@ python3 tools/build_secondary.py --procs 6
 ```
 
 With the same preprocessing as notebook 02, it separates the periodic from the aperiodic part of the spectrum with specparam (settings of Bai et al., 2024, on this dataset) and computes theta wPLI² between 10 regions with average reference, including the mean change and 95% CI per region pair. It requires `mne-connectivity` and `fooof==1.1.0` (in `requirements.txt`) and takes about 5 minutes. If `data/aperiodic.json` or `data/connectivity.json` is missing, the app still works and the right column says so.
+
+## Data quality and blink check (from the raw EEG)
+
+```bash
+python3 tools/build_quality.py --procs 6
+```
+
+ds004902 has no EOG channel and the pipeline has no ICA, so blinks are detected on Fp1/Fp2 and σθ is recomputed with 1-s windows with and without the windows within 0.25 s of a blink. The script also checks that σθ recomputed with all epochs equals the app's σθ (maximum difference 4.9e-7).
 
 ## Reproducing from the raw EEG
 
