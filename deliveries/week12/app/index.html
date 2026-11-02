@@ -112,6 +112,16 @@
     <p>Procesamiento del equipo (Semana 6): notch de 50 Hz, pasabanda de 1 a 40 Hz, canales malos interpolados, sin ICA, referencia FCz. Mapas por interpolación biarmónica v4, la de EEGLAB y FieldTrip, sobre las posiciones reales de los electrodos (electrodes.tsv de ds004902) en proyección azimutal equidistante; el selector del panel muestra también la cúbica de MNE y el spline esférico (Perrin et al., 1989; m = 4, 20 términos de Legendre, sin regularización). Las tres implementaciones reproducen a las originales (EEGLAB y FieldTrip en MATLAB, MNE 1.8) con error menor a 1e-9 del rango. NS y SD comparten una escala secuencial por fila; Δ usa una escala divergente con cero neutro. Con un grupo seleccionado los mapas promedian a esas personas, sin prueba por electrodo. Correlaciones de Spearman con IC 95 %.</p>
     <h3 id="h-interp">Interpolación de los mapas</h3>
     <p>El selector «Interp.» del panel de topomapas solo cambia cómo se pinta el espacio <i>entre</i> electrodos. Los valores de cada electrodo, las pruebas t, los q de la FDR, los anillos y los rellenos son los mismos con cualquier método. v4 (por defecto) es la interpolación biarmónica de <i>topoplot</i> de EEGLAB y de <i>ft_topoplotER</i> de FieldTrip; «Cúbica · MNE» es la de <i>plot_topomap</i> de MNE-Python; «Spline esférico» interpola sobre las posiciones 3D (Perrin et al., 1989). Si un patrón aparece con un método y no con los otros, es un efecto del dibujo, no de los datos.</p>
+    <h3 id="h-robust">Robustez: multiverso de 448 análisis</h3>
+    <p>Para responder con honestidad a la no replicación de Cui et al. (2026) se calcularon 448 especificaciones: 4 regiones × 2 métricas (σθ, μθ) × 2 formas de cambio (absoluto, relativo) × 7 marcadores conductuales × 2 correlaciones (Spearman, Pearson) × 2 reglas de atípicos. La inferencia conjunta permuta las filas conductuales entre las 68 personas 2000 veces (Simonsohn, Simmons y Nelson, 2020). Ningún estadístico conjunto supera al azar:</p>
+    <table class="tasks">
+      <thead><tr><th>Prueba</th><th>Mediana de r</th><th>Significativos con r &gt; 0</th><th>Z de Stouffer</th></tr></thead>
+      <tbody>
+        <tr><td>Solo σθ (224)</td><td>+0.035 (p = 0.32)</td><td>0</td><td>+4.57 (p = 0.22)</td></tr>
+        <tr><td>Completo (448)</td><td>+0.012 (p = 0.42)</td><td>26; el azar llega a 56 (p = 0.15)</td><td>+3.13 (p = 0.33)</td></tr>
+      </tbody>
+    </table>
+    <p>Los 448 resultados: <a href="../data/multiverse_specs.csv">multiverse_specs.csv</a>. Se generan con <code>tools/build_multiverse.py</code>.</p>
     <h3>Limitaciones</h3>
     <p>PVT pareado para solo 30 personas (baja potencia); preprocesamiento heurístico; Cui et al. usaron referencia promedio, ICA y otro denominador, lo que puede explicar parte de la no replicación.</p>
     <h3 id="h-table">Datos de la dispersión</h3>

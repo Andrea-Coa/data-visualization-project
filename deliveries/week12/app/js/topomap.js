@@ -254,8 +254,9 @@ const topo = (() => {
     const sp = spec(), sc = scalesFor(sp.rows);
     // con el interruptor Δ apagado solo se dibujan NS y SD, con su barra de color
     const conds = S.showD ? ["NS", "SD", "D"] : ["NS", "SD"], nC = conds.length, nB = nC-1;
-    const labW = 22, barW = 66, topH = 22, rowGap = 10;
-    const s = Math.floor(Math.max(90, Math.min((W-labW-nB*barW-8)/nC, (H-topH-rowGap-4)/2)));
+    // en pantallas angostas las barras se achican y la unidad pasa al ícono ⓘ del panel (no cabe girada)
+    const narrow = W < 560, labW = 22, barW = narrow ? 50 : 66, topH = 22, rowGap = 10;
+    const s = Math.floor(Math.max(80, Math.min((W-labW-nB*barW-8)/nC, (H-topH-rowGap-4)/2)));
     const usedW = labW+nC*s+nB*barW, x0 = Math.max(0, (W-usedW)/2), y0 = Math.max(0, (H-(topH+2*s+rowGap))/2);
     const X = {lab:x0, NS:x0+labW, SD:x0+labW+s, bar1:x0+labW+2*s+6, D:x0+labW+2*s+barW, bar2:x0+labW+3*s+barW+6};
     const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
@@ -275,8 +276,8 @@ const topo = (() => {
       const seqF = v => C.seq((v-dom.seq[0])/((dom.seq[1]-dom.seq[0]) || 1)), divF = v => C.div((v+dom.div)/(2*dom.div));
       svg.append("text").attr("class", "rowhead").attr("transform", `translate(${X.lab+labW/2+2},${y+s/2})${row.label.length > 3 ? " rotate(-90)" : ""}`).style("fill", row.color || null).text(row.label);
       conds.forEach(cond => drawMap(svg, defs, `${ri}${cond}`, X[cond], y, s, row, cond, cond === "D" ? divF : seqF, cond === "D" ? divF : seqF, sp.mode));
-      bar(svg, defs, `s${ri}`, X.bar1, y, s, dom.seq, C.seq, false, UNIT[row.met]);
-      if(S.showD) bar(svg, defs, `d${ri}`, X.bar2, y, s, [-dom.div, dom.div], C.div, true, "Δ " + UNIT[row.met]);
+      bar(svg, defs, `s${ri}`, X.bar1, y, s, dom.seq, C.seq, false, narrow ? null : UNIT[row.met]);
+      if(S.showD) bar(svg, defs, `d${ri}`, X.bar2, y, s, [-dom.div, dom.div], C.div, true, narrow ? null : "Δ " + UNIT[row.met]);
     });
     // capa de enlace: anillo del electrodo bajo el cursor (blanco) y del electrodo que manda en la dispersión (ámbar)
     linkG = svg.append("g").style("pointer-events", "none");

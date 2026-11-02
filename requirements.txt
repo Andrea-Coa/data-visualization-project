@@ -1,6 +1,8 @@
 ipykernel
 numpy
 pandas
+scipy        # pruebas t, Spearman y multiverso (build_multiverse.py, build_topo_stats.py, check_app.py)
+statsmodels  # FDR de referencia en las pruebas técnicas (check_app.py)
 
 # visualización
 matplotlib

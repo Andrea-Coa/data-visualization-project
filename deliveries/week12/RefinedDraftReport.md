@@ -5,7 +5,7 @@
 **Fecha:** 28 de octubre de 2026
 **Aplicación:** `deliveries/week12/app/` · despliegue previsto en https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/ (verificar tras el push)
 
-![BATIMIX a 1600 × 900: matriz de topomapas, dispersión, cinco minutos y multiverso](assets/dashboard-1600x900.png)
+![BATIMIX a 1600 × 900: dispersión, mapa de calor persona × electrodo, cinco minutos y matriz de topomapas](assets/dashboard-1600x900.png)
 
 ## 1. Narrativa
 
@@ -23,7 +23,7 @@
 | ¿Dónde cambia, en la cabeza? | σθ: 4 de 61 electrodos con p < 0.05 sin corregir (AF8, Fp2, O2, Oz); μθ: 8; ninguno tras FDR: difuso, sin foco | Matriz de topomapas, columna Δ |
 | ¿Cuándo, en los cinco minutos? | SD sobre NS en 52 de 75 épocas; tendencia SD −0.0021 por minuto | Cinco minutos |
 | ¿Más inestable es más lento? | ρ = −0.10 [−0.44, 0.27], n = 30: no replica a Cui et al. | Dispersión |
-| ¿Depende de cómo se analiza? | En 448 análisis alternativos, ningún estadístico conjunto supera al azar (p ≥ 0.15) | Multiverso |
+| ¿Depende de cómo se analiza? | En 448 análisis alternativos, ningún estadístico conjunto supera al azar (p ≥ 0.15) | Acerca de, «Robustez» (sección 4) |
 
 **Conclusión preliminar.** Sin dormir, la theta de cada persona se mueve en direcciones distintas, y ese cambio no predice de forma robusta quién se deteriora. La única pista consistente es con el ánimo (afecto positivo, PANAS+), no con la vigilancia (PVT).
 
@@ -42,16 +42,16 @@
 | Un topomapa con conmutadores σ/μ y NS/SD/Δ | Matriz 2 × 3 de topomapas: columnas NS, SD y Δ; filas σθ y μθ, o las personas A y B elegidas con clic en la dispersión | Comparar condiciones, métricas y personas sin conmutar (T1, T2, T4) |
 | Franjas por región de 20 px | Franja de las 68 personas bajo la dispersión, con el conteo 39 / 29 | El hallazgo central necesitaba evidencia visual |
 | Selección solo con lazo; ρ fijo de los 68 | Lazo + **Comparar dos grupos** (mujeres vs hombres, orden de sesión, PSQI, vulnerables vs resto), con un color por grupo en las cuatro vistas y ρ por grupo | Tarea T7: los moderadores se ven lado a lado, no filtrados de a uno |
-| Vistas que solo mostraban | Todas enlazadas: clic en un electrodo o una ventana de tiempo redefine el eje x de la dispersión; clic en dos puntos compara a dos personas; clic en un análisis del multiverso lo carga | "Todo interactivo": cada vista es también un control |
-| Sin vista por persona | Botón **Individuos**: panel flotante que se desliza sobre la columna derecha (la matriz de mapas sigue a la vista). Heatmap persona × electrodo con dos grupos definidos solo por la conducta (se deterioran frente a resisten; o los grupos de Comparar) y su consistencia C(e); grafo de similitud entre personas que se arrastra, se agrupa y se acerca | Tareas T3 y T4 sin promedios: ¿quienes se deterioran comparten una firma? Clic en una fila o un nodo = persona A o B en la matriz de mapas |
+| Vistas que solo mostraban | Todas enlazadas: clic en un electrodo o una ventana de tiempo redefine el eje x de la dispersión; clic en dos puntos o en dos filas del mapa de calor compara a dos personas | "Todo interactivo": cada vista es también un control |
+| Sin vista por persona | Panel fijo con el mapa de calor persona × electrodo: dos grupos definidos solo por la conducta (se deterioran frente a resisten; o los grupos de Comparar) y su consistencia C(e). En la entrega era un panel flotante con un grafo de similitud; el grafo se retiró para reducir gráficos | Tareas T3 y T4 sin promedios: ¿quienes se deterioran comparten una firma? Clic en una fila o un nodo = persona A o B en la matriz de mapas |
 | Sin forma de llevarse lo visto | Botón **Reporte**: HTML autocontenido con la vista actual, cómo leer cada gráfico, la tabla de personas y su CSV | Que el investigador documente y comparta lo que encontró |
 | Títulos largos | Etiqueta de tarea + titular breve calculado con los datos + cifras en tono apagado | Cada panel transmite su mensaje en pocas palabras |
 | Marcadores: PVT mediana, KSS, SSS, PANAS | Además PVT lapsos y DE del TR | Basner y Dinges (2011) |
-| Sin respuesta a la no replicación | Multiverso de 448 análisis con inferencia por permutación, en una vista limpia: curva sobre la franja del azar y mediana de r por decisión | Diferencial metodológico (sección 4) |
+| Sin respuesta a la no replicación | Multiverso de 448 análisis con inferencia por permutación. Tuvo panel propio en la entrega del 28 de octubre; después, para reducir gráficos, pasó a «Acerca de» y al Reporte como análisis de robustez | Diferencial metodológico (sección 4) |
 
 ## 3. Justificación del diseño
 
-**Disposición.** Dos columnas sin espacio entre paneles. Izquierda: la matriz de topomapas arriba (mapas de unos 180 px a 1365 × 768) y la serie de cinco minutos debajo. Derecha: la dispersión arriba y el multiverso debajo. Cada gráfico mide su panel y se redibuja si cambia el tamaño, de modo que no quedan huecos. En pantallas angostas los paneles se apilan.
+**Disposición.** Dos columnas sin espacio entre paneles. Izquierda: la dispersión y el mapa de calor persona × electrodo arriba, y la serie de cinco minutos debajo. Derecha: la matriz de topomapas (mapas de unos 175 px a 1365 × 768). El botón ⇄ intercambia las columnas. Cada gráfico mide su panel y se redibuja si cambia el tamaño, de modo que no quedan huecos. En pantallas angostas los paneles se apilan.
 
 **Tareas y vistas** (tipología de Brehmer y Munzner, 2013):
 
@@ -59,26 +59,26 @@
 |---|---|---|---|
 | T1 Localizar | ¿Dónde cambia theta? (Q1) | Matriz, columna Δ | Mapa interpolado (v4 de EEGLAB y FieldTrip) con anillo (p < 0.05) y relleno (FDR) |
 | T2 Comparar métricas | ¿Variabilidad o media? (Q2) | Matriz, filas σθ y μθ | Las dos métricas a la vista, una sobre otra |
-| T3 Identificar | ¿Quiénes son vulnerables? (Q3) | Dispersión; heatmap de Individuos | Cuadrante ámbar (sobre ambas medianas), lazo y franja de las 68 personas; una fila por persona |
-| T4 Comparar | ¿Comparten firma espacial? (Q4) | Matriz por grupo; filas A y B; heatmap y grafo de Individuos | Promedio del grupo activo; dos personas con escalas compartidas; C(e) por grupo y vecinos del mismo grupo frente al azar |
+| T3 Identificar | ¿Quiénes son vulnerables? (Q3) | Dispersión; mapa de calor | Cuadrante ámbar (sobre ambas medianas), lazo y franja de las 68 personas; una fila por persona |
+| T4 Comparar | ¿Comparten firma espacial? (Q4) | Matriz por grupo; filas A y B; mapa de calor | Promedio del grupo activo; dos personas con escalas compartidas; C(e) por grupo |
 | T5 Correlacionar | ¿Converge con cada marcador? (Q5) | Dispersión, eje Y | ρ de Spearman con IC 95 % y n en el título, recalculado por grupo |
 | T6 Describir tendencia | ¿Cambia dentro del registro? (Q6) | Cinco minutos | Media ± EE por época del grupo activo |
 | T7 Comparar grupos | ¿Influyen sexo, PSQI u orden de sesión? (Q7) | Selector Comparar | Dos grupos con dos colores en las cuatro vistas: filas de mapas, ρ por grupo, Δ por época |
-| T8 Verificar robustez | ¿Depende de las decisiones analíticas? | Multiverso | Curva sobre la franja del azar, mediana de r por decisión, filtros |
+| T8 Verificar robustez | ¿Depende de las decisiones analíticas? | Acerca de, «Robustez» | Estadísticos conjuntos del multiverso con su p de permutación y enlace al CSV de los 448 análisis |
 
 **Codificación y color.** Tema oscuro tipo instrumento: los mapas "brillan" sobre el fondo. NS = cian, SD = magenta. NS y SD comparten una escala secuencial (inferno) por fila para que comparar columnas sea comparar valores; en el modo A / B ambas filas comparten escala. Δ usa una escala divergente cian, oscuro, magenta con el cero fundido en el fondo. Ámbar marca el cuadrante vulnerable. Etiquetas directas (NS y SD al final de las series, conteo 39 / 29 sobre la franja, "análisis inicial" en la curva) en vez de leyendas lejanas.
 
 **Tipografía.** Geist para títulos y texto, Geist Mono para cifras y ejes. Mínimo 10 px en gráficos.
 
-**Interacción.** Lazo libre, clic en dos puntos para A y B, Esc y Limpiar, selector de grupo, región y métrica globales, filtro por decisión y carga de cualquier análisis del multiverso en la dispersión. Respuesta inmediata, sin animación decorativa, estados de foco visibles (principios de Emil Kowalski).
+**Interacción.** Lazo libre, clic en dos puntos para A y B, Esc y Limpiar, selector de grupo, región y métrica globales. Respuesta inmediata, sin animación decorativa, estados de foco visibles (principios de Emil Kowalski).
 
-**Accesibilidad.** Contraste AA sobre fondo oscuro, foco visible, selector de grupos como alternativa al lazo, filas del multiverso y curva operables con teclado (flechas + Enter), tabla de datos en "Acerca de" con filas que eligen A y B.
+**Accesibilidad.** Contraste AA sobre fondo oscuro, foco visible, selector de grupos como alternativa al lazo, tabla de datos en "Acerca de" con filas que eligen A y B.
 
-## 4. Diferencial: multiverso explorable
+## 4. Diferencial: multiverso de 448 análisis
 
 Una sola correlación es una de muchas decisiones posibles. Para responder con honestidad a la no replicación de Cui et al., calculamos **448 especificaciones**: 4 regiones (frontal, centro-temporal, posterior, global) × 2 métricas (σθ, μθ) × 2 formas de cambio (absoluto, relativo) × 7 marcadores conductuales × 2 correlaciones (Spearman, Pearson) × 2 reglas de atípicos (todos, excluir |z| > 2.5). Todas se orientan a deterioro, de modo que la hipótesis predice r > 0.
 
-La inferencia conjunta sigue a Simonsohn, Simmons y Nelson (2020), adaptada a datos observacionales sin covariables: se permutan las filas conductuales entre los 68 sujetos (2000 veces), se recalcula el multiverso completo y se comparan tres estadísticos con su distribución nula. La franja gris de la curva es el 95 % de las curvas permutadas. El diseño explorable (filtrar por decisión, abrir un análisis) sigue a Dragicevic et al. (2019).
+La inferencia conjunta sigue a Simonsohn, Simmons y Nelson (2020), adaptada a datos observacionales sin covariables: se permutan las filas conductuales entre los 68 sujetos (2000 veces), se recalcula el multiverso completo y se comparan tres estadísticos con su distribución nula. El umbral de cada estadístico es el percentil 95 de su distribución permutada. En la entrega del 28 de octubre tenía un panel explorable (Dragicevic et al., 2019); para reducir gráficos, el equipo lo retiró del tablero y lo dejó como análisis de robustez en «Acerca de» y en el Reporte, con los 448 resultados en `data/multiverse_specs.csv`.
 
 | Prueba | Mediana de r | Significativos con r > 0 | Z de Stouffer |
 |---|---|---|---|
@@ -96,14 +96,14 @@ Los 26 análisis significativos son todos PANAS+ con μθ: a mayor aumento de po
 3. La elevación de theta en SD es leve y sostenida a lo largo de los cinco minutos.
 4. La inestabilidad theta no predice el enlentecimiento en el PVT (ρ = −0.10, n = 30), tampoco con lapsos (ρ = −0.01).
 5. El resultado no depende de una decisión analítica: en todo el multiverso ningún estadístico conjunto supera al azar.
-6. Persona por persona tampoco aparece una firma de vulnerabilidad: con el PVT, quienes se deterioran y quienes resisten tienen consistencia media C = −0.02 y +0.10, y en el grafo 19 de 42 vecinos de quienes se deterioran son de su grupo (azar ≈ 19). La excepción vuelve a ser el ánimo: quienes pierden afecto positivo suben más theta (C = +0.28 frente a −0.01 en σθ; +0.35 frente a −0.07 en μθ), aunque sus patrones no se parecen más entre sí.
+6. Persona por persona tampoco aparece una firma de vulnerabilidad: con el PVT, quienes se deterioran y quienes resisten tienen consistencia media C = −0.02 y +0.10, y en un grafo de similitud (analizado en la entrega, hoy fuera del tablero) 19 de 42 vecinos de quienes se deterioran son de su grupo (azar ≈ 19). La excepción vuelve a ser el ánimo: quienes pierden afecto positivo suben más theta (C = +0.28 frente a −0.01 en σθ; +0.35 frente a −0.07 en μθ), aunque sus patrones no se parecen más entre sí.
 
 ## 6. Limitaciones
 
 - n bajo para la conducta (PVT 30), con poca potencia estadística.
 - Preprocesamiento heurístico: sin ICA, sin re-referenciar, detección de canales malos por varianza.
 - Las pruebas por electrodo con subgrupos no se muestran (n pequeño); los grupos pequeños son exploratorios.
-- La versión 1.0.8 del dataset actualizó un archivo de `sub-01` que la Semana 6 marcó como corrupto: hay que volver a descargarlo.
+- Tres grabaciones de ojos abiertos (`sub-01`, `sub-28` y `sub-44`, sesión 2) están truncadas en el bucket de OpenNeuro y MNE no puede leerlas; se verificó con una descarga del 2 de noviembre de 2026, así que volver a descargar no las repara.
 - Xiang et al. (2024) parecen asignar los valores t del PVT a indicadores distintos de los del diccionario del dataset; seguimos el diccionario.
 - Evaluación con usuarios todavía pendiente.
 
