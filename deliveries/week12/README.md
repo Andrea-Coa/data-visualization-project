@@ -2,7 +2,7 @@
 
 Borrador refinado y respuesta a la crítica. Explorador enlazado en D3.js, **en una sola vista y con un único header**, sobre la vulnerabilidad individual a la privación de sueño en EEG de reposo (OpenNeuro ds004902, 68 personas con EEG pareado). Cuatro paneles sin espacio entre ellos: dispersión de vulnerabilidad, mapa de calor persona × electrodo, cinco minutos (σθ móvil o μθ por época) y matriz 2 × 3 de topomapas (NS, SD, Δ por σθ y μθ, o por las personas A y B elegidas en la dispersión). El multiverso de 448 análisis ya no es un panel: queda como análisis de robustez en «Acerca de», en el Reporte y en `RefinedDraftReport.md` (sección 4).
 
-- **Aplicación:** [`app/index.html`](app/index.html), con tema oscuro (instrumento) o claro (clásico) desde el botón ◐ del header; enlaces directos con `?tema=oscuro` o `?tema=claro`
+- **Aplicación:** [`app/index.html`](app/index.html), con tema claro (clásico, por defecto) u oscuro (instrumento) desde el botón ◐ del header; enlaces directos con `?tema=oscuro` o `?tema=claro`
 - **Despliegue (GitHub Pages):** https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/ (verificar tras el push; ver "Despliegue")
 - **Página del proyecto:** [`project/index.html`](project/index.html)
 - **Equipo:** Jimena Gurbillon, Andrea Coa, Paolo Medrano · DS5343 Data Visualization, UTEC 2026-2

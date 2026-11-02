@@ -27,9 +27,14 @@ const topo = (() => {
     return {T:out, mode:"group", n:ids.length};
   }
   function spec(){
-    const [a, b] = S.pair;
-    if(a && b && SUBTOPO[a.id] && SUBTOPO[b.id])
-      return {mode:"pair", rows:[{label:`A · ${a.id}`, met:S.met, T:SUBTOPO[a.id]}, {label:`B · ${b.id}`, met:S.met, T:SUBTOPO[b.id]}]};
+    // dos personas lado a lado: las fijadas con Mayús + clic (A y B) o una selección de exactamente dos;
+    // con tres o más, el promedio del grupo
+    const sel2 = S.selected && S.selected.length === 2 ? S.selected : null;
+    const [a, b] = S.pair.length === 2 ? S.pair.map(d => d.id) : (sel2 || []);
+    if(a && b && SUBTOPO[a] && SUBTOPO[b]){
+      const lab = S.pair.length === 2 ? ["A · ", "B · "] : ["", ""];
+      return {mode:"pair", names:[lab[0]+a, lab[1]+b], rows:[{label:lab[0]+a, met:S.met, T:SUBTOPO[a]}, {label:lab[1]+b, met:S.met, T:SUBTOPO[b]}]};
+    }
     const G = cmpGroups();
     if(G){
       const ts = G.map(gr => groupTopo(gr.ids));
@@ -356,13 +361,13 @@ const topo = (() => {
       (METHODS[stats.method] || "") + " NS y SD comparten una escala secuencial por fila; Δ usa una divergente centrada en 0."];
     if(sp.mode === "pair" || sp.mode === "cmp"){
       const [r0, r1] = sp.rows, m0 = meanD(r0.T, S.met), m1 = meanD(r1.T, S.met);
-      const n0 = sp.mode === "pair" ? `A ${S.pair[0].id}` : sp.G[0].name, n1 = sp.mode === "pair" ? `B ${S.pair[1].id}` : sp.G[1].name;
-      setTitle("t-topo", `Topomapas θ: ${sp.mode === "pair" ? "personas A y B" : "dos grupos"}`,
+      const n0 = sp.mode === "pair" ? sp.names[0] : sp.G[0].name, n1 = sp.mode === "pair" ? sp.names[1] : sp.G[1].name;
+      setTitle("t-topo", `Topomapas θ: ${sp.mode === "pair" ? "dos personas" : "dos grupos"}`,
         `Δ${METN[S.met]} medio: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`, notes(...base, "Ambas filas comparten las mismas escalas. Sin prueba por electrodo."));
       return;
     }
     if(sp.mode === "group"){
-      setTitle("t-topo", "Topomapas θ: tu selección", nb(`n = ${sp.n}`),
+      setTitle("t-topo", sp.n === 1 && S.selected ? `Topomapas θ: ${S.selected[0]}` : "Topomapas θ: tu selección", nb(`n = ${sp.n}`),
         notes(...base, `Δσθ &gt; 0 en ${up(sp.rows[0].T, "var")} de 61 electrodos. Sin prueba por electrodo en subgrupos.`));
       return;
     }

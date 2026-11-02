@@ -27,8 +27,7 @@ const indiv = (() => {
     const G = cmpGroups(), yk = yK(), mk = mkY(), withY = all.filter(id => byId.get(id) && byId.get(id)[yk] != null);
     let groups;
     if(G) groups = G.map(g => ({name:g.name, color:g.color, ids:g.ids.filter(id => D.has(id))}));
-    else if(S.selected){ const sel = new Set(S.selected);
-      groups = [{name:"Tu selección", color:C.ns, ids:all.filter(id => sel.has(id))}, {name:"Resto con marcador", color:C.rest, ids:withY.filter(id => !sel.has(id))}]; }
+    // la selección no reagrupa: se marca con un contorno en paintHeat, así las columnas no se mueven
     else { const w = mk.worse || 1, med = d3.median(withY, id => byId.get(id)[yk]), worse = id => w*(byId.get(id)[yk]-med) > 0;
       groups = [{name:"Vulnerables", color:C.vuln, ids:withY.filter(worse)}, {name:"Resistentes", color:C.rest, ids:withY.filter(id => !worse(id))}]; }
     groups = groups.filter(g => g.ids.length).map(g => {
@@ -128,6 +127,7 @@ const indiv = (() => {
     // persona: contorno de su columna; electrodo: contorno de su fila
     const ring = (id, w) => { const x = model.colX.get(id); if(x == null) return; o.append("rect").attr("x", x-.5).attr("y", top0-1).attr("width", cw+1).attr("height", bottom-top0+2).attr("fill", "none").attr("stroke", C.ink).attr("stroke-width", w); };
     if(hv.row) ring(hv.row, 1.2);
+    (S.selected || []).forEach(id => ring(id, 2));   // personas elegidas (clic o lazo): contorno de su columna
     S.pair.forEach((d, i) => { ring(d.id, 2); const x = model.colX.get(d.id); if(x != null) o.append("text").attr("class", "ab").attr("x", x+cw/2).attr("y", top0-6).attr("text-anchor", "middle").style("font-size", "10px").text("AB"[i]); });
     const rowRing = (i, c) => o.append("rect").attr("x", labW-1).attr("y", rowY(i)-.5).attr("width", right-labW+2).attr("height", rh+1).attr("fill", "none").attr("stroke", c).attr("stroke-width", 1.2);
     if(hv.col != null) rowRing(hv.col, C.ink);
@@ -150,7 +150,7 @@ const indiv = (() => {
   function render(){ build(); titles(); drawHeat(); }
   bus.on("pin.indiv", () => paintHeat());
   bus.on("hover.indiv", d => { const id = d ? d.id : null; if(hv.row !== id){ hv.row = id; paintHeat(); } });
-  bus.on("select.indiv", e => { if(!(e && e.live)) render(); });
+  bus.on("select.indiv", () => paintHeat());   // la selección solo cambia los contornos
   bus.on("axes.indiv", () => render());
   return {render};
 })();

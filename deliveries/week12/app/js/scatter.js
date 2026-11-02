@@ -107,16 +107,18 @@ const scatter = (() => {
   function paint(){
     if(!ptsG) return;
     const ss = S.selected ? new Set(S.selected) : null, hv = S.hovered, xk = S.xKey(), yk = yK(), G = cmpGroups();
-    // color: grupos de la comparación > selección con lazo (cian) > cuadrante vulnerable (ámbar) > resto
-    const col = d => G ? (G[0].set.has(d.id) ? C.g1 : (G[1].set.has(d.id) ? C.g2 : C.faint)) : (ss && ss.has(d.id) ? C.ns : (S.vuln.has(d.id) ? C.vuln : C.rest));
+    // color: grupos de la comparación > cuadrante vulnerable (ámbar) > resto. La selección no cambia el color:
+    // se marca con un anillo, para que cada persona conserve lo que su color dice de ella
+    const col = d => G ? (G[0].set.has(d.id) ? C.g1 : (G[1].set.has(d.id) ? C.g2 : C.faint)) : (S.vuln.has(d.id) ? C.vuln : C.rest);
     ptsG.selectAll("circle").attr("fill", col).attr("stroke", C.panel).attr("stroke-width", 1)
-      .attr("opacity", d => ss && !ss.has(d.id) ? .22 : .95).attr("r", d => hv && hv.id === d.id ? 7.5 : 5.5);
+      .attr("opacity", .95).attr("r", d => hv && hv.id === d.id ? 7.5 : 5.5);   // los no elegidos siguen visibles para poder sumarlos
     ptsG.selectAll("circle").filter(d => ss && ss.has(d.id)).raise();
-    // A y B: anillo y letra sobre su punto (solo si la persona tiene el marcador del eje y)
-    const marks = S.pair.map((d, i) => {
-      const h = hitPts.find(o => o.d.id === d.id);
-      return h ? {id:d.id, L:"AB"[i], x:h.x, y:h.y} : null;
-    }).filter(Boolean);
+    // anillo sobre cada persona elegida (con su código hasta 6, para saber quién es quién) y letra para A y B
+    const at = id => hitPts.find(o => o.d.id === id), lab = ss && ss.size <= 6;
+    const marks = (S.selected || []).map(id => { const h = at(id), p = S.pair.findIndex(d => d.id === id);
+      return h ? {id, L:p >= 0 ? "AB"[p] : (lab ? id.replace("sub-", "S") : ""), x:h.x, y:h.y} : null; })
+      .concat(S.pair.filter(d => !(ss && ss.has(d.id))).map(d => { const h = at(d.id), i = S.pair.indexOf(d); return h ? {id:d.id, L:"AB"[i], x:h.x, y:h.y} : null; }))
+      .filter(Boolean);
     abG.selectAll("circle").data(marks, d => d.id).join("circle").attr("cx", d => d.x).attr("cy", d => d.y).attr("r", 8.5).attr("fill", "none").attr("stroke", C.ink).attr("stroke-width", 2);
     abG.selectAll("text").data(marks, d => d.id).join("text").attr("class", "ab").attr("x", d => d.x+(d.x > W-40 ? -12 : 12)).attr("y", d => d.y+4)
       .attr("text-anchor", d => d.x > W-40 ? "end" : "start").text(d => d.L);
@@ -140,7 +142,7 @@ const scatter = (() => {
     const G = cmpGroups();
     const rg = G ? G.map(g => spearman(EEG.filter(d => g.set.has(d.id)), S.xKey(), yK())) : [];
     d3.select("#k-sc").html(G ? G.map((g, i) => `<span class="k"><i class="dot" style="background:${g.color}"></i>${g.name} ${nb(`ρ = ${isNaN(rg[i].rho) ? "n/d" : f2(rg[i].rho)}, n = ${rg[i].n}`)}</span>`).join("")
-      : `<span class="k"><i class="dot" style="background:var(--vuln)"></i>cuadrante vulnerable</span><span class="k"><i class="dash"></i>mediana</span>` + (S.selected ? `<span class="k"><i class="dot" style="background:var(--ns)"></i>tu selección</span>` : ""));
+      : `<span class="k"><i class="dot" style="background:var(--vuln)"></i>cuadrante vulnerable</span><span class="k"><i class="dash"></i>mediana</span>` + (S.selected ? `<span class="k"><i class="ring"></i>tu selección</span>` : ""));
   }
   function tipFor(d){
     const xk = S.xKey(), yk = yK(), L2 = pairLetter(d);

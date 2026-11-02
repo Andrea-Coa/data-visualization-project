@@ -7,9 +7,9 @@
 <meta name="description" content="Explorador enlazado en D3.js sobre la vulnerabilidad individual a la privación de sueño en EEG de reposo (OpenNeuro ds004902, 68 personas).">
 <meta name="theme-color" content="#0B0D12">
 <script>
-  // tema antes de pintar (sin parpadeo): ?tema=claro|oscuro en la URL, si no la última elección guardada
+  // tema antes de pintar (sin parpadeo): ?tema=claro|oscuro en la URL, si no la última elección guardada; por defecto, claro
   try{ const q = new URLSearchParams(location.search).get("tema"), t = q === "claro" ? "light" : q === "oscuro" ? "dark" : localStorage.getItem("batimix-tema");
-    if(t === "light"){ document.documentElement.dataset.theme = "light"; document.querySelector('meta[name="theme-color"]').content = "#FFFFFF"; } }catch(e){}
+    if(t !== "dark"){ document.documentElement.dataset.theme = "light"; document.querySelector('meta[name="theme-color"]').content = "#FFFFFF"; } }catch(e){}
 </script>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">

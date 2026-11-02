@@ -31,7 +31,7 @@ data-visualization-project/
     week12/             borrador refinado: app, datos finales, informe, crítica, paper, presentación, página
 ```
 
-La aplicación tiene tema oscuro (instrumento) y claro (clásico): botón ◐ del header, o `?tema=claro` en la URL.
+La aplicación tiene tema claro (clásico, por defecto) y oscuro (instrumento): botón ◐ del header, o `?tema=claro` en la URL.
 
 ## Ejecutar en local
 
