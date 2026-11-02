@@ -99,7 +99,7 @@ const indiv = (() => {
     svg.append("rect").attr("x", labW).attr("width", right-labW).attr("height", H).attr("fill", "transparent").style("cursor", "pointer")
       .on("pointermove", ev => { const h = hit(d3.pointer(ev, svg.node())); setHover(h.row, h.col); if(h.row || h.col != null) showTip(ev, tipHeat(h)); else hideTip(); })
       .on("pointerleave", () => { setHover(null, null); hideTip(); })
-      .on("click", ev => { const h = hit(d3.pointer(ev, svg.node())); hideTip(); if(h.row) pin(P.find(d => d.id === h.row)); else if(h.col != null) setElec(model.E[h.col]); });
+      .on("click", ev => { const h = hit(d3.pointer(ev, svg.node())); hideTip(); if(h.row){ const d = P.find(d => d.id === h.row); if(ev.shiftKey) pin(d); else togglePick(d); } else if(h.col != null) setElec(model.E[h.col]); });   // clic: suma o quita a la persona de la selección; Mayús + clic: A o B
     paintHeat();
   }
   function hit([px, py]){
@@ -139,7 +139,7 @@ const indiv = (() => {
     const [a, b] = model.groups, mC = g => d3.mean(g.cons), strong = g => g.cons.filter(c => Math.abs(c) >= .6).length;
     const hInfo = notes(`Una columna por persona y una fila por electrodo, por región de adelante hacia atrás: Δ${METN[model.met]} (SD − NS). Columna "media": promedio de todas las personas.`,
       "C(e), una columna por grupo: proporción del grupo cuyo Δ sube menos la proporción cuyo Δ baja en el electrodo e (de −1 a +1); la barra va a la derecha si sube.",
-      "Clic en una columna: persona A o B. Clic en una fila: ese electrodo pasa al eje x de la dispersión.",
+      "Clic en una columna: esa persona entra o sale de la selección; Mayús + clic: persona A o B. Clic en una fila: ese electrodo pasa al eje x de la dispersión.",
       "Vulnerables y resistentes se definen solo por la conducta (peor o no que la mediana del cambio en el marcador elegido), no por theta.");
     if(b){
       const dA = mC(a), dB = mC(b);

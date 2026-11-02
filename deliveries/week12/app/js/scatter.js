@@ -1,6 +1,7 @@
 /* Vista 2 · Vulnerabilidad (tareas T3, T5 y T7).
    Arriba: dispersión del cambio theta (región y métrica del header) frente al marcador conductual elegido.
-   Lazo libre = grupo; clic en un punto = persona A, segundo clic = B. */
+   Lazo libre = grupo; clic en un punto = la persona entra o sale de la selección (de 1 a n);
+   Mayús + clic = persona A o B para comparar sus mapas. */
 const scatter = (() => {
   const el = $("scatter");
   let svg, g, sx, sy, W, H, data = [], all = [], hitPts = [], delaunay = null, lassoPath, surface, ptsG, abG, plotB;
@@ -32,7 +33,7 @@ const scatter = (() => {
       if(d) showTip(ev, tipFor(d)); else hideTip();
     }).on("pointerup", finishLasso).on("pointercancel", cancelLasso)
       .on("pointerleave", () => { if(!brushing){ hover(null); hideTip(); svg.style("cursor", null); } })
-      .on("click", ev => { if(ev.target !== surface.node() && !brushing){ const d = nearest(d3.pointer(ev, svg.node())); if(d) pin(d); } });
+      .on("click", ev => { if(ev.target !== surface.node() && !brushing){ const d = nearest(d3.pointer(ev, svg.node())); if(d) pick(d, ev); } });
     polygon = null;
   }
   const plotPoint = ev => { const [x, y] = d3.pointer(ev, svg.node()); return [Math.max(m.l, Math.min(W-m.r, x)), Math.max(m.t, Math.min(plotB, y))]; };
@@ -48,13 +49,15 @@ const scatter = (() => {
     sample(ev); releasePointer();
     if(!moved){
       const hit = nearest(plotPoint(ev));
-      if(hit) pin(hit); else { clearBrushVisual(); setSelected(null); }
+      if(hit) pick(hit, ev); else { clearBrushVisual(); setSelected(null); }
       return;
     }
     polygon = trail.length >= 3 ? trail.slice() : null;
     if(!polygon || !applyLasso(polygon, false)){ polygon = null; setSelected(null); }
     drawLasso(polygon); trail = [];
   }
+  // clic: entra o sale de la selección; Mayús + clic: persona A o B (comparación de dos mapas)
+  function pick(d, ev){ if(ev && ev.shiftKey){ pin(d); return; } clearBrushVisual(); togglePick(d); }
   function cancelLasso(ev){ if(!brushing || ev.pointerId !== pointerId) return; releasePointer(); trail = []; drawLasso(polygon); setSelected(beforeIds); }
   function applyLasso(points, live){
     const xk = S.xKey(), yk = yK();
@@ -123,7 +126,7 @@ const scatter = (() => {
     const xk = S.xKey(), yk = yK(), head = "Δθ vs. Δ conductual";
     const info = notes("Cada punto es una persona con EEG y marcador conductual pareados; Δ = SD − NS.",
       "Líneas punteadas: medianas de ambos ejes. Área sombreada: cuadrante vulnerable (Δθ sobre la mediana y marcador peor que la mediana).",
-      "ρ de Spearman con IC 95 % (transformación z de Fisher). Clic en un punto: persona A o B; arrastrar: selección con lazo.");
+      "ρ de Spearman con IC 95 % (transformación z de Fisher). Clic en un punto: entra o sale de la selección; Mayús + clic: persona A o B; arrastrar: selección con lazo.");
     const G = cmpGroups();
     if(G){
       setTitle("t-sc", `${head}: dos grupos`, "", info);   // el ρ de cada grupo va en su leyenda

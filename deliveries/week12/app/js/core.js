@@ -96,6 +96,12 @@ function setSelected(ids, opts = {}){
   bus.call("select", null, {live: !!opts.live});
 }
 const activeIds = () => S.selected || EEG_IDS;
+// Clic en un punto de la dispersión: la persona entra o sale de la selección (de 1 a n; se suma a la del lazo).
+function togglePick(d){
+  const cur = S.selected ? [...S.selected] : [], i = cur.indexOf(d.id);
+  if(i >= 0) cur.splice(i, 1); else cur.push(d.id);
+  setSelected(cur.length ? cur : null);
+}
 // Comparaciones de dos grupos (tarea T7): cada moderador se ve lado a lado, con dos colores propios,
 // en las cuatro vistas a la vez (filas de mapas, ρ por grupo, Δ por época por grupo)
 const COMPARES = [
