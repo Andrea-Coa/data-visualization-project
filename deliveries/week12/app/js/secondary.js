@@ -6,7 +6,7 @@
       Δσθ periódica.
    2. Sincronía θ entre regiones: wPLI² debiased con referencia promedio, 10 regiones y 45 pares. */
 const side = (() => {
-  const elA = $("aper"), elC = $("conn");
+  const elA = $("aper"), elC = $("conn"), elE = $("eye");
   const isOpen = el => el.closest(".sec").dataset.open === "true";
   // personas de la vista: la selección (las que tienen dato) o todas
   const idsOf = all => { const s = S.selected ? S.selected.filter(id => all.includes(id)) : []; return s.length ? s : all; };
@@ -16,6 +16,7 @@ const side = (() => {
   function render(){
     if(isOpen(elA)) renderAper(); else d3.select(elA).selectAll("*").remove();
     if(isOpen(elC)) renderConn(); else d3.select(elC).selectAll("*").remove();
+    if(isOpen(elE)) renderEye(); else d3.select(elE).selectAll("*").remove();
   }
 
   // ---------------------------------------------------------------- oscilatoria o aperiódica
@@ -158,6 +159,61 @@ const side = (() => {
         "Bottom: each region pair's mean change with its 95% CI, sorted. Filled dots: CI excludes zero (uncorrected). All pairs fall below zero, but no pair survives FDR: a diffuse, consistent decrease rather than a localized effect. Hover a pair to highlight it on the head.",
         "Exploratory: at rest, much of theta connectivity may reflect aperiodic activity rather than oscillations (Monchy et al.); hence it is not a main view.",
         "Data: tools/build_secondary.py from the raw EEG (ds004902)."));
+  }
+
+  // ---------------------------------------------------------------- control de parpadeos
+  // ds004902 no tiene canal EOG y el pipeline no usa ICA: ¿los parpadeos explican σθ? (tools/build_quality.py)
+  function renderEye(){
+    if(!QUAL){ empty(elE, "Data missing (data/quality.json): generate it with tools/build_quality.py."); setTitle("t-eye", "", ""); return; }
+    d3.select(elE).selectAll("*").remove();
+    const W = elE.clientWidth || 280, H = Math.max(420, elE.clientHeight || 520);
+    const svg = d3.select(elE).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
+      .attr("role", "img").attr("aria-label", "Blink rate per person in NS and SD, and theta variability with and without blink-contaminated windows");
+    const Q = QUAL.persons, sm = QUAL.summary[S.roi], ss = S.selected ? new Set(S.selected) : null;
+    const colOf = id => S.vuln.has(id) ? C.vuln : C.rest;
+    // ---- 1. parpadeos por minuto, NS → SD (una línea por persona)
+    const h1 = Math.round(H*.36), m1 = {l:40, r:30, t:20, b:18};
+    const bl = Object.entries(Q).filter(([, q]) => q.NS && q.SD && q.NS.blinks_per_min != null && q.SD.blinks_per_min != null).map(([id, q]) => ({id, a:q.NS.blinks_per_min, b:q.SD.blinks_per_min}));
+    const bx = d3.scalePoint().domain(["NS", "SD"]).range([m1.l+18, W-m1.r-18]);
+    const by = d3.scaleLinear().domain([0, d3.max(bl, d => Math.max(d.a, d.b))]).nice().range([h1-m1.b, m1.t]);
+    svg.append("text").attr("class", "colhead").attr("x", m1.l-34).attr("y", 11).style("text-anchor", "start").style("font-size", "11px").text("Blinks per minute (Fp1/Fp2)");
+    svg.append("g").attr("class", "axis").attr("transform", `translate(${m1.l},0)`).call(d3.axisLeft(by).ticks(4).tickSizeOuter(0)).call(a => a.select(".domain").remove());
+    [["NS", C.ns], ["SD", C.sd]].forEach(([c, col]) => svg.append("text").attr("x", bx(c)).attr("y", h1-2).attr("text-anchor", "middle").style("font-size", "11px").style("font-weight", 600).style("fill", col).text(c));
+    const sl = svg.append("g").selectAll("line").data(bl.sort((u, v) => (ss && ss.has(u.id)) - (ss && ss.has(v.id)))).join("line")
+      .attr("x1", bx("NS")).attr("x2", bx("SD")).attr("y1", d => by(d.a)).attr("y2", d => by(d.b))
+      .attr("stroke", d => ss && ss.has(d.id) ? C.ink : colOf(d.id)).attr("stroke-width", d => ss && ss.has(d.id) ? 2 : 1).attr("opacity", d => ss ? (ss.has(d.id) ? 1 : .25) : .55)
+      .style("cursor", "pointer")
+      .on("pointerenter", (ev, d) => showTip(ev, `<div class="h">${d.id}</div>` + trow("blinks/min NS → SD", `${d.a} → ${d.b}`)))
+      .on("pointermove", ev => moveTip(ev)).on("pointerleave", hideTip)
+      .on("click", (ev, d) => { hideTip(); const p = P.find(o => o.id === d.id); if(!p) return; if(ev.shiftKey) pin(p); else togglePick(p); });
+    const medA = d3.median(bl, d => d.a), medB = d3.median(bl, d => d.b);
+    svg.append("line").attr("x1", bx("NS")).attr("x2", bx("SD")).attr("y1", by(medA)).attr("y2", by(medB)).attr("stroke", C.ink).attr("stroke-width", 3).attr("stroke-linecap", "round");
+    svg.append("text").attr("class", "ab").attr("x", (bx("NS")+bx("SD"))/2).attr("y", by(Math.max(medA, medB))-7).attr("text-anchor", "middle").style("font-size", "10.5px")
+      .text(`median ${L.format(".1f")(medA)} → ${L.format(".1f")(medB)}`);
+    // ---- 2. Δσθ con todas las ventanas frente a Δσθ sin las ventanas con parpadeos
+    const y0 = h1+18, m2 = {l:44, r:14, t:14, b:34}, k = S.roi;
+    const pts = Object.entries(Q).map(([id, q]) => ({id, x:q[`d_sigma_${k}_win`], y:q[`d_sigma_${k}_clean`]})).filter(d => d.x != null && d.y != null);
+    const ext = d3.extent(pts.flatMap(d => [d.x, d.y]));
+    const px = d3.scaleLinear().domain(ext).nice().range([m2.l, W-m2.r]), py = d3.scaleLinear().domain(px.domain()).range([H-m2.b, y0+m2.t]);
+    svg.append("text").attr("class", "colhead").attr("x", m2.l-38).attr("y", y0+6).style("text-anchor", "start").style("font-size", "11px").text(`Δσθ ${ROI[k].name}: with vs without blinks`);
+    svg.append("line").attr("x1", px(ext[0])).attr("y1", py(ext[0])).attr("x2", px(ext[1])).attr("y2", py(ext[1])).attr("stroke", C.ink2).attr("stroke-dasharray", "4 3");
+    svg.append("g").attr("class", "axis").attr("transform", `translate(0,${H-m2.b})`).call(d3.axisBottom(px).ticks(3).tickSizeOuter(0).tickFormat(fTick(L.format("+.2~f"))));
+    svg.append("g").attr("class", "axis").attr("transform", `translate(${m2.l},0)`).call(d3.axisLeft(py).ticks(3).tickSizeOuter(0).tickFormat(fTick(L.format("+.2~f")))).call(a => a.select(".domain").remove());
+    svg.append("text").attr("class", "atitle").attr("x", (m2.l+W-m2.r)/2).attr("y", H-2).attr("text-anchor", "middle").style("font-size", "10px").text("Δσθ, all 1-s windows");
+    svg.append("text").attr("class", "atitle").attr("transform", "rotate(-90)").attr("x", -(y0+m2.t+H-m2.b)/2).attr("y", 8).attr("text-anchor", "middle").style("font-size", "10px").text("Δσθ, blink windows removed");
+    svg.append("g").selectAll("circle").data(pts.sort((u, v) => (ss && ss.has(u.id)) - (ss && ss.has(v.id)))).join("circle")
+      .attr("cx", d => px(d.x)).attr("cy", d => py(d.y)).attr("r", 3.6).attr("fill", d => colOf(d.id))
+      .attr("stroke", d => ss && ss.has(d.id) ? C.ink : C.panel).attr("stroke-width", d => ss && ss.has(d.id) ? 2 : .8).style("cursor", "pointer")
+      .on("pointerenter", (ev, d) => showTip(ev, `<div class="h">${d.id}</div>` + trow("Δσθ, all windows", fsr(d.x)) + trow("Δσθ, without blinks", fsr(d.y))))
+      .on("pointermove", ev => moveTip(ev)).on("pointerleave", hideTip)
+      .on("click", (ev, d) => { hideTip(); const p = P.find(o => o.id === d.id); if(!p) return; if(ev.shiftKey) pin(p); else togglePick(p); });
+    svg.append("text").attr("class", "ab").attr("x", m2.l+4).attr("y", y0+m2.t+12).style("font-size", "11px").text(`ρ = ${f2(sm.rho_clean_vs_all)} · n = ${sm.n_clean} · dashed: identity`);
+    const bt = QUAL.meta.d_blinks_test;
+    setTitle("t-eye", `Blinks do not drive σθ: ρ = ${f2(sm.rho_clean_vs_all)} without them`, nb(`${ROI[k].name}; n = ${sm.n_clean}`),
+      notes(`No EOG channel and no ICA, so blinks were detected on Fp1 and Fp2 (MNE find_eog_events; the channel with more detections, in case one is a bad channel). Blink rate barely changes with deprivation (median ${f2(QUAL.meta.blinks_per_min.NS.median)} → ${f2(QUAL.meta.blinks_per_min.SD.median)} per minute; t = ${f2(bt.t)}, p = ${fp(bt.p)}), and its change is unrelated to Δσθ (ρ = ${f2(sm.rho_dblinks_vs_dsigma)}).`,
+        `Bottom: σθ recomputed with 1-s windows (50% overlap) inside each epoch, using all windows (x) or dropping those within 0.25 s of a blink (y); people need ${QUAL.meta.min_clean_epochs} usable epochs. Points near the dashed identity line mean blinks do not change each person's Δσθ.`,
+        `Within recordings, epochs with more blinks have lower, not higher, relative theta (mean r = ${f2(sm.within_recording_r_blinks_theta)}): blinks add slow (delta) power. Hover any person in the scatter or heatmap for their EEG quality (epochs used, interpolated channels, blinks).`,
+        "Data: tools/build_quality.py from the raw EEG (ds004902)."));
   }
 
   bus.on("select.side", e => { if(!(e && e.live)) render(); });

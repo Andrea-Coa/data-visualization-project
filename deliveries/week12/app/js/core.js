@@ -3,7 +3,7 @@
    Semana 12: sin animaciones; los cambios de estado se dibujan en el acto. */
 
 // ---------- datos (los asigna main.js tras cargar data/*.json) ----------
-let P = [], TOPO = {}, COORDS = {}, COORDS3 = null, APER = null, CONN = null, SUBEP = {}, EEG = [], EEG_IDS = [], ELEC = [], SUBTOPO = {}, MULTI = null;
+let P = [], TOPO = {}, COORDS = {}, COORDS3 = null, APER = null, CONN = null, QUAL = null, SUBEP = {}, EEG = [], EEG_IDS = [], ELEC = [], SUBTOPO = {}, MULTI = null;
 const $ = id => document.getElementById(id);
 
 // ---------- paleta: se lee de los tokens CSS (una sola fuente de verdad) ----------
@@ -213,6 +213,12 @@ function moveTip(e){
   tipEl.style.transform = `translate(${Math.max(8, x)}px,${Math.max(8, y)}px)`;
 }
 const hideTip = () => { tipEl.style.opacity = 0; };
+// calidad del EEG de una persona (tools/build_quality.py): épocas usadas, canales interpolados y parpadeos, NS y SD
+function qualRows(id){
+  const q = QUAL && QUAL.persons[id]; if(!q) return "";
+  const one = c => q[c] ? `${q[c].epochs ?? "?"} ep · ${q[c].interpolated.length ? `interp. ${q[c].interpolated.join(", ")}` : "no interp."}${q[c].blinks_per_min != null ? ` · ${q[c].blinks_per_min} blinks/min` : ""}` : "excluded";
+  return `<div class="m" style="margin-top:4px">EEG quality</div>` + trow("NS", one("NS")) + trow("SD", one("SD"));
+}
 const trow = (k, v, col) => `<div class="row"><span>${col ? `<i class="lk" style="background:${col}"></i>` : ""}${k}</span><b>${v}</b></div>`;
 
 // ---------- control segmentado ----------
