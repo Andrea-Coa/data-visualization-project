@@ -17,13 +17,19 @@ const side = (() => {
     if(isOpen(elA)) renderAper(); else d3.select(elA).selectAll("*").remove();
     if(isOpen(elC)) renderConn(); else d3.select(elC).selectAll("*").remove();
     if(isOpen(elE)) renderEye(); else d3.select(elE).selectAll("*").remove();
+    // el título de cada vista se escribe al final del dibujo y puede pasar a dos líneas, lo que achica la caja:
+    // si el gráfico quedó más alto que su caja, se redibuja una vez con el alto real
+    [[elA, renderAper], [elC, renderConn], [elE, renderEye]].forEach(([el, f]) => {
+      const g = isOpen(el) && el.querySelector("svg");
+      if(g && g.getBoundingClientRect().height > el.clientHeight+2) f();
+    });
   }
 
   // ---------------------------------------------------------------- oscilatoria o aperiódica
   function renderAper(){
     if(!APER){ empty(elA, "Data missing (data/aperiodic.json): generate it with tools/build_secondary.py."); setTitle("t-aper", "", ""); return; }
     d3.select(elA).selectAll("*").remove();
-    const W = elA.clientWidth || 280, H = Math.max(420, elA.clientHeight || 520);
+    const W = elA.clientWidth || 280, H = Math.max(300, elA.clientHeight || 520);
     const svg = d3.select(elA).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
       .attr("role", "img").attr("aria-label", "Spectrum with aperiodic fit, change in exponent and offset per electrode, and theta variability against its periodic part");
     const all = Object.keys(APER.persons), ids = idsOf(all), sel = ids.length < all.length, E = APER.meta.electrodes;
@@ -97,7 +103,7 @@ const side = (() => {
   function renderConn(){
     if(!CONN){ empty(elC, "Data missing (data/connectivity.json): generate it with tools/build_secondary.py."); setTitle("t-conn", "", ""); return; }
     d3.select(elC).selectAll("*").remove();
-    const W = elC.clientWidth || 280, H = Math.max(360, elC.clientHeight || 480);
+    const W = elC.clientWidth || 280, H = Math.max(300, elC.clientHeight || 480);
     const svg = d3.select(elC).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
       .attr("role", "img").attr("aria-label", "Change in theta synchrony between 10 scalp regions");
     const all = Object.keys(CONN.persons), ids = idsOf(all), sel = ids.length < all.length, G = CONN.group;
@@ -167,7 +173,7 @@ const side = (() => {
   function renderEye(){
     if(!QUAL){ empty(elE, "Data missing (data/quality.json): generate it with tools/build_quality.py."); setTitle("t-eye", "", ""); return; }
     d3.select(elE).selectAll("*").remove();
-    const W = elE.clientWidth || 280, H = Math.max(420, elE.clientHeight || 520);
+    const W = elE.clientWidth || 280, H = Math.max(300, elE.clientHeight || 520);
     const svg = d3.select(elE).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
       .attr("role", "img").attr("aria-label", "Blink rate per person in NS and SD, and theta variability with and without blink-contaminated windows");
     const Q = QUAL.persons, sm = QUAL.summary[S.roi], ss = S.selected ? new Set(S.selected) : null;

@@ -143,7 +143,7 @@ const indiv = (() => {
       "Vulnerable and resilient are defined by behavior only (worse or not than the median change in the chosen marker), not by theta.");
     if(b){
       const dA = mC(a), dB = mC(b);
-      setTitle("t-heat", `Δ${METN[model.met]} person × electrode`, nb(`C̄ ${a.name} ${fs2(dA)} · ${b.name} ${fs2(dB)}`), hInfo);
+      setTitle("t-heat", `Δ${METN[model.met]}`, nb(`C̄ ${a.name} ${fs2(dA)} · ${b.name} ${fs2(dB)}`), hInfo);
     } else setTitle("t-heat", `Δ${METN[model.met]} person × electrode`, nb(`${a.name}: |C| ≥ 0.6 at ${strong(a)} of 61, n = ${a.ids.length}`), hInfo);
     d3.select("#k-heat").html(`<span class="k">Δ${METN[model.met]} Deprivation − Normal</span><span class="k"><i style="width:64px;height:7px;border-radius:2px;background:linear-gradient(90deg,${d3.range(0, 1.01, .25).map(C.div).join(",")})"></i>±${fr(model.lim)}</span>`);
   }

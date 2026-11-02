@@ -14,9 +14,12 @@ const scatter = (() => {
   function build(){
     d3.select(el).selectAll("*").remove();
     // el SVG nunca es más alto que su panel: si no, el título del eje x invade el panel de abajo
-    W = el.clientWidth || 600; H = Math.round(Math.max(170, el.clientHeight || 400));
-    plotB = H-32;   // debajo: marcas y título del eje x
-    svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").attr("role", "img")
+    // área de datos cuadrada: el lado es el menor entre el ancho y el alto disponibles, y el SVG se centra en el panel
+    const aw = el.clientWidth || 600, ah = Math.round(Math.max(170, el.clientHeight || 400)), bottom = 32;
+    const side = Math.max(120, Math.min(aw-m.l-m.r, ah-m.t-bottom));
+    W = side+m.l+m.r; H = side+m.t+bottom;
+    plotB = H-bottom;   // debajo: marcas y título del eje x
+    svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").style("width", W+"px").style("margin", "0 auto").attr("role", "img")
       .attr("aria-label", "Scatter of the theta change against the behavioral marker; the data are listed in About");
     g = svg.append("g");
     sx = d3.scaleLinear().range([m.l, W-m.r]); sy = d3.scaleLinear().range([plotB, m.t]);

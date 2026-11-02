@@ -325,3 +325,16 @@ body{background:var(--page)}
 }
 .key .k.m{white-space:normal}
 @media (max-width:600px){ .ph .key{flex:1 1 100%;justify-content:flex-start} }
+/* dispersión cuadrada: la vista mide lo mismo de alto que de ancho (ancho de la columna menos el relleno del panel),
+   con un tope para que el mapa de calor conserve espacio; el mapa de calor ocupa el resto de la columna */
+@media (min-width:1101px){
+  .col-l{grid-template-rows:auto minmax(0,1fr);container-type:inline-size}
+  .p-scatter .view{flex:none;height:min(calc(100cqw - 26px), calc(50vh - 90px), calc(50svh - 90px))}
+}
+/* columna de personas más angosta: dispersión más chica y mapa de calor más alto; los mapas ganan ancho */
+.board{--wl:minmax(0,.74fr)}
+/* panel de validación: encabezados de grupo en una línea para dejar más alto a la sección abierta */
+.sec-group{flex-direction:row;align-items:baseline;gap:6px;padding:8px 12px 2px}
+.sec-group span::before{content:"· "}
+.side-head{padding:6px 8px 2px 12px}
+.sec-body{overflow:hidden}
