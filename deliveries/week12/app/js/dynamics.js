@@ -28,7 +28,7 @@ const dyn = (() => {
     svg.append("defs").append("clipPath").attr("id", "dclip").append("rect").attr("x", m.l).attr("y", m.t).attr("width", W-m.l-m.r).attr("height", H-m.t-m.b);
     g = svg.append("g");
     const pref = ROI[S.roi].pref, ids = activeIds();
-    G = cmpGroups();
+    G = viewGroups();
     // con comparación: Δ (SD menos NS) de cada grupo; sin comparación: NS y SD del grupo activo
     cur = G ? {D:G.map(gr => epochDiffStats(gr.ids, pref, met))} : {NS:epochStats(ids, pref, "NS", met), SD:epochStats(ids, pref, "SD", met)};
     XS = (G ? cur.D[0] : cur.SD).xs;

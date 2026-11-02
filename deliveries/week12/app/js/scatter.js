@@ -6,13 +6,16 @@ const scatter = (() => {
   const el = $("scatter");
   let svg, g, sx, sy, W, H, data = [], all = [], hitPts = [], delaunay = null, lassoPath, surface, ptsG, abG, plotB;
   let polygon = null, trail = [], pointerId = null, brushing = false, moved = false, beforeIds = null;
-  const m = {t:8, r:16, l:56};
+  // recuadro de ρ: posición elegida por quien lo arrastra (fracción del espacio libre), válida mientras no cambien los ejes
+  // un clic (sin arrastre) lo comprime en un ícono "ρ" y otro clic lo devuelve; el estado se conserva entre dibujos
+  let boxG, boxGeo = null, boxPos = null, boxAxes = null, boxDrag = null, qBottom = false, boxMin = false;
+  const m = {t:16, r:0, l:38};   // sin margen derecho: el área del gráfico llega al borde del SVG   // arriba: espacio para el rótulo "vulnerable" sobre su cuadrante
 
   function build(){
     d3.select(el).selectAll("*").remove();
     // el SVG nunca es más alto que su panel: si no, el título del eje x invade el panel de abajo
     W = el.clientWidth || 600; H = Math.round(Math.max(170, el.clientHeight || 400));
-    plotB = H-38;   // debajo: marcas y título del eje x
+    plotB = H-32;   // debajo: marcas y título del eje x
     svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").attr("role", "img")
       .attr("aria-label", "Scatter of the theta change against the behavioral marker; the data are listed in About");
     g = svg.append("g");
@@ -26,12 +29,13 @@ const scatter = (() => {
     }).on("lostpointercapture", cancelLasso);
     svg.on("pointermove", ev => {
       if(brushing){ if(ev.pointerId === pointerId){ sample(ev); if(moved){ drawLasso(trail); if(trail.length >= 3) applyLasso(trail, true); } } return; }
+      if(boxG && boxG.node().contains(ev.target)){ hover(null); hideTip(); svg.style("cursor", null); return; }
       const d = nearest(d3.pointer(ev, svg.node()));
       svg.style("cursor", d ? "pointer" : null); hover(d);
       if(d) showTip(ev, tipFor(d)); else hideTip();
     }).on("pointerup", finishLasso).on("pointercancel", cancelLasso)
       .on("pointerleave", () => { if(!brushing){ hover(null); hideTip(); svg.style("cursor", null); } })
-      .on("click", ev => { if(ev.target !== surface.node() && !brushing){ const d = nearest(d3.pointer(ev, svg.node())); if(d) pick(d, ev); } });
+      .on("click", ev => { if(ev.target !== surface.node() && !brushing && !(boxG && boxG.node().contains(ev.target))){ const d = nearest(d3.pointer(ev, svg.node())); if(d) pick(d, ev); } });
     polygon = null;
   }
   const plotPoint = ev => { const [x, y] = d3.pointer(ev, svg.node()); return [Math.max(m.l, Math.min(W-m.r, x)), Math.max(m.t, Math.min(plotB, y))]; };
@@ -81,26 +85,123 @@ const scatter = (() => {
     const xp = (xe[1]-xe[0])*.06 || .01, yp = (ye[1]-ye[0])*.08 || 1;
     sx.domain([Math.min(xe[0]-xp, 0), Math.max(xe[1]+xp, 0)]).nice(); sy.domain([Math.min(ye[0]-yp, 0), Math.max(ye[1]+yp, 0)]).nice();
     g.insert("g", ":first-child").attr("class", "gridl").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(sy).ticks(5).tickSize(-(W-m.l-m.r)).tickFormat(""));
-    const qy0 = st.w > 0 ? m.t : sy(st.ymed), qy1 = st.w > 0 ? sy(st.ymed) : plotB;
+    const qy0 = st.w > 0 ? m.t : sy(st.ymed), qy1 = st.w > 0 ? sy(st.ymed) : plotB; qBottom = st.w < 0;
     g.insert("rect", ".lasso-surface").attr("class", "quad").attr("x", sx(st.xmed)).attr("width", W-m.r-sx(st.xmed)).attr("y", qy0).attr("height", Math.max(0, qy1-qy0));
+    // el cuadrante se nombra en el gráfico (no en la leyenda): encima si está arriba, dentro de su borde inferior si está abajo
+    g.insert("text", ".lasso-surface").attr("class", "qlab").attr("x", W-m.r).attr("y", st.w > 0 ? m.t-5 : plotB-5).attr("text-anchor", "end").text("vulnerable");
     g.insert("line", ".lasso-surface").attr("class", "zero").attr("x1", sx(0)).attr("x2", sx(0)).attr("y1", m.t).attr("y2", plotB);
     g.insert("line", ".lasso-surface").attr("class", "zero").attr("x1", m.l).attr("x2", W-m.r).attr("y1", sy(0)).attr("y2", sy(0));
     g.insert("line", ".lasso-surface").attr("class", "median").attr("x1", sx(st.xmed)).attr("x2", sx(st.xmed)).attr("y1", m.t).attr("y2", plotB);
     g.insert("line", ".lasso-surface").attr("class", "median").attr("x1", m.l).attr("x2", W-m.r).attr("y1", sy(st.ymed)).attr("y2", sy(st.ymed));
     g.append("g").attr("class", "axis").attr("transform", `translate(0,${plotB})`).call(d3.axisBottom(sx).ticks(Math.max(4, Math.round(W/110))).tickSizeOuter(0).tickFormat(fTick(L.format("~r"))));
-    g.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(sy).ticks(5).tickSizeOuter(0).tickFormat(fTick(L.format("~r")))).call(a => a.select(".domain").remove());
+    g.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(sy).ticks(5).tickSize(3).tickPadding(3).tickSizeOuter(0).tickFormat(fTick(L.format("~r")))).call(a => a.select(".domain").remove());
     const yt = mkY(), plotH = plotB-m.t;
-    g.append("text").attr("class", "atitle").attr("text-anchor", "middle").attr("transform", "rotate(-90)").attr("x", -(m.t+plotB)/2).attr("y", 14).text(yt.axis.length*6.2 < plotH ? yt.axis : yt.ax2);
-    g.append("text").attr("class", "atitle").attr("text-anchor", "middle").attr("x", (m.l+W-m.r)/2).attr("y", H-4)
+    g.append("text").attr("class", "atitle sc-at").attr("text-anchor", "middle").attr("transform", "rotate(-90)").attr("x", -(m.t+plotB)/2).attr("y", 9).text(yt.axis.length*5.9 < plotH ? yt.axis : yt.ax2);
+    g.append("text").attr("class", "atitle sc-at").attr("text-anchor", "middle").attr("x", (m.l+W-m.r)/2).attr("y", H-3)
       .text(`${xName()}, SD − NS`);
     lassoPath = g.append("path").attr("class", "lasso-selection");
     ptsG = g.append("g").style("pointer-events", "none");   // puntos nítidos: el brillo solo va en las series
     abG = g.append("g").style("pointer-events", "none");
     hitPts = data.map(d => ({d, x:sx(d[xk]), y:sy(d[yk])}));
     delaunay = d3.Delaunay.from(hitPts, h => h.x, h => h.y);
-    ptsG.selectAll("circle").data(data, d => d.id).join("circle").attr("cx", d => sx(d[xk])).attr("cy", d => sy(d[yk])).attr("r", 5.5);
+    ptsG.selectAll("circle").data(data, d => d.id).join("circle").attr("cx", d => sx(d[xk])).attr("cy", d => sy(d[yk])).attr("r", 4);
+    boxG = g.append("g").attr("class", "sbox").attr("tabindex", 0).attr("role", "button");
+    if(boxAxes !== xk+"|"+yk){ boxAxes = xk+"|"+yk; boxPos = null; }   // ejes nuevos: vuelve a buscar la esquina más libre
+    boxDrag = null; dragBox();
     paint();
-    title(); key(); table();
+    title(); key(); statBox(); table();
+  }
+  // recuadro de lectura dentro del área del gráfico: etiquetas a la izquierda, valores alineados a la derecha
+  // (una columna por grupo al comparar, con el color del grupo junto a su ρ; los nombres ya están en la leyenda)
+  function statBox(){
+    if(!boxG) return;
+    const xk = S.xKey(), yk = yK(), G = cmpGroups(), pad = 8, lh = 15, gapL = 16, gapC = 22, dot = 11;
+    const rs = G ? G.map(g => spearman(EEG.filter(d => g.set.has(d.id)), xk, yk))
+      : [spearman(S.selected ? EEG.filter(d => S.selected.includes(d.id)) : EEG, xk, yk)];
+    const na = r => isNaN(r.rho);
+    const rows = [
+      {lab:"Spearman ρ", cls:"v strong", vals:rs.map(r => na(r) ? "n/a" : f2(r.rho))},
+      {lab:"95% CI", cls:"v", vals:rs.map(r => na(r) ? "n/a" : `${f2(r.lo)} to ${f2(r.hi)}`)},
+      {lab:"n", cls:"v", vals:rs.map(r => String(r.n))},
+    ];
+    boxG.selectAll("*").remove();
+    boxG.classed("min", boxMin).attr("aria-expanded", !boxMin)
+      .attr("aria-label", boxMin ? "Correlation (minimized): press Enter to show it" : "Correlation: press Enter to minimize it; arrow keys move it");
+    boxG.append("title").text(boxMin ? "Show the correlation" : "Click to minimize · drag to move");
+    const bg = boxG.append("rect").attr("class", "sbox-bg").attr("rx", 5), tg = boxG.append("g");
+    if(boxMin){
+      // ícono de expandir: flecha hacia la esquina superior derecha
+      const s = 22;
+      tg.append("path").attr("class", "sbox-ico").attr("d", "M-3.5,3.5L3.5,-3.5M-1,-3.5H3.5V1");
+      bg.attr("x", -s/2).attr("y", -s/2).attr("width", s).attr("height", s);
+      return fitBox(s, s, -s/2, -s/2);
+    }
+    const labs = rows.map((r, i) => tg.append("text").attr("class", "m").attr("y", i*lh).text(r.lab));
+    const vals = rows.map((r, i) => r.vals.map(v => tg.append("text").attr("class", r.cls).attr("y", i*lh).attr("text-anchor", "end").text(v)));
+    const len = s => s.node().getComputedTextLength();
+    const wl = d3.max(labs, len), wc = rs.map((_, c) => d3.max(vals, (r, i) => len(r[c])+(G && !i ? dot : 0)));
+    let x = wl+gapL;
+    wc.forEach((w, c) => {
+      x += (c ? gapC : 0)+w;
+      vals.forEach(r => r[c].attr("x", x));
+      if(G) tg.append("circle").attr("cx", x-len(vals[0][c])-dot+4).attr("cy", -3.8).attr("r", 3.5).attr("fill", G[c].color);
+    });
+    const bb = tg.node().getBBox(), bw = bb.width+2*pad, bh = bb.height+2*pad-3;
+    bg.attr("x", bb.x-pad).attr("y", bb.y-pad+1).attr("width", bw).attr("height", bh);
+    fitBox(bw, bh, bb.x-pad, bb.y-pad+1);
+  }
+  // espacio libre para el recuadro (o el ícono) dentro del área del gráfico, y su posición en él
+  function fitBox(bw, bh, ox, oy){
+    const x0 = m.l+6, x1 = Math.max(x0, W-m.r-bw-6), y0 = m.t+6, y1 = Math.max(y0, plotB-bh-6);
+    boxGeo = {x0, x1, y0, y1, ox, oy, bw, bh};
+    placeBox(boxPos || freeCorner());
+  }
+  // se comprime y se expande desde la misma esquina superior izquierda (sin salirse del área del gráfico)
+  function toggleBox(){
+    const q = at(boxPos || freeCorner()), f = (v, a, b) => b > a ? Math.max(0, Math.min(1, (v-a)/(b-a))) : 0;
+    boxMin = !boxMin; boxPos = {fx:0, fy:0}; statBox();
+    boxPos = {fx:f(q.x, boxGeo.x0, boxGeo.x1), fy:f(q.y, boxGeo.y0, boxGeo.y1)}; placeBox(boxPos); hideTip();
+  }
+  // el reporte siempre lleva las cifras: si el recuadro está comprimido, se expande solo mientras se copia el SVG
+  function withFullBox(fn){
+    if(!boxMin || !boxG) return fn();
+    boxMin = false; statBox();
+    try { return fn(); } finally { boxMin = true; statBox(); }
+  }
+  const at = p => ({x:boxGeo.x0+p.fx*(boxGeo.x1-boxGeo.x0), y:boxGeo.y0+p.fy*(boxGeo.y1-boxGeo.y0)});
+  const placeBox = p => { const q = at(p); boxG.attr("transform", `translate(${q.x-boxGeo.ox},${q.y-boxGeo.oy})`); };
+  // sin posición elegida: la esquina que tapa menos puntos (abajo a la derecha no, si ahí va el rótulo "vulnerable")
+  function freeCorner(){
+    const cs = [{fx:0, fy:0}, {fx:0, fy:1}, {fx:1, fy:1}, {fx:1, fy:0}].filter(c => !(qBottom && c.fx === 1 && c.fy === 1));
+    const hits = c => { const q = at(c); return hitPts.filter(h => h.x > q.x-6 && h.x < q.x+boxGeo.bw+6 && h.y > q.y-6 && h.y < q.y+boxGeo.bh+6).length; };
+    return cs.reduce((a, c) => hits(c) < hits(a) ? c : a);
+  }
+  function dragBox(){
+    const clamp = v => Math.max(0, Math.min(1, v)), span = k => (boxGeo[k+"1"]-boxGeo[k+"0"]) || 1;
+    const move = (dx, dy, from) => { boxPos = {fx:clamp(from.fx+dx/span("x")), fy:clamp(from.fy+dy/span("y"))}; placeBox(boxPos); };
+    boxG.on("pointerdown", ev => {
+      if(ev.button !== 0 || !boxGeo) return;
+      ev.preventDefault(); ev.stopPropagation(); hover(null); hideTip();
+      const [px, py] = d3.pointer(ev, svg.node());
+      boxDrag = {id:ev.pointerId, px, py, from:boxPos || freeCorner(), moved:false};
+      boxG.node().setPointerCapture(ev.pointerId);
+    }).on("pointermove", ev => {
+      if(!boxDrag || ev.pointerId !== boxDrag.id) return;
+      ev.stopPropagation(); const [px, py] = d3.pointer(ev, svg.node()), dx = px-boxDrag.px, dy = py-boxDrag.py;
+      if(!boxDrag.moved && Math.hypot(dx, dy) < 3) return;   // por debajo de 3 px cuenta como clic, no como arrastre
+      boxDrag.moved = true; boxG.classed("drag", true);
+      move(dx, dy, boxDrag.from);
+    }).on("pointerup", ev => {
+      if(!boxDrag || ev.pointerId !== boxDrag.id) return;
+      ev.stopPropagation(); const click = !boxDrag.moved; boxDrag = null; boxG.classed("drag", false);
+      if(click) toggleBox();
+    }).on("pointercancel", ev => {
+      if(boxDrag && ev.pointerId === boxDrag.id){ boxDrag = null; boxG.classed("drag", false); }
+    }).on("keydown", ev => {
+      if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); toggleBox(); return; }
+      const d = {ArrowLeft:[-10, 0], ArrowRight:[10, 0], ArrowUp:[0, -10], ArrowDown:[0, 10]}[ev.key];
+      if(!d || !boxGeo) return; ev.preventDefault(); move(d[0], d[1], boxPos || freeCorner());
+    });
   }
   function paint(){
     if(!ptsG) return;
@@ -109,7 +210,7 @@ const scatter = (() => {
     // se marca con un anillo, para que cada persona conserve lo que su color dice de ella
     const col = d => G ? (G[0].set.has(d.id) ? C.g1 : (G[1].set.has(d.id) ? C.g2 : C.faint)) : (S.vuln.has(d.id) ? C.vuln : C.rest);
     ptsG.selectAll("circle").attr("fill", col).attr("stroke", C.panel).attr("stroke-width", 1)
-      .attr("opacity", .95).attr("r", d => hv && hv.id === d.id ? 7.5 : 5.5);   // los no elegidos siguen visibles para poder sumarlos
+      .attr("opacity", .95).attr("r", d => hv && hv.id === d.id ? 5.5 : 4);   // los no elegidos siguen visibles para poder sumarlos
     ptsG.selectAll("circle").filter(d => ss && ss.has(d.id)).raise();
     // anillo sobre cada persona elegida (con su código hasta 6, para saber quién es quién) y letra para A y B
     const at = id => hitPts.find(o => o.d.id === id), lab = ss && ss.size <= 6;
@@ -117,30 +218,22 @@ const scatter = (() => {
       return h ? {id, L:p >= 0 ? "AB"[p] : (lab ? id.replace("sub-", "S") : ""), x:h.x, y:h.y} : null; })
       .concat(S.pair.filter(d => !(ss && ss.has(d.id))).map(d => { const h = at(d.id), i = S.pair.indexOf(d); return h ? {id:d.id, L:"AB"[i], x:h.x, y:h.y} : null; }))
       .filter(Boolean);
-    abG.selectAll("circle").data(marks, d => d.id).join("circle").attr("cx", d => d.x).attr("cy", d => d.y).attr("r", 8.5).attr("fill", "none").attr("stroke", C.ink).attr("stroke-width", 2);
-    abG.selectAll("text").data(marks, d => d.id).join("text").attr("class", "ab").attr("x", d => d.x+(d.x > W-40 ? -12 : 12)).attr("y", d => d.y+4)
+    abG.selectAll("circle").data(marks, d => d.id).join("circle").attr("cx", d => d.x).attr("cy", d => d.y).attr("r", 6.5).attr("fill", "none").attr("stroke", C.ink).attr("stroke-width", 1.6);
+    abG.selectAll("text").data(marks, d => d.id).join("text").attr("class", "ab").attr("x", d => d.x+(d.x > W-40 ? -10 : 10)).attr("y", d => d.y+4)
       .attr("text-anchor", d => d.x > W-40 ? "end" : "start").text(d => d.L);
   }
-  // título: qué se cruza y el estadístico principal; la lectura del gráfico va en el ícono ⓘ
+  // título: qué se cruza; ρ, IC y n van en el recuadro dentro del gráfico y la lectura en el ícono ⓘ
   function title(){
-    const xk = S.xKey(), yk = yK(), head = "Δθ vs. Δ behavior";
+    const head = "Δθ vs. Δ behavior";
     const info = notes("Each point is a person with paired EEG and behavioral marker; Δ = SD − NS.",
-      "Dotted lines: medians of both axes. Shaded area: vulnerable quadrant (Δθ above the median and marker worse than the median).",
-      "Spearman ρ with 95% CI (Fisher z transform). Click a point to add it to or remove it from the selection; Shift + click: person A or B; drag: lasso selection.");
-    const G = cmpGroups();
-    if(G){
-      setTitle("t-sc", `${head}: two groups`, "", info);   // el ρ de cada grupo va en su leyenda
-      return;
-    }
-    const rows = S.selected ? EEG.filter(d => S.selected.includes(d.id)) : EEG, r = spearman(rows, xk, yk);
-    setTitle("t-sc", S.selected ? `${head}: your selection` : head,
-      nb(isNaN(r.rho) ? `n = ${r.n}` : `ρ = ${f2(r.rho)} [${f2(r.lo)}, ${f2(r.hi)}], n = ${r.n}`), info);
+      "Dotted lines: medians of both axes. Shaded area labeled vulnerable: Δθ above the median and marker worse than the median.",
+      "Box: Spearman ρ with 95% CI (Fisher z transform) and n; click it to minimize it to an icon (click again to show it) and drag it to move it. Click a point to add it to or remove it from the selection; Shift + click: person A or B; drag: lasso selection.");
+    setTitle("t-sc", cmpGroups() ? `${head}: two groups` : (S.selected ? `${head}: your selection` : head), "", info);
   }
   function key(){
     const G = cmpGroups();
-    const rg = G ? G.map(g => spearman(EEG.filter(d => g.set.has(d.id)), S.xKey(), yK())) : [];
-    d3.select("#k-sc").html(G ? G.map((g, i) => `<span class="k"><i class="dot" style="background:${g.color}"></i>${g.name} ${nb(`ρ = ${isNaN(rg[i].rho) ? "n/a" : f2(rg[i].rho)}, n = ${rg[i].n}`)}</span>`).join("")
-      : `<span class="k"><i class="dot" style="background:var(--vuln)"></i>vulnerable quadrant</span><span class="k"><i class="dash"></i>median</span>` + (S.selected ? `<span class="k"><i class="ring"></i>your selection</span>` : ""));
+    d3.select("#k-sc").html((G ? G.map(g => `<span class="k"><i class="dot" style="background:${g.color}"></i>${g.name}</span>`).join("") : "")
+      + (S.selected ? `<span class="k"><i class="ring"></i>your selection</span>` : ""));
   }
   function tipFor(d){
     const xk = S.xKey(), yk = yK(), L2 = pairLetter(d);
@@ -158,6 +251,6 @@ const scatter = (() => {
   }
   bus.on("hover.sc", () => paint());
   bus.on("pin.sc", () => { paint(); key(); table(); });
-  bus.on("select.sc", () => { paint(); key(); title(); table(); });
-  return {render, paint, clearBrushVisual, stats, rebuild(){ clearBrushVisual(); }};
+  bus.on("select.sc", () => { paint(); key(); title(); statBox(); table(); });
+  return {render, paint, clearBrushVisual, stats, withFullBox, rebuild(){ clearBrushVisual(); }};
 })();

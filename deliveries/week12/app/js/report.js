@@ -26,6 +26,7 @@ td{border-bottom:1px solid var(--rule);padding:4px 8px}a{color:var(--ns)}
 .axis text{font-size:10.5px;fill:var(--muted)}.axis path,.axis line{stroke:var(--rule2)}
 .gridl line{stroke:var(--rule)}.gridl path{display:none}.atitle{font-size:11px;font-weight:500;fill:var(--ink2)}
 .alab{font-size:10.5px;fill:var(--muted)}
+.sbox-bg{fill:var(--panel);fill-opacity:.92;stroke:var(--rule2)}.sbox text{font-size:11px;fill:var(--ink2)}.sbox .m{fill:var(--muted)}.sbox .strong{fill:var(--ink);font-weight:600}.qlab{font-size:10.5px;font-weight:500;fill:var(--vuln)}
 .zero{stroke:var(--rule2)}.median{stroke:var(--muted);stroke-dasharray:3 3;stroke-opacity:.7}.quad{fill:rgba(255,181,71,.07)}
 .lasso-surface{fill:transparent}.lasso-selection{fill:var(--ns);fill-opacity:.06;stroke:var(--ns);stroke-width:1.5;stroke-dasharray:4 3}
 .ab{font-size:12px;font-weight:500;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px}
@@ -76,7 +77,7 @@ td{border-bottom:1px solid var(--rule);padding:4px 8px}a{color:var(--ns)}
     const now = new Date(), stamp = now.toLocaleString("en-US", {dateStyle:"long", timeStyle:"short"});
     const rows = people(), csvTxt = csv(rows), csvHref = "data:text/csv;charset=utf-8," + encodeURIComponent("﻿" + csvTxt);
     const st = state().map(([k, v, n]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b>${n ? `<span>${esc(n)}</span>` : ""}</div>`).join("");
-    const fig = (id, tid, key) => `<section class="fig"><div class="t">${titleOf(tid)}</div><p>${READ[key]}</p>${svgOf(id)}</section>`;
+    const fig = (id, tid, key) => `<section class="fig"><div class="t">${titleOf(tid)}</div><p>${READ[key]}</p>${id === "scatter" ? scatter.withFullBox(() => svgOf(id)) : svgOf(id)}</section>`;
     const tbl = `<table><thead><tr><th>Participant</th><th>Sex</th><th>Age</th><th>PSQI</th><th>${esc(xName())}</th><th>${esc(mkY().ax2)}</th><th>Group</th><th>Vulnerable</th><th>A/B</th></tr></thead><tbody>` +
       rows.map(r => `<tr><td>${r.id}</td><td>${r.sexo}</td><td>${r.edad ?? ""}</td><td>${r.psqi}</td><td>${fsr(r.x)}</td><td>${r.y === "" ? "no data" : fsr(r.y)}</td><td>${esc(r.grupo)}</td><td>${r.vulnerable}</td><td>${r.AB}</td></tr>`).join("") + "</tbody></table>";
     return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">

@@ -28,14 +28,15 @@ const topo = (() => {
   }
   function spec(){
     // dos personas lado a lado: las fijadas con Mayús + clic (A y B) o una selección de exactamente dos;
-    // con tres o más, el promedio del grupo
+    // con tres o más, el promedio del grupo. La selección manda sobre la comparación: con personas elegidas,
+    // los mapas son de ellas; sin selección, de los dos grupos
     const sel2 = S.selected && S.selected.length === 2 ? S.selected : null;
     const [a, b] = S.pair.length === 2 ? S.pair.map(d => d.id) : (sel2 || []);
     if(a && b && SUBTOPO[a] && SUBTOPO[b]){
       const lab = S.pair.length === 2 ? ["A · ", "B · "] : ["", ""];
       return {mode:"pair", names:[lab[0]+a, lab[1]+b], rows:[{label:lab[0]+a, met:S.met, T:SUBTOPO[a]}, {label:lab[1]+b, met:S.met, T:SUBTOPO[b]}]};
     }
-    const G = cmpGroups();
+    const G = viewGroups();
     if(G){
       const ts = G.map(gr => groupTopo(gr.ids));
       return {mode:"cmp", G, rows:G.map((gr, i) => ({label:`${gr.name} (${ts[i].n || gr.ids.length})`, met:S.met, T:ts[i].T, color:gr.color}))};

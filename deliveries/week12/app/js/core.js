@@ -88,11 +88,11 @@ function pin(d){
   bus.call("pin", null, S.pair);
 }
 const pairLetter = d => { const i = S.pair.findIndex(p => p.id === d.id); return i < 0 ? null : "AB"[i]; };
-// lazo: una selección libre; anula la comparación de grupos (son modos excluyentes)
+// lazo o clic: una selección libre. Convive con la comparación de grupos: los colores y las vistas por grupo
+// se mantienen, y la selección solo marca a sus personas (anillo en la dispersión, contorno en el mapa de calor)
 function setSelected(ids, opts = {}){
   S.selected = ids && ids.length ? ids : null;
   S.group = S.selected ? "lasso" : "all";
-  if(S.selected && !opts.live) S.cmp = "none";
   bus.call("select", null, {live: !!opts.live});
 }
 const activeIds = () => S.selected || EEG_IDS;
@@ -115,6 +115,9 @@ function cmpGroups(){
   const c = COMPARES.find(c => c.k === S.cmp); if(!c || !c.g) return null;
   return c.g.map(([name, f], i) => { const ids = EEG.filter(f).map(d => d.id); return {name, ids, set:new Set(ids), color:i ? C.g2 : C.g1}; });
 }
+// grupos que muestran las vistas de detalle (topomapas y serie por época): la selección manda sobre la comparación;
+// la comparación sigue coloreando la dispersión y agrupando el mapa de calor
+const viewGroups = () => S.selected ? null : cmpGroups();
 const groupName = () => S.selected ? "Your selection" : "";
 // título de panel: qué muestra, en pocas palabras, la cifra principal en tono apagado y, en el ícono ⓘ,
 // los detalles y la lectura del gráfico (tooltip al pasar el cursor o al enfocarlo con el teclado)

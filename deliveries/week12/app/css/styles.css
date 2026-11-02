@@ -126,6 +126,21 @@ button,select{font:inherit;color:inherit}
 .zero{stroke:var(--rule2)}
 .median{stroke:var(--muted);stroke-dasharray:3 3;stroke-opacity:.7}
 .quad{fill:rgba(255,181,71,.07)}
+.qlab{font-size:10.5px;font-weight:500;fill:var(--vuln);pointer-events:none}
+#scatter svg{overflow:visible}   /* sin margen derecho: un número del eje x en el borde se ve entero sobre el relleno del panel */
+/* recuadro de ρ dentro de la dispersión: se arrastra con el puntero o se mueve con las flechas */
+.sbox{cursor:grab;outline:none}
+.sbox.drag{cursor:grabbing}
+.sbox-bg{fill:var(--panel);fill-opacity:.92;stroke:var(--rule2)}
+.sbox:focus-visible .sbox-bg{stroke:var(--ns);stroke-width:1.5}
+.sbox text{font-size:11px;fill:var(--ink2)}
+.sbox .m{fill:var(--muted)}
+.sbox .strong{fill:var(--ink);font-weight:600}
+.sbox-ico{fill:none;stroke:var(--ink2);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:hover) and (pointer:fine){ .sbox:hover .sbox-ico{stroke:var(--ink)} }
+@media (hover:hover) and (pointer:fine){ .sbox:hover .sbox-bg{stroke:var(--muted)} }
+.sc-at{font-size:10.5px}   /* dispersión: títulos de eje del mismo tamaño que sus números */
+#t-sc .m{font-size:11px}   /* ρ y n junto al título, al tamaño de las leyendas */
 .lasso-surface{fill:transparent;cursor:crosshair;touch-action:none}
 .lasso-selection{fill:var(--ns);fill-opacity:.06;stroke:var(--ns);stroke-width:1.5;stroke-dasharray:4 3;stroke-linejoin:round;pointer-events:none}
 .ab{font-size:12px;font-weight:500;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}
