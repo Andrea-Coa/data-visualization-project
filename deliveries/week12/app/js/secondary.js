@@ -93,10 +93,8 @@ const side = (() => {
     // ---- título: el hallazgo y, en el ícono ⓘ, de dónde sale
     const g = APER.global;
     setTitle("t-aper", `σθ is oscillatory, not 1/f: ρ = ${f2(sg.rho_periodic)}`, nb(`n = ${sg.n}${sel ? `; maps and spectrum: your selection (${ids.length})` : ""}`),
-      notes(`Periodic/aperiodic separation with specparam (settings of Bai et al., 2024, on this same dataset: 1–40 Hz, fixed mode). With all ${APER.meta.n} people: exponent ${f2(g.exp.NS)} → ${f2(g.exp.SD)} (d_z = ${f2(g.exp.dz)}, p = ${fp(g.exp.p)}); offset d_z = ${f2(g.off.dz)}, p = ${fp(g.off.p)}; periodic theta unchanged (p = ${fp(g.thp.p)}). No electrode survives FDR. Ring: p < 0.05; filled dot: q < 0.05.`,
-        `${Math.round(APER.theta_peak_fraction.NS*100)}% of electrodes show a peak between 4 and 8 Hz: theta oscillations are present, as Monchy et al. ask to verify before interpreting them.`,
-        `Bottom: each person\'s change in σθ against the change in their periodic theta (Welch 1-s segments with 50% overlap; epochs with R² ≥ 0.8; at least 50 per recording). If σθ were the 1/f background they would not match; they do (ρ = ${f2(sg.rho_periodic)}) and exponent variability explains only ${Math.round(sg.r2_exponent*100)}%. Click a point to add it to or remove it from the selection.`,
-        "Data: tools/build_secondary.py from the raw EEG (ds004902)."));
+      notes(`specparam (Bai et al., 2024 settings). Aperiodic change: exponent d_z = ${f2(g.exp.dz)} (p = ${fp(g.exp.p)}), offset d_z = ${f2(g.off.dz)} (p = ${fp(g.off.p)}); ${Math.round(APER.theta_peak_fraction.NS*100)}% of electrodes have a 4–8 Hz peak.`,
+        `Bottom: each person's Δσθ vs. Δσθ of the periodic component (1/f removed). They agree (ρ = ${f2(sg.rho_periodic)}): σθ is oscillatory, not the 1/f background.`));
   }
 
   // ---------------------------------------------------------------- sincronía θ entre regiones
@@ -161,10 +159,8 @@ const side = (() => {
       .on("pointermove", ev => moveTip(ev)).on("pointerleave", () => { focus(null); hideTip(); });
     const g = CONN.global, down = d.filter(x => x < 0).length;
     setTitle("t-conn", `θ synchrony: lower in ${down} of 45 pairs`, nb(sel ? `your selection, n = ${ids.length}` : `none survives FDR; n = ${CONN.meta.n}`),
-      notes("Debiased wPLI², multitaper, 4–8 Hz; FCz re-inserted, average reference and ICA, as in the main pipeline; 10 lateral regions (midline excluded), 45 pairs.",
-        `With all ${CONN.meta.n} people: global ${f3(g.NS)} → ${f3(g.SD)} (d_z = ${f2(g.dz)}); sign-flip permutation joint test p = ${fp(g.p_perm)}; max-t p = ${fp(g.p_maxt)}. ${g.pairs_down} of 45 pairs decrease, none with q < 0.05, and no relation to the PVT.`,
-        "Bottom: each region pair's mean change with its 95% CI, sorted. Filled dots: CI excludes zero (uncorrected). All pairs fall below zero, but no pair survives FDR: a diffuse, consistent decrease rather than a localized effect. Hover a pair to highlight it on the head.",
-        "Exploratory: at rest, much of theta connectivity may reflect aperiodic activity rather than oscillations (Monchy et al.); hence it is not a main view.",
+      notes(`Debiased wPLI², 4–8 Hz, average reference, 10 regions (45 pairs). Global d_z = ${f2(g.dz)}, permutation p = ${fp(g.p_perm)}; no pair survives FDR.`,
+        "Bottom: mean Δ per pair with 95% CI, sorted. Exploratory: resting theta connectivity may partly reflect aperiodic activity.",
         "Data: tools/build_secondary.py from the raw EEG (ds004902)."));
   }
 
@@ -217,10 +213,8 @@ const side = (() => {
     svg.append("text").attr("class", "ab").attr("x", m2.l+4).attr("y", y0+m2.t+12).style("font-size", "11px").text(`ρ = ${f2(sm.rho_clean_vs_all)} · n = ${sm.n_clean} · dashed: identity`);
     const bt = QUAL.meta.d_blinks_test;
     setTitle("t-eye", `Blinks do not drive σθ: ρ = ${f2(sm.rho_clean_vs_all)} without them`, nb(`${ROI[k].name}; n = ${sm.n_clean}`),
-      notes(`ICA removed the ocular components (ds004902 has no EOG channel); this view checks what is left. Blinks were detected on Fp1 and Fp2 of the raw EEG, before ICA (MNE find_eog_events; the channel with more detections). Blink rate barely changes with deprivation (median ${f2(QUAL.meta.blinks_per_min.NS.median)} → ${f2(QUAL.meta.blinks_per_min.SD.median)} per minute; t = ${f2(bt.t)}, p = ${fp(bt.p)}). People whose blink rate rose more also show a larger Δσθ (ρ = ${f2(sm.rho_dblinks_vs_dsigma)}, p = ${fp(sm.p_dblinks_vs_dsigma)}), which by itself could mean contamination or a shared cause (drowsiness).`,
-        `Bottom: σθ recomputed on the ICA-cleaned EEG with 1-s windows (50% overlap) inside each epoch, using all windows (x) or dropping those within 0.25 s of a blink (y); people need ${QUAL.meta.min_clean_epochs} usable epochs. Points near the dashed identity line mean blinks do not change each person's Δσθ, so the association above is not contamination.`,
-        `Within recordings, epochs with more blinks do not have more relative theta (mean r = ${f2(sm.within_recording_r_blinks_theta)}). Hover any person in the scatter or heatmap for their EEG quality (epochs used, ICA components removed, interpolated channels, blinks).`,
-        "Data: tools/build_quality.py from the raw EEG (ds004902)."));
+      notes(`Blinks detected on Fp1/Fp2 of the raw EEG; rate ${f2(QUAL.meta.blinks_per_min.NS.median)} → ${f2(QUAL.meta.blinks_per_min.SD.median)}/min (p = ${fp(bt.p)}). Δblinks vs Δσθ: ρ = ${f2(sm.rho_dblinks_vs_dsigma)}.`,
+        `Bottom: Δσθ from 1-s windows, all (x) vs. without those within 0.25 s of a blink (y). On the identity line: blinks left after ICA do not change σθ.`));
   }
 
   bus.on("select.side", e => { if(!(e && e.live)) render(); });

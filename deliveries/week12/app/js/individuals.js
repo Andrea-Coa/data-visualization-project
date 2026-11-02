@@ -137,10 +137,8 @@ const indiv = (() => {
   // ---------------- títulos ----------------
   function titles(){
     const [a, b] = model.groups, mC = g => d3.mean(g.cons), strong = g => g.cons.filter(c => Math.abs(c) >= .6).length;
-    const hInfo = notes(`One column per person and one row per electrode, by region from front to back: Δ${METN[model.met]} (SD − NS). "Mean" column: average of all people.`,
-      "C(e), one column per group: share of the group whose Δ rises minus the share whose Δ falls at electrode e (from −1 to +1); the bar points right if it rises.",
-      "Click a column to add that person to or remove them from the selection; Shift + click: person A or B. Click a row to put that electrode on the scatter x-axis.",
-      "Vulnerable and resilient are defined by behavior only (worse or not than the median change in the chosen marker), not by theta.");
+    const hInfo = notes(`Δ${METN[model.met]} (deprivation − normal) per person (columns) and electrode (rows, front to back). Groups are defined by behavior only, not by theta.`,
+      "C(e): share of the group whose Δ rises minus share whose Δ falls (−1 to +1). Click a column to select a person; click a row to put that electrode on the scatter x-axis.");
     if(b){
       const dA = mC(a), dB = mC(b);
       setTitle("t-heat", `Δ${METN[model.met]}`, nb(`C̄ ${a.name} ${fs2(dA)} · ${b.name} ${fs2(dB)}`), hInfo);

@@ -20,6 +20,7 @@
 <body>
 <div class="boot" id="boot" role="status">Loading 68 recordings</div>
 <div id="tooltip" role="status" aria-live="polite"></div>
+<div class="maxbg" id="maxbg" hidden></div>
 
 <header class="bar">
   <div class="brand">
@@ -55,24 +56,24 @@
        tiempo; derecha: vistas secundarias plegables (Chen et al.: vistas grandes al centro, paneles laterales angostos) -->
   <div class="col col-l">
   <section class="panel p-scatter" aria-labelledby="t-sc">
-    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><circle cx="4" cy="11" r="1.6"/><circle cx="8" cy="7" r="1.6"/><circle cx="12" cy="4" r="1.6"/><circle cx="11" cy="10" r="1.6"/><path d="M1.5 1.5v13h13" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span>Vulnerability View</span></div>
+    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><circle cx="4" cy="11" r="1.6"/><circle cx="8" cy="7" r="1.6"/><circle cx="12" cy="4" r="1.6"/><circle cx="11" cy="10" r="1.6"/><path d="M1.5 1.5v13h13" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span>Vulnerability View</span><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg></button></div>
     <div class="ph"><h2 id="t-sc"></h2><div class="key" id="k-sc"></div></div>
     <div class="view" id="scatter"></div>
   </section>
   <section class="panel p-heat" aria-labelledby="t-heat">
-    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5"/><rect x="9" y="1.5" width="5.5" height="5.5" opacity=".45"/><rect x="1.5" y="9" width="5.5" height="5.5" opacity=".45"/><rect x="9" y="9" width="5.5" height="5.5"/></svg><span>Individual View</span></div>
+    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5"/><rect x="9" y="1.5" width="5.5" height="5.5" opacity=".45"/><rect x="1.5" y="9" width="5.5" height="5.5" opacity=".45"/><rect x="9" y="9" width="5.5" height="5.5"/></svg><span>Individual View</span><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg></button></div>
     <div class="ph"><h2 id="t-heat"></h2><div class="key" id="k-heat"></div></div>
     <div class="view" id="heat"></div>
   </section>
   </div>
   <div class="col col-c">
   <section class="panel p-topo" aria-labelledby="t-topo">
-    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.6 2.9 8 1 9.4 2.9" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="7.5" r="2.4"/></svg><span>Topography View</span></div>
-    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div><select class="isel" id="interpsel" aria-label="Topomap interpolation method" title="Map interpolation: only changes the drawing between electrodes, not the values or the tests (see About)"><option value="v4">Interp. v4 · EEGLAB/FieldTrip</option><option value="ct">Interp. cubic · MNE</option><option value="spline">Interp. spherical spline</option></select></div>
+    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.6 2.9 8 1 9.4 2.9" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="7.5" r="2.4"/></svg><span>Topography View</span><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg></button></div>
+    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div></div>
     <div class="view" id="topo"></div>
   </section>
   <section class="panel p-dyn" aria-labelledby="t-dyn">
-    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 10l3-4 3 5 3-7 3 6 2-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg><span>Time View</span></div>
+    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 10l3-4 3 5 3-7 3 6 2-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg><span>Time View</span><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg></button></div>
     <div class="ph"><h2 id="t-dyn"></h2><div class="key" id="k-dyn"></div></div>
     <div class="view" id="dyn"></div>
   </section>
@@ -83,16 +84,16 @@
       <div class="sec-group"><b>Robustness checks</b><span>can I trust the effect?</span></div>
       <section class="sec" data-open="true" aria-labelledby="b-aper">
         <button class="sec-btn" id="b-aper" type="button" aria-expanded="true"><b>Oscillatory or 1/f?</b><span>Is σθ a rhythm or the spectral background?</span></button>
-        <div class="sec-body"><div class="ph"><h2 id="t-aper"></h2></div><div class="view" id="aper"></div></div>
+        <div class="sec-body"><div class="ph"><h2 id="t-aper"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg></button></div><div class="view" id="aper"></div></div>
       </section>
       <section class="sec" data-open="false" aria-labelledby="b-eye">
         <button class="sec-btn" id="b-eye" type="button" aria-expanded="false"><b>Driven by blinks?</b><span>Does what ICA leaves of the eyes change σθ?</span></button>
-        <div class="sec-body"><div class="ph"><h2 id="t-eye"></h2></div><div class="view" id="eye"></div></div>
+        <div class="sec-body"><div class="ph"><h2 id="t-eye"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg></button></div><div class="view" id="eye"></div></div>
       </section>
       <div class="sec-group"><b>Exploratory</b><span>a separate hypothesis</span></div>
       <section class="sec" data-open="false" aria-labelledby="b-conn">
         <button class="sec-btn" id="b-conn" type="button" aria-expanded="false"><b>θ synchrony between regions</b><span>Do regions oscillate together less?</span></button>
-        <div class="sec-body"><div class="ph"><h2 id="t-conn"></h2></div><div class="view" id="conn"></div></div>
+        <div class="sec-body"><div class="ph"><h2 id="t-conn"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg></button></div><div class="view" id="conn"></div></div>
       </section>
     </div>
   </aside>
@@ -101,65 +102,39 @@
 <dialog class="sheet" id="about" aria-labelledby="h-about">
   <div class="sheet-head"><h2 id="h-about">About BATIMIX</h2><button class="btn" data-close>Close</button></div>
   <div class="sheet-body">
-    <p class="lead">After the same sleepless night, some people deteriorate a lot and others barely at all. Cui et al. (2026) proposed that the increase in the variability of theta power in resting EEG predicts that deterioration (ρ ≈ 0.55 with reaction time, n = 28). BATIMIX tests that idea, person by person, on public data. It is an exploratory screening tool for sleep researchers, not a diagnosis.</p>
-    <h3>Preliminary conclusion</h3>
-    <p>Without sleep, each person's theta changes in different directions, and that change does not robustly predict who deteriorates: across 896 alternative analyses (two preprocessing pipelines) no joint statistic exceeds chance. The only consistent hint is with mood (positive affect), not with vigilance.</p>
+    <p class="lead">Does the night-to-night change in resting theta show who deteriorates after sleep deprivation? Cui et al. (2026) reported that a rise in theta variability tracks PVT slowing (ρ ≈ 0.55, n = 28) on this dataset. BATIMIX re-examines it person by person. Exploratory screening, not diagnosis.</p>
+    <h3>Key findings</h3>
+    <ul class="kf">
+      <li><b>Heterogeneous:</b> Δσθ frontal rises in 40 people and falls in 28; group t = 1.12, p = 0.27.</li>
+      <li><b>Diffuse:</b> 0 of 61 electrodes survive FDR (σθ and μθ).</li>
+      <li><b>Not linked to vigilance:</b> Δσθ frontal vs ΔPVT median RT ρ = −0.04 [−0.40, 0.32], n = 30; with Cui's exact pipeline, ρ = −0.06.</li>
+      <li><b>Oscillatory, not 1/f:</b> Δσθ tracks periodic theta (ρ = 0.82); the aperiodic offset change seen without ICA (p = 0.034) disappears with ICA.</li>
+      <li><b>Not blinks:</b> removing blink windows leaves Δσθ unchanged (ρ = 0.95).</li>
+    </ul>
     <h3>Data</h3>
-    <p>OpenNeuro ds004902 (Xiang, Fan, Bai, Lv and Lei, 2024, <i>Scientific Data</i>, CC0): 71 people recorded after normal sleep (NS) and after 24–30 hours without sleep (SD), in counterbalanced order. Eyes-open resting EEG, 61 electrodes, 500 Hz. <span data-k="covLong"></span></p>
+    <p>OpenNeuro ds004902 (Xiang et al., 2024, CC0): 71 people after normal sleep and after 24–30 h awake, counterbalanced; eyes-open rest, 5 min, 61 electrodes, 500 Hz, no EOG. <span data-k="covLong"></span></p>
+    <h3>Method</h3>
+    <ul class="kf">
+      <li><b>Preprocessing</b> (<code>tools/eeg_ica.py</code>): 50 Hz notch, 1–40 Hz; bad channels interpolated; FCz re-inserted, average reference; extended Infomax ICA (30 components), ocular (Fp1/Fp2 correlation or ICLabel) and muscle (ICLabel p &gt; 0.85) components removed (5.1 per recording); 75 × 4-s epochs, &gt; 200 µV rejected (71 kept on average).</li>
+      <li><b>Metric:</b> relative θ = 4–8 / 1–40 Hz (Welch) per epoch and electrode; σθ = SD across epochs, μθ = mean; Δ = deprivation − normal. Frontal (16) and centrotemporal (28) ROIs as in Cui et al.</li>
+      <li><b>Statistics:</b> paired t per electrode with Benjamini–Hochberg FDR (61 tests), d<sub>z</sub> and 95% CI; Spearman ρ with 95% CI. Maps: v4 interpolation (EEGLAB, FieldTrip) on the real electrode positions.</li>
+    </ul>
+    <h3 id="h-robust">Robustness</h3>
+    <p>Multiverse of 896 analyses (2 pipelines, with and without ICA × 4 regions × 2 metrics × 2 change forms × 7 markers × 2 correlations × 2 outlier rules), with joint inference by 2000 permutations (Simonsohn et al., 2020): no joint statistic exceeds chance (σθ only: median r = +0.089, p = 0.11). The only consistent hint is mood (PANAS+). All results: <a href="../data/multiverse_specs.csv">multiverse_specs.csv</a>.</p>
+    <h3>Limitations</h3>
+    <p>PVT for only 30 people (power ≈ 0.35 for ρ = 0.3); public PVT summary columns, whereas Cui et al. likely recomputed median RT from trials; ICA components selected by rule, without visual review; no task EEG or event markers (no ERP).</p>
     <h3>Glossary</h3>
     <table class="tasks">
       <tbody>
-        <tr><td>Theta (θ)</td><td>Brain electrical activity at 4–8 Hz; it rises with sleep pressure.</td></tr>
-        <tr><td>μθ, σθ</td><td>Relative theta power (4–8 Hz divided by 1–40 Hz, unitless): its mean (μθ) and its variability across 75 4-s epochs (σθ).</td></tr>
-        <tr><td>Δ</td><td>Change SD minus NS. Positive = increases after deprivation.</td></tr>
-        <tr><td>PVT</td><td>Psychomotor Vigilance Task: median reaction time (RT, ms), lapses and RT SD.</td></tr>
-        <tr><td>KSS, SSS</td><td>Karolinska and Stanford sleepiness scales (points).</td></tr>
-        <tr><td>PANAS+, PANAS−</td><td>Positive and negative affect (points).</td></tr>
-        <tr><td>Vulnerable quadrant</td><td>Above the median theta change and worse than the median of the chosen marker.</td></tr>
-        <tr><td>t, d<sub>z</sub>, 95% CI</td><td>Paired t-test per electrode with all 68 people: t with 67 degrees of freedom; d<sub>z</sub> = mean Δ divided by its standard deviation (paired effect size; 0.2 small, 0.5 medium); 95% CI of the mean Δ. Shown when hovering over an electrode.</td></tr>
-        <tr><td>FDR</td><td>Benjamini–Hochberg correction for 61 paired t-tests, one per electrode.</td></tr>
-        <tr><td>C(e)</td><td>Consistency of a group at electrode e: share of people whose Δ rises minus share whose Δ falls (from −1 to +1). Close to ±1 = the group changes in the same direction.</td></tr>
-        <tr><td>Vulnerable, resilient</td><td>Heatmap groups, defined by behavior only: worse or not than the median change in the chosen marker. They do not use theta, so that each group's theta signature is not circular.</td></tr>
+        <tr><td>PVT, KSS, SSS, PANAS</td><td>Psychomotor vigilance (median RT, lapses, RT SD); Karolinska and Stanford sleepiness; positive and negative affect.</td></tr>
+        <tr><td>Vulnerable quadrant</td><td>Δθ and behavioral change both above their medians.</td></tr>
+        <tr><td>C(e)</td><td>Group consistency at electrode e: share with Δ &gt; 0 minus share with Δ &lt; 0 (−1 to +1).</td></tr>
       </tbody>
     </table>
-    <h3>Tasks and views</h3>
-    <table class="tasks">
-      <thead><tr><th>Task</th><th>Question</th><th>View</th></tr></thead>
-      <tbody>
-        <tr><td>T1 Locate</td><td>Where does theta change? (Q1)</td><td>Topomap matrix, Δ column with p and FDR marks</td></tr>
-        <tr><td>T2 Compare metrics</td><td>Variability or mean? (Q2)</td><td>Matrix, σθ and μθ rows</td></tr>
-        <tr><td>T3 Identify</td><td>Who is vulnerable? (Q3)</td><td>Scatter with quadrant and lasso; heatmap, one column per person</td></tr>
-        <tr><td>T4 Compare</td><td>Do they share a spatial signature? (Q4)</td><td>Matrix by group; selecting exactly two people (click on points or heatmap columns) shows one row per person; heatmap person × electrode with C(e) per group</td></tr>
-        <tr><td>T5 Correlate</td><td>Does it converge with each marker? (Q5)</td><td>Scatter, Y-axis marker and ρ with its n</td></tr>
-        <tr><td>T6 Describe trend</td><td>Does it change within the recording? (Q6)</td><td>Five minutes: with μθ, mean ± SE per epoch; with σθ, moving σθ in 40-s windows (Doran et al., 2001: state instability; window after Gudmundsson et al., 2007)</td></tr>
-        <tr><td>T7 Compare groups</td><td>Do sex, PSQI or session order matter? (Q7)</td><td>Compare selector: two groups with two colors in all views</td></tr>
-        <tr><td>T8 Check robustness</td><td>Is the effect oscillatory or 1/f? Does synchrony change?</td><td>Secondary views: robustness checks (oscillatory or 1/f?, driven by blinks?) and exploratory θ synchrony</td></tr>
-      </tbody>
-    </table>
-    <h3>Method</h3>
-    <p>Preprocessing (<code>tools/eeg_ica.py</code>): 50 Hz notch, 1–40 Hz band-pass, bad channels interpolated, FCz re-inserted and average reference, extended Infomax ICA (30 components) removing ocular components (correlation with Fp1/Fp2 an outlier, or ICLabel eye) and muscle components (ICLabel p &gt; 0.85), 75 4-s epochs with those above 200 µV rejected (71 of 75 kept on average). This follows the sleep-deprivation EEG literature (Snipes et al., 2022; Lian et al., 2023; Ma et al., 2023; Cui et al., 2026); the Week 6 pipeline (FCz reference, no ICA) is kept as a robustness dimension. Maps by biharmonic v4 interpolation, as in EEGLAB and FieldTrip, on the real electrode positions (electrodes.tsv of ds004902) in azimuthal equidistant projection; the panel selector also shows MNE's cubic interpolation and the spherical spline (Perrin et al., 1989; m = 4, 20 Legendre terms, no regularization). All three implementations reproduce the originals (EEGLAB and FieldTrip in MATLAB, MNE 1.8) with an error below 1e-9 of the range. NS and SD share a sequential scale per row; Δ uses a diverging scale with a neutral zero. With a selected group the maps average those people, without a per-electrode test. Spearman correlations with 95% CI.</p>
-    <h3 id="h-interp">Map interpolation</h3>
-    <p>The «Interp.» selector of the topomap panel only changes how the space <i>between</i> electrodes is painted. The values at each electrode, the t-tests, the FDR q values, the rings and the fills are the same with any method. v4 (default) is the biharmonic interpolation of EEGLAB <i>topoplot</i> and FieldTrip <i>ft_topoplotER</i>; «cubic · MNE» is that of MNE-Python <i>plot_topomap</i>; «spherical spline» interpolates on the 3D positions (Perrin et al., 1989). If a pattern appears with one method and not with the others, it is an effect of the drawing, not of the data.</p>
-    <h3 id="h-robust">Robustness: multiverse of 896 analyses</h3>
-    <p>To respond honestly to the non-replication of Cui et al. (2026), 896 specifications were computed: 2 preprocessing pipelines (average reference with ICA, or FCz reference without ICA) × 4 regions × 2 metrics (σθ, μθ) × 2 forms of change (absolute, relative) × 7 behavioral markers × 2 correlations (Spearman, Pearson) × 2 outlier rules. Joint inference permutes the behavioral rows among the 68 people 2000 times (Simonsohn, Simmons and Nelson, 2020). No joint statistic exceeds chance:</p>
-    <table class="tasks">
-      <thead><tr><th>Test</th><th>Median r</th><th>Significant with r &gt; 0</th><th>Stouffer Z</th></tr></thead>
-      <tbody>
-        <tr><td>σθ only (448)</td><td>+0.089 (p = 0.11)</td><td>11; chance reaches 63 (p = 0.31)</td><td>+11.09 (p = 0.09)</td></tr>
-        <tr><td>Full (896)</td><td>+0.053 (p = 0.19)</td><td>58; chance reaches 106 (p = 0.13)</td><td>+10.80 (p = 0.16)</td></tr>
-      </tbody>
-    </table>
-    <p>All 896 results: <a href="../data/multiverse_specs.csv">multiverse_specs.csv</a>. Generated with <code>tools/build_multiverse.py</code>.</p>
-    <h3 id="h-sec">Secondary views</h3>
-    <p>The right column collapses with ›. Its first two views are <b>robustness checks</b> that defend the main finding; the third is <b>exploratory</b>. «Oscillatory or 1/f?» separates the rhythmic part from the 1/f background of the spectrum with specparam (settings of Bai et al., 2024, on this same dataset) and compares each person's change in σθ with that of their periodic theta: they match (ρ = 0.82 frontal, 0.89 centrotemporal), so theta variability is not an effect of the 1/f background. «θ synchrony between regions» uses wPLI² with average reference between 10 regions: it decreases in 44 of 45 pairs, but none survives FDR; it is exploratory. «Driven by blinks?» checks what ICA leaves: it detects blinks on Fp1/Fp2 of the raw EEG and recomputes σθ without the windows that touch a blink. Each person's Δσθ barely changes (ρ = 0.95 frontal, 0.96 centrotemporal), so blinks do not drive it; people whose blink rate rose more do show a larger Δσθ (ρ = 0.34), which is more likely a shared cause (drowsiness) than contamination. All views follow your selection (without a statistical test in subgroups) and are generated from the raw EEG with <code>tools/build_secondary.py</code> and <code>tools/build_quality.py</code>. Hover any person in the scatter or heatmap to see their EEG quality.</p>
-    <h3>Limitations</h3>
-    <p>PVT paired for only 30 people (low power); automatic artifact selection (no visual review of components). Rerunning the raw EEG with the exact pipeline of Cui et al. (1–30 Hz, 4–30 Hz denominator) raises the frontal group effect (t = 2.32, p = 0.023), but the link with ΔPVT stays null (ρ = −0.06, n = 30; no subset of 28 exceeds 0.14), so the pipeline does not explain the non-replication.</p>
     <h3 id="h-table">Scatter data</h3>
     <div class="tscroll"><table id="dtable"></table></div>
-    <h3>Theme</h3>
-    <p>Light (classic, ColorBrewer palettes; default) or dark (instrument) with the ◐ button in the header; the choice is remembered in this browser. Direct links: <a href="?theme=light">light</a> and <a href="?theme=dark">dark</a>.</p>
     <h3>Credits</h3>
-    <p>Jimena Gurbillon, Andrea Coa and Paolo Medrano, DS5343 Data Visualization, UTEC 2026-2. D3.js 7.8.5 (ISC); Geist font (OFL). Inspiration: Bai et al. (2024), Cui et al. (2026), Dragicevic et al. (2019), Simonsohn et al. (2020). Part of the code and writing was developed with AI assistance (Claude) and reviewed by the team.</p>
+    <p>Jimena Gurbillon, Andrea Coa and Paolo Medrano, DS5343 Data Visualization, UTEC 2026-2. D3.js 7.8.5; Roboto (OFL). Developed with AI assistance (Claude) and reviewed by the team. Method details and tasks: README and RefinedDraftReport.</p>
   </div>
 </dialog>
 

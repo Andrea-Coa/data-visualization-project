@@ -66,7 +66,7 @@ const topo = (() => {
     ct:"2D Clough-Tocher cubic interpolation with a border ring, as in MNE plot_topomap.",
     spline:"Spherical spline interpolation (Perrin et al., 1989) on the 3D positions of the 61 electrodes."};
   const DEFAULT_METHOD = "v4";
-  let METHOD = (q => METHODS[q] ? q : DEFAULT_METHOD)(new URLSearchParams(location.search).get("interp"));
+  const METHOD = DEFAULT_METHOD;   // interpolación fija: v4 (EEGLAB topoplot, FieldTrip ft_topoplotER)
   const SPL_M = 4, SPL_K = 20;
   let SPL = null, V4 = null;
   const CT = new Map();
@@ -354,8 +354,7 @@ const topo = (() => {
     const k = d3.select("#k-topo"); k.selectAll("*").remove();
     const meanD = (T, met) => d3.mean(ELEC.filter(e => T[e]).map(e => met === "var" ? T[e].dVar : T[e].dMean));
     const up = (T, met) => ELEC.filter(e => T[e] && (met === "var" ? T[e].dVar : T[e].dMean) > 0).length;
-    const base = ["NS: normal sleep; SD: after 24–30 h without sleep; Δ = SD − NS. σθ: variability of relative theta power across 75 4-s epochs; μθ: its mean.",
-      (METHODS[stats.method] || "") + " NS and SD share a sequential scale per row; Δ uses a diverging scale centered at 0."];
+    const base = ["σθ: SD of relative θ (4–8 / 1–40 Hz) across 4-s epochs; μθ: its mean. Δ = deprivation − normal. v4 interpolation (EEGLAB, FieldTrip)."];
     if(sp.mode === "pair" || sp.mode === "cmp"){
       const [r0, r1] = sp.rows, m0 = meanD(r0.T, S.met), m1 = meanD(r1.T, S.met);
       const n0 = sp.mode === "pair" ? sp.names[0] : sp.G[0].name, n1 = sp.mode === "pair" ? sp.names[1] : sp.G[1].name;
@@ -370,21 +369,11 @@ const topo = (() => {
     }
     const v = sigCount("var"), m = sigCount("mean");
     setTitle("t-topo", `θ maps · ${v.q + m.q} of 61 electrodes with q &lt; 0.05`, "",
-      notes(...base, `Paired t-test per electrode, n = 68. Ring: uncorrected p &lt; 0.05 (σθ ${v.p}, μθ ${m.p}); filled dot: q &lt; 0.05 after Benjamini–Hochberg FDR (σθ ${v.q}, μθ ${m.q}).`));
+      notes(...base, `Paired t-test per electrode (n = 68). Ring: p &lt; 0.05 (σθ ${v.p}, μθ ${m.p}); dot: FDR q &lt; 0.05 (${v.q + m.q}).`));
     // las marcas de p y FDR solo se dibujan sobre los mapas Δ
     if(S.showD) k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);
   }
   bus.on("select.topo", e => { if(!(e && e.live)) render(); });
-  // selector del método de interpolación (para comparar con EEGLAB, FieldTrip y MNE); queda en la URL como ?interp=
-  const isel = document.getElementById("interpsel");
-  if(isel){
-    isel.value = METHOD;
-    isel.addEventListener("change", () => {
-      METHOD = METHODS[isel.value] ? isel.value : DEFAULT_METHOD;
-      try { const u = new URL(location.href); if(METHOD === DEFAULT_METHOD) u.searchParams.delete("interp"); else u.searchParams.set("interp", METHOD); history.replaceState(null, "", u); } catch(e){}
-      render();
-    });
-  }
   bus.on("pin.topo", () => render());
   // mapa suelto para las vistas secundarias: mismo método de interpolación que la matriz
   function mini(values, color){ const T = {}; for(const e in values) if(values[e] != null) T[e] = {dMean:values[e]}; return field(T, "D", "mean", color); }

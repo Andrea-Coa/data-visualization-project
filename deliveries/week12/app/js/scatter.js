@@ -228,9 +228,8 @@ const scatter = (() => {
   // título: qué se cruza; ρ, IC y n van en el recuadro dentro del gráfico y la lectura en el ícono ⓘ
   function title(){
     const head = "Δθ vs. Δ behavior";
-    const info = notes("Each point is a person with paired EEG and behavioral marker; Δ = SD − NS.",
-      "Dotted lines: medians of both axes. Shaded area labeled vulnerable: Δθ above the median and marker worse than the median.",
-      "Box: Spearman ρ with 95% CI (Fisher z transform) and n; click it to minimize it to an icon (click again to show it) and drag it to move it. Click a point to add it to or remove it from the selection; Shift + click: person A or B; drag: lasso selection.");
+    const info = notes("One point per person: Δθ (deprivation − normal) vs. Δ of the behavioral marker. Shaded: vulnerable quadrant (both above the median).",
+      "Box: Spearman ρ, 95% CI and n (drag to move, click to minimize). Click: select a person; drag: lasso.");
     setTitle("t-sc", cmpGroups() ? `${head}: two groups` : (S.selected ? `${head}: your selection` : head), "", info);
   }
   function key(){

@@ -120,7 +120,21 @@ loadData().then(D => {
   document.querySelectorAll("dialog [data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
   document.querySelectorAll("dialog").forEach(d => d.addEventListener("click", e => { if(e.target === d) d.close(); }));
   // Esc limpia la vista
-  addEventListener("keydown", e => { if(e.key !== "Escape" || e.defaultPrevented || document.querySelector("dialog[open]")) return; resetAll(); });
+  // ver una vista en grande: el botón ⤢ de su cabecera la abre casi a pantalla completa (se redibuja con su nuevo
+  // tamaño); el mismo botón, el fondo o Esc la devuelven a su lugar
+  const setMax = box => {
+    document.querySelectorAll(".is-max").forEach(b => { b.classList.remove("is-max"); b.querySelector(".vx").setAttribute("aria-label", "Expand view"); });
+    $("maxbg").hidden = !box;
+    if(box){ box.classList.add("is-max"); box.querySelector(".vx").setAttribute("aria-label", "Restore view"); }
+    requestAnimationFrame(drawAll);   // el nuevo tamaño ya está aplicado: cada vista se redibuja a su escala
+  };
+  document.querySelectorAll(".vx").forEach(b => b.addEventListener("click", e => {
+    e.stopPropagation(); const box = b.closest(".panel, .sec"); setMax(box.classList.contains("is-max") ? null : box); }));
+  $("maxbg").addEventListener("click", () => setMax(null));
+  addEventListener("keydown", e => {
+    if(e.key !== "Escape" || e.defaultPrevented || document.querySelector("dialog[open]")) return;
+    if(document.querySelector(".is-max")){ setMax(null); return; }
+    resetAll(); });
   bus.on("select.status", updateStatus); bus.on("pin.status", updateStatus); bus.on("axes.status", updateStatus);
 
   $("boot").classList.add("done");   // la rejilla se muestra antes de dibujar para que cada vista mida su espacio real

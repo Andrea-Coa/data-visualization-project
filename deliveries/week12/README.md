@@ -25,7 +25,7 @@ deliveries/week12/
     index.html                   single view: header with controls, three columns and the About panel
     css/styles.css               light and dark themes (color and type tokens; dark is the base, light uses data-theme="light"), boxed views with gutters, Roboto and Roboto Condensed
     js/core.js                   data, state, event bus, groups, selection, statistics
-    js/topomap.js                2 × 3 topomap matrix (EEGLAB/FieldTrip v4; MNE cubic and spherical spline in the selector; contours, p and FDR, σθ/μθ rows or two people)
+    js/topomap.js                2 × 3 topomap matrix (EEGLAB/FieldTrip v4 interpolation; contours, p and FDR, σθ/μθ rows or two people)
     js/scatter.js                vulnerability scatter, lasso, click selection, A and B, data table
     js/dynamics.js               five minutes: with μθ, mean ± SE per epoch; with σθ, moving σθ in 40-s windows
     js/individuals.js            person × electrode heatmap with two behavior-defined groups and their consistency C(e)

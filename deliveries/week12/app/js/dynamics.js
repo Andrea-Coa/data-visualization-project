@@ -80,22 +80,17 @@ const dyn = (() => {
     // puntos dentro de la ventana elegida (por su tiempo central), o todos
     const idx = d3.range(XS.length).filter(i => !S.win || (XS[i] >= S.win[0]*4 && XS[i] <= (S.win[1]+1)*4));
     const post = S.win ? `, ${winTxt(S.win)}` : "", unit = isVar() ? "windows" : "epochs";
-    const what = isVar() ? `Moving σθ (SD of regional θ in windows of ${ROLL_W} epochs = ${ROLL_W*4} s, sliding by one epoch)`
-      : "Relative theta power (4–8 Hz over 1–40 Hz) per 4-s epoch";
-    const scale = isVar() ? "The scatter σθ averages the SD of each electrode; here the series is already averaged over the region, so values are smaller: compare the shape over time, not the numbers. Exploratory: Cui et al. (2026) summarize variability as a single number per recording." : "";
     const upOf = s => idx.filter(i => s.mean[i] != null && s.mean[i] > 0).length;
     if(G){
       const u = cur.D.map(upOf);
       setTitle("t-dyn", `${isVar() ? "Δ moving σθ" : "Δθ per epoch"}: two groups${post}`, nb(`n = ${cur.D[0].n} and ${cur.D[1].n}`),
-        notes(`Δ (SD − NS) of ${what.charAt(0).toLowerCase()+what.slice(1)}, person by person; mean ± standard error of each group.`,
-          `Δ &gt; 0 in ${u[0]} (${G[0].name}) and ${u[1]} (${G[1].name}) of ${idx.length} ${unit}.`, scale, "Drag over the chart to choose a time window for the scatter."));
+        notes(`Δ (deprivation − normal), mean ± SE per group: Δ &gt; 0 in ${u[0]} (${G[0].name}) and ${u[1]} (${G[1].name}) of ${idx.length} ${unit}.`, "Drag over the chart to set a time window for the scatter."));
       return;
     }
     const d = idx.map(i => cur.SD.mean[i]-cur.NS.mean[i]), up = d.filter(v => v > 0).length;
     setTitle("t-dyn", `${isVar() ? "Moving σθ, 40-s windows" : "Relative θ per epoch"}${S.selected ? " · your selection" : ""}${post}`, nb(`n = ${cur.SD.n}`),
-      notes(`${what}; mean ± standard error across people. Dashed lines: linear trend.`,
-        `SD &gt; NS in ${up} of ${idx.length} ${unit}${S.win ? `; mean Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : `; SD slope ${fsr(slopePerMin(cur.SD.mean, XS))}/min`}.`,
-        scale, "Drag over the chart to choose a time window for the scatter."));
+      notes(`${isVar() ? "SD of regional relative θ in 40-s windows (10 epochs)" : "Regional relative θ per 4-s epoch"}, mean ± SE across people. Deprivation &gt; normal in ${up} of ${idx.length} ${unit}${S.win ? `; mean Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : ""}.`,
+        "Rejected epochs (&gt; 200 µV) are gaps. Drag over the chart to set a time window for the scatter."));
   }
   function tipFor(i){
     const r = s => s.mean[i] != null ? `${f3(s.mean[i])} <span class="m">± ${f3(s.sem[i])}</span>` : "n/d";

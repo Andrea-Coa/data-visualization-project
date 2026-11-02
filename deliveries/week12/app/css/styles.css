@@ -328,8 +328,9 @@ body{background:var(--page)}
 /* dispersión cuadrada: la vista mide lo mismo de alto que de ancho (ancho de la columna menos el relleno del panel),
    con un tope para que el mapa de calor conserve espacio; el mapa de calor ocupa el resto de la columna */
 @media (min-width:1101px){
-  .col-l{grid-template-rows:auto minmax(0,1fr);container-type:inline-size}
-  .p-scatter .view{flex:none;height:min(calc(100cqw - 26px), calc(50vh - 90px), calc(50svh - 90px))}
+  .col-l{grid-template-rows:auto minmax(0,1fr)}
+  .p-scatter{container-type:inline-size}   /* en la propia caja: así no atrapa a la vista ampliada (position: fixed) */
+  .p-scatter .view{flex:none;height:min(calc(100cqw - 2px), calc(50vh - 90px), calc(50svh - 90px))}
 }
 /* columna de personas más angosta: dispersión más chica y mapa de calor más alto; los mapas ganan ancho */
 .board{--wl:minmax(0,.74fr)}
@@ -338,3 +339,19 @@ body{background:var(--page)}
 .sec-group span::before{content:"· "}
 .side-head{padding:6px 8px 2px 12px}
 .sec-body{overflow:hidden}
+.sheet-body ul.kf{margin:0 0 8px;padding-left:18px;max-width:80ch}
+.sheet-body ul.kf li{margin:0 0 4px}
+/* ver en grande (botón ⤢ de cada vista) */
+.vx{flex:none;margin-left:auto;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border:1px solid transparent;border-radius:3px;background:transparent;color:var(--muted);cursor:pointer}
+.vx svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:hover) and (pointer:fine){ .vx:hover{color:var(--ink);border-color:var(--rule2)} }
+.vh .vx{margin-right:-4px}
+.sec-body .ph{flex-wrap:nowrap;align-items:flex-start}
+.sec-body .ph h2{flex:1 1 auto}
+.maxbg{position:fixed;inset:0;z-index:69;background:rgba(15,18,24,.38)}
+.is-max{position:fixed!important;inset:18px 24px;z-index:70;box-shadow:0 12px 40px rgba(0,0,0,.25);border-radius:4px}
+.panel.is-max{display:flex}
+.sec.is-max{background:var(--panel);border:1px solid var(--border);display:flex;flex-direction:column;padding:4px 0}
+.sec.is-max .sec-btn{pointer-events:none}
+.is-max .vx{color:var(--ink);border-color:var(--rule2)}
+.is-max .view{flex:1 1 0!important;height:auto!important;min-height:0!important;max-height:none!important}
