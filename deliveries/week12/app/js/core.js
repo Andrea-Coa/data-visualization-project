@@ -122,15 +122,114 @@ const groupName = () => S.selected ? "Your selection" : "";
 // título de panel: qué muestra, en pocas palabras, la cifra principal en tono apagado y, en el ícono ⓘ,
 // los detalles y la lectura del gráfico (tooltip al pasar el cursor o al enfocarlo con el teclado)
 function setTitle(id, head, sub, info){
-  const h = $(id), icon = `<span class="info" tabindex="0" role="button" aria-label="Chart details">i</span>`;
-  // el ícono va pegado a la última palabra (span sin cortes de línea): nunca queda solo en otra línea
-  const glue = s => { const k = s.lastIndexOf(" "); return `${s.slice(0, k+1)}<span class="nw">${s.slice(k+1)}&nbsp;${icon}</span>`; };
-  h.innerHTML = info ? (sub ? `${head} <span class="m">${glue(sub)}</span>` : glue(head)) : `${head}${sub ? ` <span class="m">${sub}</span>` : ""}`;
-  const i = h.querySelector(".info"); if(!i) return;
+  const h = $(id);
+  h.innerHTML = `${head}${sub ? ` <span class="m">${sub}</span>` : ""}`;
+  // el ícono ⓘ va junto al nombre de la vista (cabecera del panel o barra de la vista secundaria), no en este subtítulo
+  const host = h.closest(".panel, .sec"), slot = (host && host.querySelector(".vh > span, .sec-lbl b")) || h;
+  slot.querySelectorAll(":scope > .info").forEach(x => x.remove());
+  if(!info) return;
+  const i = document.createElement("span");
+  i.className = "info"; i.tabIndex = 0; i.setAttribute("role", "button"); i.setAttribute("aria-label", "Chart details"); i.textContent = "i";
+  slot.appendChild(i);
   const at = () => { const r = i.getBoundingClientRect(); return {clientX:r.right, clientY:r.bottom}; };
   i.onpointerenter = e => showTip(e, info); i.onpointermove = e => moveTip(e); i.onpointerleave = hideTip;
   i.onfocus = () => showTip(at(), info); i.onblur = hideTip;
   i.onclick = e => showTip(e, info);   // también con clic o toque (pantallas táctiles, trackpads)
+}
+// ---------- leyenda flotante dentro del área de datos (dispersión y serie por época) ----------
+// Se arrastra (o se mueve con las flechas); un clic sin arrastre la comprime en un ícono ↗ y otro la devuelve.
+// Sin posición elegida empieza en la esquina que tapa menos marcas y nunca sobre `avoid`. La posición elegida se
+// guarda como fracción del espacio libre y vale mientras no cambie `key` (los ejes). Sin ítems no se dibuja.
+// Ítems: {t: texto, mark: "dot" | "ring" | "line" | "dash", c: color, n: tamaño de la clase (opcional)}.
+function floatLegend(){
+  let c = null, g = null, geo = null, pos = null, key = null, min = false, drag = null;
+  const pad = 8, lh = 15, isLine = d => d.mark === "line" || d.mark === "dash";
+  const at = p => ({x:geo.x0+p.fx*(geo.x1-geo.x0), y:geo.y0+p.fy*(geo.y1-geo.y0)});
+  const place = p => { const q = at(p); g.attr("transform", `translate(${q.x-geo.ox},${q.y-geo.oy})`); };
+  function corner(){
+    const A = c.avoid, cs = [{fx:0, fy:0}, {fx:0, fy:1}, {fx:1, fy:1}, {fx:1, fy:0}];
+    const hits = p => { const q = at(p), x1 = q.x+geo.bw, y1 = q.y+geo.bh;
+      const onA = A && q.x < A.x1+4 && x1 > A.x0-4 && q.y < A.y1+4 && y1 > A.y0-4;
+      return (onA ? 1e3 : 0)+c.marks.filter(([x, y]) => x > q.x-6 && x < x1+6 && y > q.y-6 && y < y1+6).length; };
+    return cs.reduce((a, p) => hits(p) < hits(a) ? p : a);
+  }
+  function draw(){
+    g.selectAll("*").remove();
+    const items = c.items;
+    g.style("display", items.length ? null : "none").attr("tabindex", items.length ? 0 : null);
+    if(!items.length){ geo = null; return; }
+    g.classed("min", min).attr("aria-expanded", !min)
+      .attr("aria-label", min ? "Legend (minimized): press Enter to show it" : `Legend: ${items.map(d => d.t+(d.n != null ? `, n = ${d.n}` : "")).join("; ")}. Enter minimizes it; arrow keys move it`);
+    g.append("title").text(min ? "Show the legend" : "Click to minimize · drag to move");
+    const bg = g.append("rect").attr("class", "sbox-bg").attr("rx", 5), tg = g.append("g");
+    let ox, oy, bw, bh;
+    if(min){   // ícono de expandir: flecha hacia la esquina superior derecha
+      const s = 22; tg.append("path").attr("class", "sbox-ico").attr("d", "M-3.5,3.5L3.5,-3.5M-1,-3.5H3.5V1");
+      bw = bh = s; ox = oy = -s/2;
+    } else {
+      const tx = items.some(isLine) ? 19 : 13;
+      const labs = items.map((d, i) => {
+        const y = i*lh-3.8;
+        if(isLine(d)) tg.append("line").attr("x1", 0).attr("x2", 14).attr("y1", y).attr("y2", y).attr("stroke", d.c).attr("stroke-width", 2).attr("stroke-dasharray", d.mark === "dash" ? "4 3" : null);
+        else { const k = tg.append("circle").attr("cx", 4).attr("cy", y).attr("r", 3.5);
+          if(d.mark === "ring") k.attr("fill", "none").attr("stroke", d.c).attr("stroke-width", 1.4); else k.attr("fill", d.c); }
+        return tg.append("text").attr("x", tx).attr("y", i*lh).text(d.t);
+      });
+      // n de cada clase en su propia columna, alineado a la derecha
+      const len = t => t.node().getComputedTextLength();
+      const ns = items.map((d, i) => d.n != null ? tg.append("text").attr("class", "m").attr("y", i*lh).attr("text-anchor", "end").text(`n = ${d.n}`) : null).filter(Boolean);
+      const nx = tx+d3.max(labs, len)+12+(d3.max(ns, len) || 0);
+      ns.forEach(t => t.attr("x", nx));
+      const bb = tg.node().getBBox(); bw = bb.width+2*pad; bh = bb.height+2*pad-3; ox = bb.x-pad; oy = bb.y-pad+1;
+    }
+    bg.attr("x", ox).attr("y", oy).attr("width", bw).attr("height", bh);
+    const {x0, x1, y0, y1} = c.area;
+    geo = {x0:x0+6, x1:Math.max(x0+6, x1-bw-6), y0:y0+6, y1:Math.max(y0+6, y1-bh-6), ox, oy, bw, bh};
+    place(pos || corner());
+  }
+  // se comprime y se expande desde la misma esquina superior izquierda (sin salirse del área de datos)
+  function toggle(){
+    if(!geo) return;
+    const q = at(pos || corner()), f = (v, a, b) => b > a ? Math.max(0, Math.min(1, (v-a)/(b-a))) : 0;
+    min = !min; pos = {fx:0, fy:0}; draw(); if(!geo) return;
+    pos = {fx:f(q.x, geo.x0, geo.x1), fy:f(q.y, geo.y0, geo.y1)}; place(pos); hideTip();
+  }
+  function bind(){
+    const clamp = v => Math.max(0, Math.min(1, v)), span = k => (geo[k+"1"]-geo[k+"0"]) || 1;
+    const move = (dx, dy, from) => { pos = {fx:clamp(from.fx+dx/span("x")), fy:clamp(from.fy+dy/span("y"))}; place(pos); };
+    g.on("pointerdown", ev => {
+      if(ev.button !== 0 || !geo) return;
+      ev.preventDefault(); ev.stopPropagation(); hideTip();
+      const [px, py] = d3.pointer(ev, c.svg.node());
+      drag = {id:ev.pointerId, px, py, from:pos || corner(), moved:false};
+      g.node().setPointerCapture(ev.pointerId);
+    }).on("pointermove", ev => {
+      if(!drag || ev.pointerId !== drag.id) return;
+      ev.stopPropagation(); const [px, py] = d3.pointer(ev, c.svg.node()), dx = px-drag.px, dy = py-drag.py;
+      if(!drag.moved && Math.hypot(dx, dy) < 3) return;   // por debajo de 3 px cuenta como clic, no como arrastre
+      drag.moved = true; g.classed("drag", true);
+      move(dx, dy, drag.from);
+    }).on("pointerup", ev => {
+      if(!drag || ev.pointerId !== drag.id) return;
+      ev.stopPropagation(); const click = !drag.moved; drag = null; g.classed("drag", false);
+      if(click) toggle();
+    }).on("pointercancel", ev => {
+      if(drag && ev.pointerId === drag.id){ drag = null; g.classed("drag", false); }
+    }).on("keydown", ev => {
+      if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); toggle(); return; }
+      const d = {ArrowLeft:[-10, 0], ArrowRight:[10, 0], ArrowUp:[0, -10], ArrowDown:[0, 10]}[ev.key];
+      if(!d || !geo) return; ev.preventDefault(); move(d[0], d[1], pos || corner());
+    });
+  }
+  return {
+    // cfg: {svg, parent: <g> donde se agrega (encima de las marcas), area: {x0, x1, y0, y1}, items, marks: [[x, y]], avoid, key}
+    mount(cfg){ c = cfg; if(cfg.key !== key){ key = cfg.key; pos = null; } drag = null;
+      g = cfg.parent.append("g").attr("class", "sbox").attr("role", "button"); bind(); draw(); },
+    update(items){ if(!g) return; c.items = items; draw(); },
+    owns: el => !!(g && g.node().contains(el)),
+    // el reporte siempre lleva la leyenda completa: si está comprimida, se expande solo mientras se copia el SVG
+    withFull(fn){ if(!min || !g) return fn(); min = false; draw(); try { return fn(); } finally { min = true; draw(); } },
+  };
 }
 const notes = (...ls) => ls.filter(Boolean).map(l => `<p class="note">${nb(l)}</p>`).join("");   // contenido del ícono ⓘ
 const nb = s => s.replace(/ (=|≥|≤|&lt;|&gt;) /g, "\u00a0$1\u00a0");   // "ρ = −0.10" o "p ≥ 0.15" nunca se parten en dos líneas

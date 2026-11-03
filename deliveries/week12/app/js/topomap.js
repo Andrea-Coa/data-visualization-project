@@ -359,6 +359,7 @@ const topo = (() => {
         (r && !isNaN(r.rho) ? trow(`ρ with ${MK[S.y].short}`, `${f2(r.rho)} <span class="m">n = ${r.n}</span>`) : "");
     }).join("");
   }
+  // el título no se ve en la vista (su ⓘ va en la cabecera, igual que la leyenda de p y FDR): lo usa el reporte
   function header(sp){
     const k = d3.select("#k-topo"); k.selectAll("*").remove();
     const meanD = (T, met) => d3.mean(ELEC.filter(e => T[e]).map(e => met === "var" ? T[e].dVar : T[e].dMean));

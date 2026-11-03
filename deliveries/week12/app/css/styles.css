@@ -65,13 +65,17 @@ button,select{font:inherit;color:inherit}
 .side-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 8px 8px 16px;border-bottom:1px solid var(--rule);flex:none}
 .side-title{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .side-body{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
-.sec-group{flex:none;padding:10px 16px 4px;font-size:10.5px;color:var(--muted);letter-spacing:.02em}
-.sec-group b{color:var(--ink2);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
 .sec{display:flex;flex-direction:column;min-height:0;border-bottom:1px solid var(--rule)}
 .sec[data-open="true"]{flex:1 1 0}
-.sec-btn{flex:none;display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font-size:12.5px;font-weight:600;padding:9px 16px;cursor:pointer}
-.sec-btn::before{content:"▸";font-size:10px;color:var(--muted);transition:transform .12s}
-.sec-btn[aria-expanded="true"]::before{transform:rotate(90deg)}
+/* barra de cada vista secundaria: el texto se ve en .sec-lbl y el botón (transparente) la cubre entera para abrirla;
+   así el ícono ⓘ puede ir junto al título sin quedar dentro de un botón */
+.sec-hd{position:relative;flex:none;display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;color:var(--ink);font-size:12.5px;font-weight:600;padding:9px 16px}
+.sec-hd::before{content:"▸";font-size:10px;color:var(--muted);transition:transform .12s}
+.sec[data-open="true"] .sec-hd::before{transform:rotate(90deg)}
+.sec-lbl{min-width:0}
+.sec-lbl b,.sec-lbl > span{display:block}
+.sec-btn{position:absolute;inset:0;width:100%;margin:0;padding:0;border:0;border-radius:inherit;background:transparent;cursor:pointer}
+.sec-hd .info{position:relative;z-index:1}   /* por encima del botón que cubre la barra */
 .sec-body{display:none;flex:1 1 0;min-height:0;flex-direction:column;padding:0 16px 10px}
 .sec[data-open="true"] .sec-body{display:flex}
 .sec-body .ph h2{font-size:12px;font-weight:500;color:var(--ink2)}
@@ -84,9 +88,9 @@ button,select{font:inherit;color:inherit}
 .ph h2{margin:0;font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.005em;line-height:1.35}
 .ph h2 .m{color:var(--muted);font-weight:500}
 .ph h2 b{color:var(--ink);font-weight:600}
-.ph h2 .info{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;margin-left:2px;border:1px solid var(--rule2);border-radius:50%;font-size:9.5px;font-weight:600;font-style:normal;line-height:1;color:var(--muted);vertical-align:1px;cursor:help}
-.ph h2 .nw{white-space:nowrap}
-@media (hover:hover) and (pointer:fine){ .ph h2 .info:hover{color:var(--ink);border-color:var(--ink2)} }
+/* ícono ⓘ junto al nombre de la vista: tipografía propia (no hereda las mayúsculas condensadas de la cabecera) */
+.info{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;margin-left:6px;border:1px solid var(--rule2);border-radius:50%;font-family:var(--sans);font-size:9.5px;font-weight:600;font-style:normal;letter-spacing:0;text-transform:none;line-height:1;color:var(--muted);vertical-align:1px;cursor:help}
+@media (hover:hover) and (pointer:fine){ .info:hover{color:var(--ink);border-color:var(--ink2)} }
 .key{display:flex;align-items:center;gap:4px 12px;flex-wrap:wrap;justify-content:flex-end;font-size:11px;color:var(--ink2);flex:none}
 .key .k{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
 .key .m{color:var(--muted)}
@@ -128,7 +132,7 @@ button,select{font:inherit;color:inherit}
 .zero{stroke:var(--rule2)}
 .median{stroke:var(--muted);stroke-dasharray:3 3;stroke-opacity:.7}
 .quad{fill:rgba(255,181,71,.07)}
-.qlab{font-size:10.5px;font-weight:500;fill:var(--vuln);pointer-events:none}
+.qlab{font-size:10.5px;font-weight:500;fill:var(--vuln);pointer-events:none;paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}
 #scatter svg{overflow:visible}   /* sin margen derecho: un número del eje x en el borde se ve entero sobre el relleno del panel */
 /* recuadro de ρ dentro de la dispersión: se arrastra con el puntero o se mueve con las flechas */
 .sbox{cursor:grab;outline:none}
@@ -295,25 +299,24 @@ body{background:var(--page)}
 .ph h2 b{color:var(--ink)}
 .side-head{padding:6px 8px 0 12px;border-bottom:0}
 .side-head .vh{flex:1;margin:0;font-size:13px;letter-spacing:.05em;color:var(--ink)}
-.sec-group{padding:10px 12px 4px;display:flex;flex-direction:column;gap:1px}
-.sec-group b{font-family:var(--cond);font-size:11px;color:var(--ink)}
-.sec-group span{font-size:10.5px;color:var(--muted)}
 .sec{border-bottom:0}
-.sec-btn{margin:3px 10px;width:calc(100% - 20px);padding:6px 10px;border-radius:2px;background:var(--secbar);color:var(--secbar-ink);display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center}
-.sec-btn::before{grid-row:1 / span 2;color:var(--secbar-ink);opacity:.85}
-.sec-btn b{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-.sec-btn span{grid-column:2;font-size:10.5px;font-weight:400;opacity:.82}
+.sec-hd{margin:3px 10px;padding:6px 10px;border-radius:2px;background:var(--secbar);color:var(--secbar-ink)}
+.sec-hd::before{color:var(--secbar-ink);opacity:.85}
+.sec-lbl b{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.sec-lbl > span{font-size:10.5px;font-weight:400;opacity:.82}
+.sec-hd .info{color:var(--secbar-ink);border-color:currentColor;opacity:.75}
+@media (hover:hover) and (pointer:fine){ .sec-hd .info:hover{opacity:1;color:var(--secbar-ink);border-color:currentColor} }
 .sec-body{padding:4px 12px 8px}
-@media (hover:hover) and (pointer:fine){ .sec-btn:hover{filter:brightness(1.12)} }
+@media (hover:hover) and (pointer:fine){ .sec-hd:hover{filter:brightness(1.12)} }
 .colhead,.rowhead{font-family:var(--cond)}
 .atitle{font-family:var(--sans)}
 @media (max-width:1100px){ .dset{display:none} .tag{white-space:normal} }
 .dset>span{flex:none}
 .ctrls select{max-width:190px}
-.sec-btn span{display:none}
-.sec-btn[aria-expanded="true"] span{display:block}
-.sec-btn::before{grid-row:1 / 3;align-self:center}
-.sec-btn{row-gap:1px;padding:5px 10px}
+.sec-lbl > span{display:none}
+.sec[data-open="true"] .sec-lbl > span{display:block}
+.sec-hd{padding:5px 10px}
+.sec-lbl > span{margin-top:1px}
 @media (max-width:1499px){ .dset{display:none} .ctrls{gap:8px} .ctrls select{max-width:160px} .tag{font-size:10.5px} }
 .tag{white-space:normal;max-width:235px;line-height:1.2;margin-top:2px}
 @media (max-width:1100px){
@@ -330,13 +333,13 @@ body{background:var(--page)}
 @media (min-width:1101px){
   .col-l{grid-template-rows:auto minmax(0,1fr)}
   .p-scatter{container-type:inline-size}   /* en la propia caja: así no atrapa a la vista ampliada (position: fixed) */
-  .p-scatter .view{flex:none;height:min(calc(100cqw - 2px), calc(50vh - 90px), calc(50svh - 90px))}
+  /* sin fila de título: el alto que dejaba (20 px) pasa a la vista. 100cqw + 2px hace cuadrada el área de datos
+     (margen izquierdo 38 px = margen superior + inferior 40 px menos 2) */
+  .p-scatter .view{flex:none;height:min(calc(100cqw + 2px), calc(50vh - 70px), calc(50svh - 70px))}
 }
 /* columna de personas más angosta: dispersión más chica y mapa de calor más alto; los mapas ganan ancho */
 .board{--wl:minmax(0,.74fr)}
-/* panel de validación: encabezados de grupo en una línea para dejar más alto a la sección abierta */
-.sec-group{flex-direction:row;align-items:baseline;gap:6px;padding:8px 12px 2px}
-.sec-group span::before{content:"· "}
+/* panel de validación: cabecera compacta para dejar más alto a la sección abierta */
 .side-head{padding:6px 8px 2px 12px}
 .sec-body{overflow:hidden}
 .sheet-body ul.kf{margin:0 0 8px;padding-left:18px;max-width:80ch}
@@ -353,9 +356,17 @@ body{background:var(--page)}
 .panel.is-max{display:flex}
 .sec.is-max{background:var(--panel);border:1px solid var(--border);display:flex;flex-direction:column;padding:4px 0}
 .sec.is-max .sec-btn{pointer-events:none}
+.sec.is-max .sec-hd{filter:none}
 .is-max .vx{color:var(--ink);border-color:var(--rule2)}
 .is-max .view{flex:1 1 0!important;height:auto!important;min-height:0!important;max-height:none!important}
 /* cabeceras de vista de alto fijo: título y leyenda en una línea, para que seleccionar no mueva las vistas de abajo */
+/* dispersión sin título ni leyenda sobre el gráfico: el ⓘ va en la cabecera y la leyenda en el recuadro del gráfico;
+   el título queda oculto porque el reporte lo usa (lleva ρ, IC 95% y n) */
+.p-scatter .ph,.p-dyn .ph{display:none}   /* lo mismo en la vista de tiempo: su leyenda (con n) va en un recuadro */
+/* topomapas: sin subtítulo (el alto pasa a los mapas); la leyenda de p y FDR va en la cabecera, junto a ⤢ */
+.p-topo .ph{display:none}
+.vh .key{margin-left:auto;font-family:var(--sans);font-size:11px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--ink2)}
+.vh .key + .vx{margin-left:6px}
 .p-scatter .ph{flex-wrap:nowrap}
 .p-scatter .ph h2{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* ícono: flechas hacia afuera para ampliar, hacia adentro para restaurar */

@@ -12,7 +12,8 @@
 const dyn = (() => {
   const el = $("dyn");
   let svg, g, W, H, dx, dy, scan, heads, brush, brushG, cur = null, ln, G = null, XS = [];
-  const m = {t:8, r:18, b:30, l:52};   // las series se identifican en la leyenda del panel
+  const m = {t:8, r:18, b:30, l:58};   // izquierda: título del eje y en dos líneas y sus números
+  const leg = floatLegend();            // las series (con su n) se identifican en la leyenda flotante
   const ex = i => dx(XS[i]);           // tiempo (s) del punto i: centro de la época o de la ventana móvil
   const isVar = () => S.met === "var";
   const nearest = t => Math.max(0, Math.min(XS.length-1, Math.round((t-XS[0])/4)));
@@ -32,18 +33,17 @@ const dyn = (() => {
     // con comparación: Δ (SD menos NS) de cada grupo; sin comparación: NS y SD del grupo activo
     cur = G ? {D:G.map(gr => epochDiffStats(gr.ids, pref, met))} : {NS:epochStats(ids, pref, "NS", met), SD:epochStats(ids, pref, "SD", met)};
     XS = (G ? cur.D[0] : cur.SD).xs;
-    // la leyenda dice qué es la banda sombreada (error estándar, no desviación estándar) y con cuántas personas
-    d3.select("#k-dyn").html(G ? G.map(gr => `<span class="k"><i class="ln" style="background:${gr.color}"></i>${gr.name}</span>`).join("") + `<span class="k m">band: Δ mean ± SE</span>`
-      : `<span class="k"><i class="ln ns"></i>Normal Sleep</span><span class="k"><i class="ln sd"></i>Sleep Deprivation</span><span class="k"><i class="dash"></i>trend</span><span class="k m">band: mean ± SE, n = ${cur.SD.n}</span>`);
     const series = G ? cur.D : [cur.NS, cur.SD];
     const vals = series.flatMap(s => s.mean.flatMap((v, i) => v == null ? [] : [v-s.sem[i], v+s.sem[i]])).concat(G ? [0] : []);
     const [lo, hi] = d3.extent(vals), pad = (hi-lo)*.08;
     dx = d3.scaleLinear().domain([0, 300]).range([m.l, W-m.r]); dy = d3.scaleLinear().domain([lo-pad, hi+pad]).range([H-m.b, m.t]);
     g.append("g").attr("class", "gridl").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(dy).ticks(4).tickSize(-(W-m.l-m.r)).tickFormat(""));
-    g.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(dy).ticks(4).tickSizeOuter(0).tickFormat(L.format(isVar() ? ".3~f" : ".2~f"))).call(a => a.select(".domain").remove());
+    g.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(dy).ticks(4).tickSize(3).tickPadding(3).tickSizeOuter(0).tickFormat(L.format(isVar() ? ".3~f" : ".2~f"))).call(a => a.select(".domain").remove());
     g.append("g").attr("class", "axis").attr("transform", `translate(0,${H-m.b})`).call(d3.axisBottom(dx).tickValues(d3.range(0, 301, W < 500 ? 60 : 30)).tickSizeOuter(0).tickFormat(d => d === 300 ? "300 s" : d));
-    const yTitle = isVar() ? (G ? "Δ moving σθ (SD − NS)" : "moving σθ (SD within 40 s)") : (G ? "Δ θ power (SD − NS)" : "relative θ power");
-    g.append("text").attr("class", "atitle").attr("text-anchor", "middle").attr("transform", "rotate(-90)").attr("x", -(m.t+H-m.b)/2).attr("y", 10).text(yTitle);
+    // título del eje y en dos líneas: la magnitud y, debajo, qué es (más corto que en una sola línea)
+    const yTitle = isVar() ? (G ? ["Δ moving σθ", "(SD − NS)"] : ["moving σθ", "(SD within 40 s)"]) : (G ? ["Δ θ power", "(SD − NS)"] : ["relative", "θ power"]);
+    const yt = g.append("text").attr("class", "atitle").attr("text-anchor", "middle").attr("transform", "rotate(-90)");
+    yTitle.forEach((t, i) => yt.append("tspan").attr("x", -(m.t+H-m.b)/2).attr("y", 9+i*12).text(t));
     // ventana de tiempo (debajo de las series para no taparlas)
     brushG = g.append("g").attr("class", "brush");
     ln = d3.line().defined(v => v != null).x((v, i) => ex(i)).y(v => dy(v)).curve(d3.curveMonotoneX);
@@ -70,7 +70,14 @@ const dyn = (() => {
     });
     brushG.call(brush);
     if(S.win) brushG.call(brush.move, [dx(S.win[0]*4), dx((S.win[1]+1)*4)]);
+    // leyenda flotante (encima de la ventana de tiempo: arrastrarla no elige una ventana); n de cada serie.
+    // Vuelve a buscar la esquina más libre cuando cambia qué se dibuja (métrica, región o electrodo, comparación)
+    const legItems = (G ? G.map((gr, i) => ({mark:"line", c:gr.color, t:gr.name, n:cur.D[i].n}))
+      : [{mark:"line", c:C.ns, t:"Normal Sleep", n:cur.NS.n}, {mark:"line", c:C.sd, t:"Sleep Deprivation", n:cur.SD.n}]).concat([{mark:"dash", c:C.ink2, t:"trend"}]);
+    const marks = items.flatMap(({s}) => s.mean.flatMap((v, i) => v == null ? [] : [[ex(i), dy(v)]]));
+    leg.mount({svg, parent:g, area:{x0:m.l, x1:W-m.r, y0:m.t, y1:H-m.b}, items:legItems, marks, avoid:null, key:`${met}|${S.elec || S.roi}|${G ? S.cmp : "-"}`});
     svg.on("pointermove", ev => {
+      if(leg.owns(ev.target)){ scan.style("opacity", 0); heads.selectAll("*").remove(); hideTip(); return; }
       const [px] = d3.pointer(ev, svg.node()); if(px < m.l || px > W-m.r){ scan.style("opacity", 0); heads.selectAll("*").remove(); hideTip(); return; }
       const i = nearest(dx.invert(px)); drawHead(i); showTip(ev, tipFor(i));
     }).on("pointerleave", () => { scan.style("opacity", 0); heads.selectAll("*").remove(); hideTip(); });
@@ -83,15 +90,17 @@ const dyn = (() => {
     // con un electrodo elegido la serie es la de ese electrodo, no la de la región (escalas distintas: no se superponen)
     const src = S.elec && ELEP ? ` · electrode ${S.elec}` : ` · ${ROI[S.roi].name}`;
     const upOf = s => idx.filter(i => s.mean[i] != null && s.mean[i] > 0).length;
+    // el título no se ve en la vista (solo su ⓘ en la cabecera): lo usa la figura del reporte
+    const key = "Shaded band: ± SE; dashed line: linear trend. Legend box: drag to move it, click to minimize it.";
     if(G){
       const u = cur.D.map(upOf);
       setTitle("t-dyn", `${isVar() ? "Δ moving σθ" : "Δθ per epoch"}${src}: two groups${post}`, nb(`n = ${cur.D[0].n} and ${cur.D[1].n}`),
-        notes(`Δ (deprivation − normal), mean ± SE per group: Δ &gt; 0 in ${u[0]} (${G[0].name}) and ${u[1]} (${G[1].name}) of ${idx.length} ${unit}.`, "Drag over the chart to set a time window for the scatter."));
+        notes(`Δ (deprivation − normal), mean ± SE per group: Δ &gt; 0 in ${u[0]} (${G[0].name}) and ${u[1]} (${G[1].name}) of ${idx.length} ${unit}.`, key, "Drag over the chart to set a time window for the scatter."));
       return;
     }
     const d = idx.map(i => cur.SD.mean[i]-cur.NS.mean[i]), up = d.filter(v => v > 0).length;
     setTitle("t-dyn", `${isVar() ? "Moving σθ, 40-s windows" : "Relative θ per epoch"}${src}${S.selected ? " · your selection" : ""}${post}`, nb(`n = ${cur.SD.n}`),
-      notes(`${isVar() ? "SD of regional relative θ in 40-s windows (10 epochs)" : "Regional relative θ per 4-s epoch"}, mean ± SE across people. Deprivation &gt; normal in ${up} of ${idx.length} ${unit}${S.win ? `; mean Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : ""}.`,
+      notes(`${isVar() ? "SD of regional relative θ in 40-s windows (10 epochs)" : "Regional relative θ per 4-s epoch"}, mean ± SE across people. Deprivation &gt; normal in ${up} of ${idx.length} ${unit}${S.win ? `; mean Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : ""}.`, key,
         `${S.elec && ELEP ? `Series of electrode ${S.elec}: noisier than a region and on a larger scale (a region averages 16–28 electrodes). Remove it with the x chip in the header.` : "Click an electrode on a map (or a heatmap row) to see its own series."} Rejected epochs (&gt; 200 µV) are gaps; drag to set a time window for the scatter.`));
   }
   function tipFor(i){
@@ -107,5 +116,5 @@ const dyn = (() => {
       .attr("fill", o => o.c).attr("stroke", C.panel).attr("stroke-width", 1.5);
   }
   bus.on("select.dyn", e => { if(!(e && e.live)) render(); }); bus.on("axes.dyn", () => render());
-  return {render, rebuild(){}};
+  return {render, withFullBox:fn => leg.withFull(fn), rebuild(){}};
 })();

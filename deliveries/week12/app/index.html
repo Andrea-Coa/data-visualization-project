@@ -68,8 +68,8 @@
   </div>
   <div class="col col-c">
   <section class="panel p-topo" aria-labelledby="t-topo">
-    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.6 2.9 8 1 9.4 2.9" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="7.5" r="2.4"/></svg><span>Topography View</span><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div>
-    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div></div>
+    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.6 2.9 8 1 9.4 2.9" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="7.5" r="2.4"/></svg><span>Topography View</span><div class="key" id="k-topo"></div><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div>
+    <div class="ph"><h2 id="t-topo"></h2></div>
     <div class="view" id="topo"></div>
   </section>
   <section class="panel p-dyn" aria-labelledby="t-dyn">
@@ -81,18 +81,16 @@
   <aside class="col col-s" id="side" aria-label="Secondary views">
     <div class="side-head"><span class="side-title vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 14 4v4c0 3.6-2.6 5.7-6 6.5C4.6 13.7 2 11.6 2 8V4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m5.3 8 1.9 1.9L10.8 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Validation Panel</span></span><button class="btn btn-icon" id="sidebtn" type="button" aria-expanded="true" aria-controls="side-body" title="Collapse secondary views">›</button></div>
     <div class="side-body" id="side-body">
-      <div class="sec-group"><b>Robustness checks</b><span>can I trust the effect?</span></div>
       <section class="sec" data-open="true" aria-labelledby="b-aper">
-        <button class="sec-btn" id="b-aper" type="button" aria-expanded="true"><b>Oscillatory or 1/f?</b><span>Is σθ a rhythm or the spectral background?</span></button>
+        <div class="sec-hd"><button class="sec-btn" id="b-aper" type="button" aria-expanded="true" aria-labelledby="l-aper" aria-describedby="d-aper"></button><div class="sec-lbl"><b id="l-aper">Oscillatory or 1/f?</b><span id="d-aper">Is σθ a rhythm or the spectral background?</span></div></div>
         <div class="sec-body"><div class="ph"><h2 id="t-aper"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="aper"></div></div>
       </section>
       <section class="sec" data-open="false" aria-labelledby="b-eye">
-        <button class="sec-btn" id="b-eye" type="button" aria-expanded="false"><b>Driven by blinks?</b><span>Does what ICA leaves of the eyes change σθ?</span></button>
+        <div class="sec-hd"><button class="sec-btn" id="b-eye" type="button" aria-expanded="false" aria-labelledby="l-eye" aria-describedby="d-eye"></button><div class="sec-lbl"><b id="l-eye">Driven by blinks?</b><span id="d-eye">Does what ICA leaves of the eyes change σθ?</span></div></div>
         <div class="sec-body"><div class="ph"><h2 id="t-eye"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="eye"></div></div>
       </section>
-      <div class="sec-group"><b>Exploratory</b><span>a separate hypothesis</span></div>
       <section class="sec" data-open="false" aria-labelledby="b-conn">
-        <button class="sec-btn" id="b-conn" type="button" aria-expanded="false"><b>θ synchrony between regions</b><span>Do regions oscillate together less?</span></button>
+        <div class="sec-hd"><button class="sec-btn" id="b-conn" type="button" aria-expanded="false" aria-labelledby="l-conn" aria-describedby="d-conn"></button><div class="sec-lbl"><b id="l-conn">θ synchrony between regions</b><span id="d-conn">Do regions oscillate together less?</span></div></div>
         <div class="sec-body"><div class="ph"><h2 id="t-conn"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="conn"></div></div>
       </section>
     </div>
