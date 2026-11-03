@@ -1,12 +1,18 @@
 ipykernel
 numpy
 pandas
+scipy        # t-tests, Spearman and multiverse (build_multiverse.py, build_topo_stats.py, check_app.py)
+statsmodels  # reference FDR in the technical tests (check_app.py)
 
-# visualización
+# visualization
 matplotlib
 seaborn
 PyQt6
 
 # for eeg data
 mne
+mne-connectivity  # wPLI for the «θ synchrony» view (tools/build_secondary.py)
+fooof==1.1.0      # specparam for the «Oscillatory or aperiodic» view (tools/build_secondary.py)
+mne-icalabel      # ICLabel muscle components in the Cui-style ICA variant (tools/build_cui_variant.py)
+onnxruntime       # backend required by mne-icalabel
 pymatreader  # required by mne.io.read_raw_eeglab for MATLAB v7.3 (HDF5) .set files

@@ -1,33 +1,34 @@
 /* BATIMIX · Semana 12 · tema oscuro tipo instrumento científico.
    Un único header con título y todos los controles; debajo, cuatro paneles sin espacio entre ellos (solo líneas de 1 px).
-   Sin textos de instrucciones: cada título de panel es el hallazgo. Sin animaciones: los cambios son inmediatos.
+   Cada título dice qué muestra el panel; la lectura y el método van en su ícono ⓘ. Sin animaciones: los cambios son inmediatos.
+   Una sola familia tipográfica (Geist) en toda la interfaz y en ambos temas; las cifras usan dígitos tabulares.
    NS = cian, SD = magenta; Δ divergente con cero oscuro (se funde con el fondo) y extremos brillantes. */
 :root{
   --bg:#0B0D12; --panel:#0F1218; --raise:#161A22; --rule:#1F2430; --rule2:#2B3140;
   --ink:#E8EAF0; --ink2:#B4BAC6; --muted:#8C93A1; --faint:#4A5160;
   --ns:#3DD6F5; --sd:#FF5C8A; --vuln:#FFB547; --rest:#7D8494; --signeg:#9AA6FF;
-  --g1:#B79CFF; --g2:#F6C945; --sigpos:#5EE6A8; --edot:rgba(232,234,240,.45); --halo:#9fb4ff;   /* comparación de dos grupos: lavanda y oro, distinguibles con daltonismo */
+  --g1:#B79CFF; --g2:#F6C945; --sigpos:#5EE6A8; --edot:rgba(232,234,240,.45); --mark:#E8EAF0; --halo:#9fb4ff;   /* comparación de dos grupos: lavanda y oro, distinguibles con daltonismo */
   --ramp-div:#A7EEFF,#2AA9DC,#1A1F2B,#E5457C,#FFA6C4;
   --null:rgba(232,234,240,.08);
   --sel:rgba(61,214,245,.12);
-  --sans:"Geist","Helvetica Neue",Arial,sans-serif; --mono:"Geist Mono",ui-monospace,"SFMono-Regular",monospace; --head:var(--sans);
-  --bar-h:48px;
+  --sans:"Roboto","Helvetica Neue",Arial,sans-serif; --cond:"Roboto Condensed","Roboto","Arial Narrow",sans-serif;
+  --bar-h:58px;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:13px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:13px;line-height:1.45;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
 :focus-visible{outline:2px solid var(--ns);outline-offset:2px;border-radius:3px}
 button,select{font:inherit;color:inherit}
-.boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:100;color:var(--muted);font-family:var(--mono);font-size:12px}
+.boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:100;color:var(--muted);font-size:12px}
 .boot.done{display:none}
 .boot.err{flex-direction:column;gap:8px;color:var(--ink)}
 
 /* ---------- único header ---------- */
 .bar{height:var(--bar-h);display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid var(--rule);background:var(--bg)}
 .brand{display:flex;align-items:baseline;gap:14px;min-width:0}
-.logo{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--ns);display:inline-flex;align-items:center;gap:7px}
+.logo{font-size:11px;letter-spacing:.14em;color:var(--ns);display:inline-flex;align-items:center;gap:7px}
 .logo::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ns);box-shadow:0 0 8px var(--ns),0 0 2px var(--ns)}
 .ctrls{display:flex;align-items:center;gap:8px;flex:none}
 .seg{display:inline-flex;padding:2px;border-radius:7px;background:var(--raise);border:1px solid var(--rule)}
@@ -39,7 +40,10 @@ button,select{font:inherit;color:inherit}
   background-position:calc(100% - 13px) 52%,calc(100% - 9px) 52%;background-size:4px 4px,4px 4px;background-repeat:no-repeat}
 .ctrls select:disabled{opacity:.45;cursor:default}
 .ctrls select option{background:#161A22;color:var(--ink)}
-.chip{background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.55);color:var(--vuln);border-radius:7px;padding:4px 10px;font-family:var(--mono);font-size:11.5px;cursor:pointer;white-space:nowrap}
+.pipe{border:1px solid var(--rule);background:transparent;color:var(--muted);border-radius:6px;padding:2px 8px;font-size:10.5px;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:help;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.pipe:hover{color:var(--ink2);border-color:var(--rule2)}
+.bunit{font-size:9px;fill:var(--muted)}
+.chip{background:rgba(255,181,71,.1);border:1px solid rgba(255,181,71,.55);color:var(--vuln);border-radius:7px;padding:4px 10px;font-size:11.5px;cursor:pointer;white-space:nowrap}
 .chip::after{content:" ×";color:var(--ink2)}
 .btn{background:var(--raise);border:1px solid var(--rule);color:var(--ink);border-radius:7px;padding:5px 11px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
 .btn:disabled{opacity:.4;cursor:default}
@@ -49,18 +53,44 @@ button,select{font:inherit;color:inherit}
   .btn:not(:disabled):hover,.ctrls select:hover{border-color:var(--rule2);background:#1B2029}
 }
 
-/* ---------- tablero: cuatro paneles sin huecos ---------- */
-/* dos columnas con repartos propios: el multiverso necesita alto abajo a la izquierda, la matriz de mapas arriba a la derecha */
-.board{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+/* ---------- tablero: tres columnas sin huecos ---------- */
+/* centro: la matriz de topomapas (protagonista) y debajo la serie en el tiempo; izquierda: las personas
+   (dispersión compacta y mapa de calor alto); derecha: vistas secundarias plegables. Los anchos son variables
+   para que el interruptor Δ, el intercambio de columnas y el plegado de la derecha se combinen sin repetir reglas */
+.board{display:grid;--wl:minmax(0,.95fr);--wc:minmax(0,2fr);--ws:minmax(250px,.82fr);grid-template-columns:var(--wl) var(--wc) var(--ws)}
 .col{display:grid;min-height:0;min-width:0}
-.col-l{grid-template-rows:minmax(0,.92fr) minmax(0,1fr)}
-.col-r{grid-template-rows:minmax(0,1.5fr) minmax(0,1fr)}
+.col-l{grid-template-rows:minmax(0,.9fr) minmax(0,1.25fr)}
+.col-c{grid-template-rows:minmax(0,1.85fr) minmax(0,1fr)}   /* los topomapas se llevan algo más de alto que la serie */
+.col-s{display:flex;flex-direction:column;border-left:1px solid var(--rule);background:var(--panel)}
+.side-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 8px 8px 16px;border-bottom:1px solid var(--rule);flex:none}
+.side-title{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.side-body{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+.sec{display:flex;flex-direction:column;min-height:0;border-bottom:1px solid var(--rule)}
+.sec[data-open="true"]{flex:1 1 0}
+/* barra de cada vista secundaria: el texto se ve en .sec-lbl y el botón (transparente) la cubre entera para abrirla;
+   así el ícono ⓘ puede ir junto al título sin quedar dentro de un botón */
+.sec-hd{position:relative;flex:none;display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;color:var(--ink);font-size:12.5px;font-weight:600;padding:9px 16px}
+.sec-hd::before{content:"▸";font-size:10px;color:var(--muted);transition:transform .12s}
+.sec[data-open="true"] .sec-hd::before{transform:rotate(90deg)}
+.sec-lbl{min-width:0}
+.sec-lbl b{display:block}
+.sec-btn{position:absolute;inset:0;width:100%;margin:0;padding:0;border:0;border-radius:inherit;background:transparent;cursor:pointer}
+.sec-hd .info{position:relative;z-index:1}   /* por encima del botón que cubre la barra */
+.sec-body{display:none;flex:1 1 0;min-height:0;flex-direction:column;padding:0 16px 10px}
+.sec[data-open="true"] .sec-body{display:flex}
+.sec-body .ph h2{font-size:12px;font-weight:500;color:var(--ink2)}
+.board.side-off{--ws:40px}
+.board.side-off .side-body,.board.side-off .side-title{display:none}
+.board.side-off .side-head{padding:8px 4px;justify-content:center}
 .panel{background:linear-gradient(180deg,#11151D 0%,var(--panel) 38%);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);display:flex;flex-direction:column;min-width:0;min-height:0;padding:9px 14px 8px}
-.col-r .panel{border-right:0}
+.col-c .panel{border-right:0}
 .ph{display:flex;align-items:baseline;justify-content:space-between;gap:4px 14px;flex:none;min-height:20px}
 .ph h2{margin:0;font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.005em;line-height:1.35}
 .ph h2 .m{color:var(--muted);font-weight:500}
 .ph h2 b{color:var(--ink);font-weight:600}
+/* ícono ⓘ junto al nombre de la vista: tipografía propia (no hereda las mayúsculas condensadas de la cabecera) */
+.info{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;margin-left:6px;border:1px solid var(--rule2);border-radius:50%;font-family:var(--sans);font-size:9.5px;font-weight:600;font-style:normal;letter-spacing:0;text-transform:none;line-height:1;color:var(--muted);vertical-align:1px;cursor:help}
+@media (hover:hover) and (pointer:fine){ .info:hover{color:var(--ink);border-color:var(--ink2)} }
 .key{display:flex;align-items:center;gap:4px 12px;flex-wrap:wrap;justify-content:flex-end;font-size:11px;color:var(--ink2);flex:none}
 .key .k{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
 .key .m{color:var(--muted)}
@@ -69,49 +99,57 @@ button,select{font:inherit;color:inherit}
 .key .ring{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink)}
 .key .ln{width:16px;height:2px;border-radius:1px}
 .key .ln.ns{background:var(--ns)}.key .ln.sd{background:var(--sd)}
-.key .box{width:14px;height:8px;border-radius:2px;background:var(--null)}
 .key .dash{width:16px;border-top:1.5px dashed var(--ink2)}
 .view{position:relative;flex:1 1 0;min-height:0;min-width:0}
 .view svg{display:block;width:100%;user-select:none;-webkit-user-select:none}
-.specbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 0;padding:3px 4px 3px 9px;border-radius:6px;background:var(--raise);border:1px solid var(--rule2);font-family:var(--mono);font-size:11px;color:var(--vuln)}
-.specbar .x{border:0;background:transparent;color:var(--ink2);font-size:16px;line-height:1;cursor:pointer;padding:0 6px}
-/* panel flotante Individuos: se desliza sobre la columna izquierda; la matriz de mapas sigue visible y enlazada.
-   Curva de cajón (rápida al entrar, suave al final), solo transform; sin movimiento si el sistema lo pide. */
 .board{position:relative;overflow:hidden}
-.drawer{position:absolute;top:0;left:0;bottom:0;width:50%;z-index:20;display:grid;grid-template-rows:minmax(0,1.3fr) minmax(0,1fr);
-  background:var(--panel);border-right:1px solid var(--rule2);box-shadow:28px 0 56px -18px rgba(0,0,0,.7);
-  transform:translateX(-102%);visibility:hidden;transition:transform .26s cubic-bezier(.32,.72,0,1),visibility 0s linear .26s}
-.drawer.open{transform:none;visibility:visible;transition:transform .42s cubic-bezier(.32,.72,0,1),visibility 0s}
-.drawer .panel{border-right:0}
-.drawer .ph{flex-wrap:wrap}
-.drawer .ph h2{flex:1 1 280px}
-.xbtn{flex:none;border:0;background:transparent;color:var(--ink2);font-size:18px;line-height:1;padding:0 2px 0 6px;cursor:pointer;align-self:flex-start}
-.seg-sm button{padding:1px 8px;font-size:11px}
-.key .kin{display:contents}
-.btn-toggle[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* en paneles angostos, la leyenda baja a otra línea antes que apretar el título */
+.ph{flex-wrap:wrap}
+.ph h2{flex:1 1 220px}
 .btn-icon{padding:5px 9px;font-size:14px;line-height:1}
-.glab{font-family:var(--mono);font-size:9px;fill:var(--muted);pointer-events:none;paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}
-@media (hover:hover) and (pointer:fine){ .xbtn:hover{color:var(--ink)} }
-@media (prefers-reduced-motion:reduce){ .drawer,.drawer.open{transition:none} }
+/* selector de interpolación en la cabecera de los topomapas */
+.isel{flex:none;appearance:none;-webkit-appearance:none;background:var(--raise);border:1px solid var(--rule2);border-radius:999px;color:var(--ink);font-size:11px;font-weight:500;padding:1px 22px 1px 9px;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);
+  background-position:calc(100% - 12px) 55%,calc(100% - 8px) 55%;background-size:4px 4px,4px 4px;background-repeat:no-repeat}
+.isel option{background:#161A22;color:var(--ink)}
 @media (min-width:1101px){
   html,body{overflow:hidden}
   .board{height:calc(100vh - var(--bar-h));height:calc(100svh - var(--bar-h))}
+  /* columnas intercambiadas: personas a la derecha y vistas secundarias a la izquierda; el centro no se mueve */
+  .board.swap{grid-template-columns:var(--ws) var(--wc) var(--wl)}
+  .board.swap .col-s{order:-1;border-left:0;border-right:1px solid var(--rule)}
+  .board.swap .col-l{order:5}
+  .board.swap .col-c .panel{border-right:1px solid var(--rule)}
 }
 
 /* ---------- SVG ---------- */
-.axis text{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
+.axis text{font-size:10.5px;fill:var(--muted)}
 .axis path,.axis line{stroke:var(--rule2)}
 .gridl line{stroke:var(--rule)}
 .gridl path{display:none}
 .atitle{font-family:var(--sans);font-size:11px;font-weight:500;fill:var(--ink2)}
-.alab{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
-.ann{font-family:var(--sans);font-size:11.5px;font-weight:600;fill:var(--ink)}
+.alab{font-size:10.5px;fill:var(--muted)}
 .zero{stroke:var(--rule2)}
 .median{stroke:var(--muted);stroke-dasharray:3 3;stroke-opacity:.7}
 .quad{fill:rgba(255,181,71,.07)}
+.qlab{font-size:10.5px;font-weight:500;fill:var(--vuln);pointer-events:none;paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}
+#scatter svg{overflow:visible}   /* sin margen derecho: un número del eje x en el borde se ve entero sobre el relleno del panel */
+/* recuadro de ρ dentro de la dispersión: se arrastra con el puntero o se mueve con las flechas */
+.sbox{cursor:grab;outline:none}
+.sbox.drag{cursor:grabbing}
+.sbox-bg{fill:var(--panel);fill-opacity:.92;stroke:var(--rule2)}
+.sbox:focus-visible .sbox-bg{stroke:var(--ns);stroke-width:1.5}
+.sbox text{font-size:11px;fill:var(--ink2)}
+.sbox .m{fill:var(--muted)}
+.sbox .strong{fill:var(--ink);font-weight:600}
+.sbox-ico{fill:none;stroke:var(--ink2);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:hover) and (pointer:fine){ .sbox:hover .sbox-ico{stroke:var(--ink)} }
+@media (hover:hover) and (pointer:fine){ .sbox:hover .sbox-bg{stroke:var(--muted)} }
+.sc-at{font-size:10.5px}   /* dispersión: títulos de eje del mismo tamaño que sus números */
+#t-sc .m{font-size:11px}   /* ρ y n junto al título, al tamaño de las leyendas */
 .lasso-surface{fill:transparent;cursor:crosshair;touch-action:none}
 .lasso-selection{fill:var(--ns);fill-opacity:.06;stroke:var(--ns);stroke-width:1.5;stroke-dasharray:4 3;stroke-linejoin:round;pointer-events:none}
-.ab{font-family:var(--mono);font-size:12px;font-weight:500;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}
+.ab{font-size:12px;font-weight:500;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}
 .head{fill:none;stroke:#6B7489;stroke-width:1.2}
 .contour{fill:none;stroke:#fff;stroke-opacity:.09;stroke-width:.7}
 .colhead{font-family:var(--sans);font-size:12px;font-weight:600;fill:var(--ink);text-anchor:middle}
@@ -119,26 +157,21 @@ button,select{font:inherit;color:inherit}
 .rowhead{font-family:var(--sans);font-size:12px;font-weight:600;fill:var(--ink);text-anchor:middle}
 .ts-line{fill:none;stroke-width:2;stroke-linejoin:round}
 .scan{stroke:var(--ink);stroke-opacity:.5;pointer-events:none}
-.mlabel{font-family:var(--sans);font-size:10.5px;fill:var(--ink2);cursor:pointer}
-.mlabel.on{fill:var(--vuln);font-weight:600}
-.mdim{font-family:var(--mono);font-size:10px;fill:var(--muted);letter-spacing:.02em}
-.mmed{font-family:var(--mono);font-size:10px;fill:var(--muted);text-anchor:end}
-.mhit{fill:transparent;cursor:pointer}
-.mhit.on{fill:rgba(255,181,71,.08)}
+.mdim{font-size:10px;fill:var(--muted);letter-spacing:.02em}
+.mmed{font-size:10px;fill:var(--muted);text-anchor:end}
 .ehit{fill:transparent;cursor:pointer}
 .brush .selection{fill:rgba(255,181,71,.10);stroke:var(--vuln);stroke-width:1;shape-rendering:crispEdges}
 .brush .overlay{cursor:crosshair}
 .indiv{fill:none;stroke-width:1;pointer-events:none}
-.sep{stroke:var(--rule)}
-.null-band{fill:var(--null)}
-.ref-line{stroke:var(--ink2);stroke-dasharray:5 4;stroke-width:1}
 
-#tooltip{position:fixed;left:0;top:0;pointer-events:none;background:#1B2029;border:1px solid var(--rule2);color:var(--ink);padding:7px 10px;border-radius:7px;font-size:12px;opacity:0;max-width:300px;z-index:60;line-height:1.45}
+#tooltip{position:fixed;left:0;top:0;pointer-events:none;background:#1B2029;border:1px solid var(--rule2);color:var(--ink);padding:7px 10px;border-radius:7px;font-size:12px;opacity:0;max-width:340px;z-index:60;line-height:1.45}
+#tooltip .note{margin:0 0 5px;color:var(--ink2)}
+#tooltip .note:last-child{margin:0}
 #tooltip .h{font-weight:600;margin-bottom:3px}
 #tooltip .m{color:var(--muted)}
 #tooltip .row{display:flex;align-items:center;gap:14px;justify-content:space-between}
 #tooltip .row span:first-child{display:inline-flex;align-items:center;gap:6px;color:var(--ink2)}
-#tooltip .row b{font-weight:500;font-family:var(--mono);font-size:11.5px}
+#tooltip .row b{font-weight:500;font-size:11.5px}
 #tooltip .lk{width:12px;height:2px;border-radius:1px;display:inline-block}
 
 /* ---------- panel Acerca de ---------- */
@@ -153,7 +186,7 @@ button,select{font:inherit;color:inherit}
 .tasks{width:100%;border-collapse:collapse;font-size:12.5px}
 .tasks th{text-align:left;font-weight:500;color:var(--muted);padding:5px 10px 5px 0;border-bottom:1px solid var(--rule2)}
 .tasks td{padding:5px 10px 5px 0;border-bottom:1px solid var(--rule);vertical-align:top}
-.tasks td:first-child{font-family:var(--mono);font-size:11.5px;color:var(--ink);white-space:nowrap}
+.tasks td:first-child{font-size:11.5px;color:var(--ink);white-space:nowrap}
 .tscroll{max-height:320px;overflow:auto;border:1px solid var(--rule);border-radius:8px}
 .tscroll table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
 .tscroll th{position:sticky;top:0;background:var(--raise);text-align:right;font-weight:500;color:var(--ink2);padding:5px 10px;border-bottom:1px solid var(--rule)}
@@ -169,20 +202,18 @@ button,select{font:inherit;color:inherit}
   .bar{height:auto;flex-wrap:wrap;padding:10px 12px;gap:8px}
   .ctrls{flex-wrap:wrap;width:100%}
   .ctrls select{min-width:0}
-  .board,.col{grid-template-columns:minmax(0,1fr);grid-template-rows:none!important}
+  .board,.col{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:none!important}
+  .board .col-c{order:-1}   /* en pantallas angostas los mapas van primero */
   .panel{border-right:0}
+  .col-s{border-left:0}
+  .side-body,.sec[data-open="true"],.sec-body{flex:none}   /* apilado: sin alto fijo, cada sección mide su contenido */
+  .sec[data-open="true"] .sec-body{min-height:520px}
+  .sec-body .view{min-height:470px}
   .p-topo .view{min-height:440px}
   .p-scatter .view{min-height:380px}
   .p-dyn .view{min-height:240px}
-  .p-multi .view{min-height:360px}
   .board{overflow:visible}
-  .drawer{position:fixed;inset:0;width:auto;z-index:50;overflow:auto;display:block;border-right:0;overscroll-behavior:contain}
-  .drawer .panel{min-height:auto}
   .p-heat .view{min-height:560px}
-  .p-graph .view{min-height:420px}
-}
-@media (max-width:560px){
-  .p-multi .view{min-height:640px}
 }
 @media (max-width:600px){
   .ctrls select{max-width:100%;flex:1 1 160px}
@@ -190,33 +221,30 @@ button,select{font:inherit;color:inherit}
 }
 
 /* ---------- tema claro (clásico) ----------
-   Misma estructura, datos e interacciones; solo cambia la piel: fondo blanco, tipografía de revista científica
-   (Source Serif 4 para títulos, Source Sans 3 para texto, Source Code Pro para cifras) y paletas de ColorBrewer:
+   Misma estructura, datos, tipografía e interacciones; solo cambia la piel: fondo blanco y paletas de ColorBrewer:
    NS azul, SD rojo, Δ divergente RdBu, NS/SD secuencial YlGnBu, grupos púrpura y naranja (PuOr). Sin brillos.
    Se activa con el botón de tema del header (se recuerda en el navegador) o con ?tema=claro en la URL. */
 :root[data-theme="light"]{
   --bg:#FFFFFF; --panel:#FFFFFF; --raise:#F4F3EF; --rule:#E4E2DD; --rule2:#CFCCC5;
   --ink:#1B1B1B; --ink2:#454545; --muted:#6B6B6B; --faint:#C9C6BF;
   --ns:#2166AC; --sd:#B2182B; --vuln:#C77A12; --rest:#8A8A8A; --signeg:#7B6FB8;
-  --g1:#542788; --g2:#E66101; --sigpos:#1B7837; --edot:rgba(0,0,0,.35); --halo:#FFFFFF;
+  --g1:#542788; --g2:#E66101; --sigpos:#1B7837; --edot:rgba(0,0,0,.35); --mark:#1B1B1B; --halo:#FFFFFF;
   --ramp-div:#2166AC,#92C5DE,#F7F7F7,#F4A582,#B2182B;
   --ramp-seq:#FFFFD9,#C7E9B4,#41B6C4,#225EA8,#081D58;
   --null:rgba(0,0,0,.06);
   --sel:rgba(33,102,172,.10);
-  --sans:"Source Sans 3","Helvetica Neue",Arial,sans-serif; --mono:"Source Code Pro",ui-monospace,monospace; --head:"Source Serif 4",Georgia,serif;
   color-scheme:light;
 }
-:root[data-theme="light"] body{font-size:13.5px}
 :root[data-theme="light"] .bar{background:var(--bg);border-bottom:1px solid var(--rule2)}
-:root[data-theme="light"] .logo{color:var(--ink);font-family:var(--head);font-size:12px;letter-spacing:.18em;font-weight:600}
+:root[data-theme="light"] .logo{color:var(--ink);font-weight:600}
 :root[data-theme="light"] .logo::before{background:var(--sd);box-shadow:none;width:6px;height:6px}
 :root[data-theme="light"] .panel{background:var(--panel)}
-:root[data-theme="light"] .ph h2{font-family:var(--head);font-size:13.5px;font-weight:600;letter-spacing:0}
-:root[data-theme="light"] .ph h2 .m{font-family:var(--sans);font-weight:400}
 :root[data-theme="light"] .seg{background:var(--raise);border-color:var(--rule2)}
 :root[data-theme="light"] .seg button[aria-pressed="true"]{background:var(--ink);color:#FFFFFF}
 :root[data-theme="light"] .ctrls select{background-color:#FFFFFF;border-color:var(--rule2)}
 :root[data-theme="light"] .ctrls select option{background:#FFFFFF;color:var(--ink)}
+:root[data-theme="light"] .isel{background-color:#FFFFFF}
+:root[data-theme="light"] .isel option{background:#FFFFFF;color:var(--ink)}
 :root[data-theme="light"] .btn{background:#FFFFFF;border-color:var(--rule2)}
 :root[data-theme="light"] .chip{background:rgba(199,122,18,.08);border-color:rgba(199,122,18,.6);color:#8A5208}
 @media (hover:hover) and (pointer:fine){
@@ -226,15 +254,131 @@ button,select{font:inherit;color:inherit}
 :root[data-theme="light"] .quad{fill:rgba(199,122,18,.08)}
 :root[data-theme="light"] .head{stroke:#4A4A4A}
 :root[data-theme="light"] .contour{stroke:#000;stroke-opacity:.12}
-:root[data-theme="light"] .mhit.on{fill:rgba(199,122,18,.10)}
-:root[data-theme="light"] .mlabel.on{fill:#8A5208}
 :root[data-theme="light"] .brush .selection{fill:rgba(199,122,18,.10);stroke:var(--vuln)}
-:root[data-theme="light"] .ref-line{stroke:var(--ink2)}
 :root[data-theme="light"] #tooltip{background:#FFFFFF;border-color:var(--rule2);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.12)}
 :root[data-theme="light"] .sheet{background:#FFFFFF}
 :root[data-theme="light"] .sheet-head{background:#FFFFFF}
-:root[data-theme="light"] .sheet-head h2,:root[data-theme="light"] .sheet-body h3{font-family:var(--head)}
 :root[data-theme="light"] .sheet::backdrop{background:rgba(0,0,0,.35)}
-:root[data-theme="light"] .specbar{color:#8A5208}
-:root[data-theme="light"] .drawer{box-shadow:18px 0 40px -18px rgba(0,0,0,.22)}
-:root[data-theme="light"] .btn-toggle[aria-pressed="true"]{background:var(--ink);color:#FFFFFF;border-color:var(--ink)}
+
+/* ---------- sistema visual (noviembre 2026) ----------
+   Inspirado en los sistemas de visual analytics de IEEE VIS/TVCG (VISTA, Unlearning Comparator, AttributionScanner):
+   bloque de identidad con nombre y subtítulo, resumen del dataset en una caja, cada vista en su propia caja con un
+   nombre corto en mayúsculas e ícono, el hallazgo como subtítulo discreto, controles con su etiqueta encima y
+   tipografía condensada para los títulos. */
+:root{--page:#07090D;--border:#262C38;--secbar:#1F2430;--secbar-ink:#E8EAF0}
+:root[data-theme="light"]{--page:#EEF0F3;--border:#CBD0D8;--secbar:#5B616B;--secbar-ink:#FFFFFF}
+body{background:var(--page)}
+.bar{background:var(--panel);border-bottom:1px solid var(--border);gap:18px;padding:0 14px}
+:root[data-theme="light"] .bar{background:var(--panel);border-bottom:1px solid var(--border)}
+.brand{align-items:center;gap:10px;flex:none}
+.brand .mark{width:30px;height:30px;color:var(--ink);flex:none}
+.brand-t{display:flex;flex-direction:column;line-height:1.1}
+.logo,:root[data-theme="light"] .logo{font-family:var(--cond);font-size:22px;font-weight:700;letter-spacing:.03em;color:var(--ink)}
+.logo::before,:root[data-theme="light"] .logo::before{display:none}
+.tag{font-family:var(--cond);font-size:11.5px;color:var(--muted);letter-spacing:.01em;white-space:nowrap}
+.dset{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:3px;padding:3px 0;min-width:0;flex:0 1 auto;overflow:hidden}
+.dset>span{display:flex;flex-direction:column;padding:0 12px;border-left:1px solid var(--rule);min-width:0}
+.dset>span:first-child{border-left:0}
+.dset i,.fld>i{font-style:normal;font-family:var(--cond);font-size:9.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);line-height:1.2}
+.dset b{font-size:11.5px;font-weight:500;color:var(--ink);white-space:nowrap}
+.dset .pipe{border:0;padding:0;font-size:11.5px;color:var(--ink);text-align:left;text-decoration:underline dotted var(--muted);text-underline-offset:3px}
+.ctrls{align-items:flex-end;gap:10px}
+.fld{display:flex;flex-direction:column;gap:2px}
+.seg{border-radius:3px}.seg button{border-radius:2px}
+.ctrls select,.btn{border-radius:3px}
+.ctrls>.btn{align-self:flex-end}
+/* tablero: cajas con separación */
+.board{gap:8px;padding:8px;background:var(--page)}
+.col{gap:8px}
+.panel,:root[data-theme="light"] .panel{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:6px 12px 8px}
+.col-c .panel{border-right:1px solid var(--border)}
+.col-s,.board.swap .col-s{background:var(--panel);border:1px solid var(--border);border-radius:3px}
+.vh{display:flex;align-items:center;gap:6px;flex:none;font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink);padding:0 0 4px;margin:0 0 5px;border-bottom:1px solid var(--rule2)}
+.vh .vi{width:13px;height:13px;fill:currentColor;flex:none}
+.ph h2{font-size:12px;font-weight:500;color:var(--ink2)}
+.ph h2 b{color:var(--ink)}
+.side-head{padding:6px 8px 0 12px;border-bottom:0}
+.side-head .vh{flex:1;margin:0;font-size:13px;letter-spacing:.05em;color:var(--ink)}
+.sec{border-bottom:0}
+.sec-hd{margin:3px 10px;padding:6px 10px;border-radius:2px;background:var(--secbar);color:var(--secbar-ink)}
+.sec-hd::before{color:var(--secbar-ink);opacity:.85}
+.sec-lbl b{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.sec-hd .info{color:var(--secbar-ink);border-color:currentColor;opacity:.75}
+@media (hover:hover) and (pointer:fine){ .sec-hd .info:hover{opacity:1;color:var(--secbar-ink);border-color:currentColor} }
+.sec-body{padding:4px 12px 8px}
+@media (hover:hover) and (pointer:fine){ .sec-hd:hover{filter:brightness(1.12)} }
+.colhead,.rowhead{font-family:var(--cond)}
+.atitle{font-family:var(--sans)}
+@media (max-width:1100px){ .dset{display:none} .tag{white-space:normal} }
+.dset>span{flex:none}
+.ctrls select{max-width:190px}
+.sec-hd{padding:5px 10px}
+@media (max-width:1499px){ .dset{display:none} .ctrls{gap:8px} .ctrls select{max-width:160px} .tag{font-size:10.5px} }
+.tag{white-space:normal;max-width:235px;line-height:1.2;margin-top:2px}
+@media (max-width:1100px){
+  .ctrls{align-items:flex-end}
+  .fld{flex:1 1 150px;min-width:0}
+  .fld .seg{align-self:flex-start}
+  .fld select{width:100%;max-width:none!important;flex:none!important}
+  .brand{width:100%}
+}
+.key .k.m{white-space:normal}
+@media (max-width:600px){ .ph .key{flex:1 1 100%;justify-content:flex-start} }
+/* dispersión cuadrada: la vista mide lo mismo de alto que de ancho (ancho de la columna menos el relleno del panel),
+   con un tope para que el mapa de calor conserve espacio; el mapa de calor ocupa el resto de la columna */
+@media (min-width:1101px){
+  .col-l{grid-template-rows:auto minmax(0,1fr)}
+  .p-scatter{container-type:inline-size}   /* en la propia caja: así no atrapa a la vista ampliada (position: fixed) */
+  /* sin fila de título: el alto que dejaba (20 px) pasa a la vista. 100cqw + 2px hace cuadrada el área de datos
+     (margen izquierdo 38 px = margen superior + inferior 40 px menos 2) */
+  .p-scatter .view{flex:none;height:min(calc(100cqw + 2px), calc(50vh - 70px), calc(50svh - 70px))}
+}
+/* columna de personas más angosta: dispersión más chica y mapa de calor más alto; los mapas ganan ancho */
+.board{--wl:minmax(0,.74fr)}
+/* panel de validación: cabecera compacta para dejar más alto a la sección abierta */
+.side-head{padding:6px 8px 2px 12px}
+.sec-body{overflow:hidden}
+.sheet-body ul.kf{margin:0 0 8px;padding-left:18px;max-width:80ch}
+.sheet-body ul.kf li{margin:0 0 4px}
+/* ver en grande (botón ⤢ de cada vista) */
+.vx{flex:none;margin-left:auto;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border:1px solid transparent;border-radius:3px;background:transparent;color:var(--muted);cursor:pointer}
+.vx svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:hover) and (pointer:fine){ .vx:hover{color:var(--ink);border-color:var(--rule2)} }
+.vh .vx{margin-right:-4px}
+.sec-body .ph{flex-wrap:nowrap;align-items:flex-start}
+.sec-body .ph h2{flex:1 1 auto}
+.maxbg{position:fixed;inset:0;z-index:69;background:rgba(15,18,24,.38)}
+.is-max{position:fixed!important;inset:18px 24px;z-index:70;box-shadow:0 12px 40px rgba(0,0,0,.25);border-radius:4px}
+.panel.is-max{display:flex}
+.sec.is-max{background:var(--panel);border:1px solid var(--border);display:flex;flex-direction:column;padding:4px 0}
+.sec.is-max .sec-btn{pointer-events:none}
+.sec.is-max .sec-hd{filter:none}
+.is-max .vx{color:var(--ink);border-color:var(--rule2)}
+.is-max .view{flex:1 1 0!important;height:auto!important;min-height:0!important;max-height:none!important}
+/* cabeceras de vista de alto fijo: título y leyenda en una línea, para que seleccionar no mueva las vistas de abajo */
+/* dispersión sin título ni leyenda sobre el gráfico: el ⓘ va en la cabecera y la leyenda en el recuadro del gráfico;
+   el título queda oculto porque el reporte lo usa (lleva ρ, IC 95% y n) */
+.p-scatter .ph,.p-dyn .ph{display:none}   /* lo mismo en la vista de tiempo: su leyenda (con n) va en un recuadro */
+.panel.p-dyn,:root[data-theme="light"] .panel.p-dyn{padding-bottom:3px}   /* serie compacta: el eje x llega casi al borde del panel (en ambos temas) */
+/* topomapas: sin subtítulo (el alto pasa a los mapas); la leyenda de p y FDR va en la cabecera, junto a ⤢ */
+.p-topo .ph{display:none}
+/* vista individual: la métrica va en el nombre de la vista; del subtítulo solo queda la barra de color */
+.p-heat .ph h2{display:none}
+.vh .vmet{text-transform:none;letter-spacing:0}
+/* banda θ del espectro (vista oscilatoria/aperiódica): un clic hace zoom a 4–8 Hz y otro lo deshace */
+.tband{cursor:zoom-in;outline:none}
+.tband[aria-pressed="true"]{cursor:zoom-out}
+.tband:focus-visible{stroke:var(--ns);stroke-width:1.5}
+@media (hover:hover) and (pointer:fine){ .tband:hover{opacity:.12} }   /* σθ y μθ no pasan a mayúsculas (serían ΣΘ, ΜΘ) */
+.vh .key{margin-left:auto;font-family:var(--sans);font-size:11px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--ink2)}
+.vh .key + .vx{margin-left:6px}
+.p-scatter .ph{flex-wrap:nowrap}
+.p-scatter .ph h2{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ícono: flechas hacia afuera para ampliar, hacia adentro para restaurar */
+.vx .co{display:none}
+.is-max .vx .ex{display:none}
+.is-max .vx .co{display:inline}
+/* las vistas secundarias apilan sus gráficos en vertical: ampliadas, conservan una proporción vertical y se centran */
+.sec.is-max .sec-body{align-items:center}
+.sec.is-max .sec-body .ph{width:100%}
+.sec.is-max .view{width:min(100%, calc((100vh - 150px) * .82))!important;flex:1 1 0!important}

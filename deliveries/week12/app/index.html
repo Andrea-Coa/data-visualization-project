@@ -1,133 +1,139 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>BATIMIX</title>
-<meta name="description" content="Explorador enlazado en D3.js sobre la vulnerabilidad individual a la privación de sueño en EEG de reposo (OpenNeuro ds004902, 68 personas).">
+<meta name="description" content="Linked D3.js explorer of individual vulnerability to sleep deprivation in resting-state EEG (OpenNeuro ds004902, 68 people).">
 <meta name="theme-color" content="#0B0D12">
 <script>
-  // tema antes de pintar (sin parpadeo): ?tema=claro|oscuro en la URL, si no la última elección guardada
-  try{ const q = new URLSearchParams(location.search).get("tema"), t = q === "claro" ? "light" : q === "oscuro" ? "dark" : localStorage.getItem("batimix-tema");
-    if(t === "light"){ document.documentElement.dataset.theme = "light"; document.querySelector('meta[name="theme-color"]').content = "#FFFFFF"; } }catch(e){}
+  // tema antes de pintar (sin parpadeo): ?tema=claro|oscuro en la URL, si no la última elección guardada; por defecto, claro
+  try{ const u = new URLSearchParams(location.search), q = u.get("theme") || u.get("tema"), t = q === "light" || q === "claro" ? "light" : q === "dark" || q === "oscuro" ? "dark" : localStorage.getItem("batimix-tema");
+    if(t !== "dark"){ document.documentElement.dataset.theme = "light"; document.querySelector('meta[name="theme-color"]').content = "#FFFFFF"; } }catch(e){}
 </script>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Source+Sans+3:wght@400;500;600&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-<div class="boot" id="boot" role="status">Cargando 68 registros</div>
+<div class="boot" id="boot" role="status">Loading 68 recordings</div>
 <div id="tooltip" role="status" aria-live="polite"></div>
+<div class="maxbg" id="maxbg" hidden></div>
 
 <header class="bar">
   <div class="brand">
-    <span class="logo">BATIMIX</span>
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="17" r="12" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 4.5 16 1.5 18 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 18c2-5 4-5 5 0s3 5 5 0 3-5 5 0 3 5 5 0" fill="none" stroke="var(--sd)" stroke-width="2.2" stroke-linecap="round"/></svg>
+    <div class="brand-t"><span class="logo">BATIMIX</span><span class="tag">A Visual Analytics System for Individual Vulnerability to Sleep Deprivation</span></div>
   </div>
-  <div class="ctrls" role="region" aria-label="Controles">
-    <div class="seg" id="roiseg" role="group" aria-label="Región EEG">
+  <div class="dset" aria-label="Dataset">
+    <span><i>Dataset</i><b>ds004902 · 68 people</b></span>
+    <span class="dset-p"><i>Pipeline</i><button class="pipe" id="pipebtn" type="button" aria-haspopup="dialog" title="What everything was computed from: theta band 4–8 Hz as a fraction of 1–40 Hz power (Welch); average reference; ICA (ocular and muscle components removed); 75 4-s epochs per recording, those above 200 µV rejected; eyes open. Click: full method in About.">avg. ref. · ICA · 75 × 4 s</button></span>
+  </div>
+  <div class="ctrls" role="region" aria-label="Controls">
+    <div class="fld"><i>Region</i><div class="seg" id="roiseg" role="group" aria-label="EEG region">
       <button data-v="front" aria-pressed="true">Frontal</button>
-      <button data-v="ct" aria-pressed="false">Centro-temporal</button>
-    </div>
-    <div class="seg" id="metseg" role="group" aria-label="Métrica theta">
+      <button data-v="ct" aria-pressed="false">Centrotemporal</button>
+    </div></div>
+    <div class="fld"><i>Metric</i><div class="seg" id="metseg" role="group" aria-label="Theta metric">
       <button data-v="var" aria-pressed="true">σθ</button>
       <button data-v="mean" aria-pressed="false">μθ</button>
-    </div>
-    <button class="chip" id="xchip" hidden aria-label="Quitar el origen del eje x"></button>
-    <select id="cmpsel" aria-label="Comparar dos grupos"></select>
-    <select id="ysel" aria-label="Marcador conductual del eje Y"></select>
-    <button class="btn btn-toggle" id="indivbtn" aria-pressed="false" aria-controls="drawer">Individuos</button>
-    <button class="btn" id="resetbtn" disabled>Limpiar</button>
-    <button class="btn" id="reportbtn">Reporte</button>
-    <button class="btn" id="aboutbtn" aria-haspopup="dialog">Acerca de</button>
-    <button class="btn btn-icon" id="themebtn" aria-label="Cambiar a tema claro" title="Tema claro">◐</button>
+    </div></div>
+    <div class="fld"><i>Electrode</i><select id="elsel" aria-label="Electrode on the x-axis instead of the region"></select></div>
+    <button class="chip" id="xchip" hidden aria-label="Remove the time window from the x-axis"></button>
+    <div class="fld"><i>Compare</i><select id="cmpsel" aria-label="Compare two groups"></select></div>
+    <div class="fld"><i>Behavior (y)</i><select id="ysel" aria-label="Behavioral marker on the Y-axis"></select></div>
+    <button class="btn" id="resetbtn" disabled>Clear</button>
+    <button class="btn" id="reportbtn">Report</button>
+    <button class="btn" id="aboutbtn" aria-haspopup="dialog">About</button>
+    <button class="btn btn-icon" id="swapbtn" type="button" aria-pressed="false" aria-label="Swap columns" title="Swap columns">⇄</button>
+    <button class="btn btn-icon" id="themebtn" aria-label="Switch to light theme" title="Light theme">◐</button>
   </div>
 </header>
 
 <main class="board">
+  <!-- izquierda: las personas (dispersión y mapa de calor); centro: los mapas, protagonistas, y la serie en el
+       tiempo; derecha: vistas secundarias plegables (Chen et al.: vistas grandes al centro, paneles laterales angostos) -->
   <div class="col col-l">
   <section class="panel p-scatter" aria-labelledby="t-sc">
+    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><circle cx="4" cy="11" r="1.6"/><circle cx="8" cy="7" r="1.6"/><circle cx="12" cy="4" r="1.6"/><circle cx="11" cy="10" r="1.6"/><path d="M1.5 1.5v13h13" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span>Vulnerability View</span><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div>
     <div class="ph"><h2 id="t-sc"></h2><div class="key" id="k-sc"></div></div>
     <div class="view" id="scatter"></div>
   </section>
-  <section class="panel p-multi" aria-labelledby="t-multi">
-    <div class="ph"><h2 id="t-multi"></h2><div class="key" id="k-multi"></div></div>
-    <div class="view" id="curve"></div>
+  <section class="panel p-heat" aria-labelledby="t-heat">
+    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5"/><rect x="9" y="1.5" width="5.5" height="5.5" opacity=".45"/><rect x="1.5" y="9" width="5.5" height="5.5" opacity=".45"/><rect x="9" y="9" width="5.5" height="5.5"/></svg><span>Individual View</span><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div>
+    <div class="ph"><h2 id="t-heat"></h2><div class="key" id="k-heat"></div></div>
+    <div class="view" id="heat"></div>
   </section>
   </div>
-  <div class="col col-r">
+  <div class="col col-c">
   <section class="panel p-topo" aria-labelledby="t-topo">
-    <div class="ph"><h2 id="t-topo"></h2><div class="key" id="k-topo"></div></div>
+    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.6 2.9 8 1 9.4 2.9" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="7.5" r="2.4"/></svg><span>Topography View</span><div class="key" id="k-topo"></div><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div>
+    <div class="ph"><h2 id="t-topo"></h2></div>
     <div class="view" id="topo"></div>
   </section>
   <section class="panel p-dyn" aria-labelledby="t-dyn">
+    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 10l3-4 3 5 3-7 3 6 2-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg><span>Time View</span><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div>
     <div class="ph"><h2 id="t-dyn"></h2><div class="key" id="k-dyn"></div></div>
     <div class="view" id="dyn"></div>
   </section>
   </div>
-  <aside class="drawer" id="drawer" aria-label="Individuos" aria-hidden="true" inert>
-    <section class="panel p-heat" aria-labelledby="t-heat">
-      <div class="ph"><h2 id="t-heat"></h2><div class="key" id="k-heat"></div><button class="xbtn" id="drawerclose" aria-label="Cerrar Individuos">×</button></div>
-      <div class="view" id="heat"></div>
-    </section>
-    <section class="panel p-graph" aria-labelledby="t-graph">
-      <div class="ph"><h2 id="t-graph"></h2><div class="key"><span class="kin" id="k-graph"></span>
-        <div class="seg seg-sm" id="grpseg" role="group" aria-label="Disposición del grafo"><button data-v="free" aria-pressed="true">Libre</button><button data-v="group" aria-pressed="false">Agrupar</button></div></div></div>
-      <div class="view" id="graph"></div>
-    </section>
+  <aside class="col col-s" id="side" aria-label="Secondary views">
+    <div class="side-head"><span class="side-title vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 14 4v4c0 3.6-2.6 5.7-6 6.5C4.6 13.7 2 11.6 2 8V4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m5.3 8 1.9 1.9L10.8 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Validation Panel</span></span><button class="btn btn-icon" id="sidebtn" type="button" aria-expanded="true" aria-controls="side-body" title="Collapse secondary views">›</button></div>
+    <div class="side-body" id="side-body">
+      <section class="sec" data-open="true" aria-labelledby="b-aper">
+        <div class="sec-hd"><button class="sec-btn" id="b-aper" type="button" aria-expanded="true" aria-labelledby="l-aper"></button><div class="sec-lbl"><b id="l-aper">Oscillatory &amp; aperiodic components</b></div></div>
+        <div class="sec-body"><div class="ph"><h2 id="t-aper"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="aper"></div></div>
+      </section>
+      <section class="sec" data-open="false" aria-labelledby="b-eye">
+        <div class="sec-hd"><button class="sec-btn" id="b-eye" type="button" aria-expanded="false" aria-labelledby="l-eye"></button><div class="sec-lbl"><b id="l-eye">Blink effects on θ variability</b></div></div>
+        <div class="sec-body"><div class="ph"><h2 id="t-eye"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="eye"></div></div>
+      </section>
+      <section class="sec" data-open="false" aria-labelledby="b-conn">
+        <div class="sec-hd"><button class="sec-btn" id="b-conn" type="button" aria-expanded="false" aria-labelledby="l-conn"></button><div class="sec-lbl"><b id="l-conn">θ synchrony between regions</b></div></div>
+        <div class="sec-body"><div class="ph"><h2 id="t-conn"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="conn"></div></div>
+      </section>
+    </div>
   </aside>
 </main>
 
 <dialog class="sheet" id="about" aria-labelledby="h-about">
-  <div class="sheet-head"><h2 id="h-about">Acerca de BATIMIX</h2><button class="btn" data-close>Cerrar</button></div>
+  <div class="sheet-head"><h2 id="h-about">About BATIMIX</h2><button class="btn" data-close>Close</button></div>
   <div class="sheet-body">
-    <p class="lead">Ante la misma noche sin dormir, algunas personas se deterioran mucho y otras casi nada. Cui et al. (2026) propusieron que el aumento de la variabilidad de la potencia theta en el EEG de reposo predice ese deterioro (ρ ≈ 0.55 con el tiempo de reacción, n = 28). BATIMIX pone a prueba esa idea, persona por persona, con datos públicos. Es una herramienta de screening exploratorio para investigadores del sueño, no un diagnóstico.</p>
-    <h3>Conclusión preliminar</h3>
-    <p>Sin dormir, la theta de cada persona cambia en direcciones distintas, y ese cambio no predice de forma robusta quién se deteriora: en 448 análisis alternativos ningún estadístico conjunto supera al azar. La única pista consistente es con el ánimo (afecto positivo), no con la vigilancia.</p>
-    <h3>Datos</h3>
-    <p>OpenNeuro ds004902 (Xiang, Fan, Bai, Lv y Lei, 2024, <i>Scientific Data</i>, CC0): 71 personas registradas tras dormir normal (NS) y tras 24 a 30 horas sin dormir (SD), en orden contrabalanceado. EEG de reposo con ojos abiertos, 61 electrodos, 500 Hz. <span data-k="covLong"></span></p>
-    <h3>Glosario</h3>
+    <p class="lead">Does the night-to-night change in resting theta show who deteriorates after sleep deprivation? Cui et al. (2026) reported that a rise in theta variability tracks PVT slowing (ρ ≈ 0.55, n = 28) on this dataset. BATIMIX re-examines it person by person. Exploratory screening, not diagnosis.</p>
+    <h3>Key findings</h3>
+    <ul class="kf">
+      <li><b>Heterogeneous:</b> Δσθ frontal rises in 40 people and falls in 28; group t = 1.12, p = 0.27.</li>
+      <li><b>Diffuse:</b> 0 of 61 electrodes survive FDR (σθ and μθ).</li>
+      <li><b>Not linked to vigilance:</b> Δσθ frontal vs ΔPVT median RT ρ = −0.04 [−0.40, 0.32], n = 30; with Cui's exact pipeline, ρ = −0.06.</li>
+      <li><b>Oscillatory, not 1/f:</b> Δσθ tracks periodic theta (ρ = 0.82); the aperiodic offset change seen without ICA (p = 0.034) disappears with ICA.</li>
+      <li><b>Not blinks:</b> removing blink windows leaves Δσθ unchanged (ρ = 0.95).</li>
+    </ul>
+    <h3>Data</h3>
+    <p>OpenNeuro ds004902 (Xiang et al., 2024, CC0): 71 people after normal sleep and after 24–30 h awake, counterbalanced; eyes-open rest, 5 min, 61 electrodes, 500 Hz, no EOG. <span data-k="covLong"></span></p>
+    <h3>Method</h3>
+    <ul class="kf">
+      <li><b>Preprocessing</b> (<code>tools/eeg_ica.py</code>): 50 Hz notch, 1–40 Hz; bad channels interpolated; FCz re-inserted, average reference; extended Infomax ICA (30 components), ocular (Fp1/Fp2 correlation or ICLabel) and muscle (ICLabel p &gt; 0.85) components removed (5.1 per recording); 75 × 4-s epochs, &gt; 200 µV rejected (71 kept on average).</li>
+      <li><b>Metric:</b> relative θ = 4–8 / 1–40 Hz (Welch) per epoch and electrode; σθ = SD across epochs, μθ = mean; Δ = deprivation − normal. Frontal (16) and centrotemporal (28) ROIs as in Cui et al.</li>
+      <li><b>Statistics:</b> paired t per electrode with Benjamini–Hochberg FDR (61 tests), d<sub>z</sub> and 95% CI; Spearman ρ with 95% CI. Maps: v4 interpolation (EEGLAB, FieldTrip) on the real electrode positions.</li>
+    </ul>
+    <h3 id="h-robust">Robustness</h3>
+    <p>Multiverse of 896 analyses (2 pipelines, with and without ICA × 4 regions × 2 metrics × 2 change forms × 7 markers × 2 correlations × 2 outlier rules), with joint inference by 2000 permutations (Simonsohn et al., 2020): no joint statistic exceeds chance (σθ only: median r = +0.089, p = 0.11). The only consistent hint is mood (PANAS+). All results: <a href="../data/multiverse_specs.csv">multiverse_specs.csv</a>.</p>
+    <h3>Limitations</h3>
+    <p>PVT for only 30 people (power ≈ 0.35 for ρ = 0.3); public PVT summary columns, whereas Cui et al. likely recomputed median RT from trials; ICA components selected by rule, without visual review; no task EEG or event markers (no ERP).</p>
+    <h3>Glossary</h3>
     <table class="tasks">
       <tbody>
-        <tr><td>Theta (θ)</td><td>Actividad eléctrica cerebral de 4 a 8 Hz; aumenta con la presión de sueño.</td></tr>
-        <tr><td>μθ, σθ</td><td>Potencia theta relativa (4 a 8 Hz dividida por 1 a 40 Hz, sin unidades): su media (μθ) y su variabilidad entre 75 épocas de 4 s (σθ).</td></tr>
-        <tr><td>Δ</td><td>Cambio SD menos NS. Positivo = aumenta tras la privación.</td></tr>
-        <tr><td>PVT</td><td>Psychomotor Vigilance Task: tarea de vigilancia; mediana del tiempo de reacción (TR, ms), lapsos y DE del TR.</td></tr>
-        <tr><td>KSS, SSS</td><td>Escalas de somnolencia de Karolinska y Stanford (puntos).</td></tr>
-        <tr><td>PANAS+, PANAS−</td><td>Afecto positivo y negativo (puntos).</td></tr>
-        <tr><td>Cuadrante vulnerable</td><td>Sobre la mediana del cambio theta y peor que la mediana del marcador elegido.</td></tr>
-        <tr><td>FDR</td><td>Corrección de Benjamini y Hochberg para 61 pruebas t pareadas, una por electrodo.</td></tr>
-        <tr><td>C(e)</td><td>Consistencia de un grupo en el electrodo e: proporción de personas cuyo Δ sube menos la proporción cuyo Δ baja (de −1 a +1). Cerca de ±1 = el grupo cambia en la misma dirección.</td></tr>
-        <tr><td>Vulnerables, resistentes</td><td>Grupos del panel Individuos, definidos solo por la conducta: peor o no que la mediana del cambio en el marcador elegido. No usan theta, para que la firma theta de cada grupo no sea circular.</td></tr>
-        <tr><td>Grafo de similitud</td><td>Cada persona se une a las 3 cuyo patrón de Δ en los 61 electrodos más se le parece (correlación de Pearson). Los nodos se arrastran y quedan donde se sueltan; la rueda acerca; Agrupar separa los grupos. Compara patrones entre personas; no es conectividad funcional entre electrodos.</td></tr>
-        <tr><td>Multiverso</td><td>448 análisis = 4 regiones × 2 métricas × 2 formas de cambio × 7 marcadores × 2 correlaciones × 2 reglas de atípicos. La franja gris es el 95 % de lo que da el azar (2000 permutaciones; Simonsohn, Simmons y Nelson, 2020).</td></tr>
+        <tr><td>PVT, KSS, SSS, PANAS</td><td>Psychomotor vigilance (median RT, lapses, RT SD); Karolinska and Stanford sleepiness; positive and negative affect.</td></tr>
+        <tr><td>Vulnerable quadrant</td><td>Δθ and behavioral change both above their medians.</td></tr>
+        <tr><td>C(e)</td><td>Group consistency at electrode e: share with Δ &gt; 0 minus share with Δ &lt; 0 (−1 to +1).</td></tr>
       </tbody>
     </table>
-    <h3>Tareas y vistas</h3>
-    <table class="tasks">
-      <thead><tr><th>Tarea</th><th>Pregunta</th><th>Vista</th></tr></thead>
-      <tbody>
-        <tr><td>T1 Localizar</td><td>¿Dónde cambia theta? (Q1)</td><td>Matriz de topomapas, columna Δ con marcas de p y FDR</td></tr>
-        <tr><td>T2 Comparar métricas</td><td>¿Variabilidad o media? (Q2)</td><td>Matriz, filas σθ y μθ</td></tr>
-        <tr><td>T3 Identificar</td><td>¿Quiénes son vulnerables? (Q3)</td><td>Dispersión con cuadrante, lazo y franja de las 68 personas; panel Individuos, una fila por persona</td></tr>
-        <tr><td>T4 Comparar</td><td>¿Comparten firma espacial? (Q4)</td><td>Matriz por grupo; clic en dos personas (puntos, filas del heatmap o nodos) = filas A y B; panel Individuos: heatmap persona × electrodo con C(e) por grupo y grafo de similitud</td></tr>
-        <tr><td>T5 Correlacionar</td><td>¿Converge con cada marcador? (Q5)</td><td>Dispersión, marcador del eje Y y ρ con su n</td></tr>
-        <tr><td>T6 Describir tendencia</td><td>¿Cambia dentro del registro? (Q6)</td><td>Cinco minutos, media ± EE por época</td></tr>
-        <tr><td>T7 Comparar grupos</td><td>¿Influyen sexo, PSQI u orden de sesión? (Q7)</td><td>Selector Comparar: dos grupos con dos colores en las cuatro vistas</td></tr>
-        <tr><td>T8 Verificar robustez</td><td>¿Depende de las decisiones analíticas?</td><td>Multiverso con inferencia conjunta</td></tr>
-      </tbody>
-    </table>
-    <h3>Método</h3>
-    <p>Procesamiento del equipo (Semana 6): notch de 50 Hz, pasabanda de 1 a 40 Hz, canales malos interpolados, sin ICA, referencia FCz. Mapas por interpolación de distancia inversa. NS y SD comparten una escala secuencial por fila; Δ usa una escala divergente con cero neutro. Con un grupo seleccionado los mapas promedian a esas personas, sin prueba por electrodo. Correlaciones de Spearman con IC 95 %.</p>
-    <h3>Limitaciones</h3>
-    <p>PVT pareado para solo 30 personas (baja potencia); preprocesamiento heurístico; Cui et al. usaron referencia promedio, ICA y otro denominador, lo que puede explicar parte de la no replicación.</p>
-    <h3 id="h-table">Datos de la dispersión</h3>
+    <h3 id="h-table">Scatter data</h3>
     <div class="tscroll"><table id="dtable"></table></div>
-    <h3>Tema</h3>
-    <p>Oscuro (instrumento) o claro (clásico, paletas de ColorBrewer) con el botón ◐ del header; la elección se recuerda en este navegador. Enlaces directos: <a href="?tema=oscuro">oscuro</a> y <a href="?tema=claro">claro</a>.</p>
-    <h3>Créditos</h3>
-    <p>Jimena Gurbillon, Andrea Coa y Paolo Medrano, DS5343 Data Visualization, UTEC 2026-2. D3.js 7.8.5 (ISC); fuentes Geist y Geist Mono (tema oscuro), Source Serif 4, Source Sans 3 y Source Code Pro (tema claro) (OFL). Inspiración: Bai et al. (2024), Cui et al. (2026), Dragicevic et al. (2019), Simonsohn et al. (2020). Parte del código y de la redacción se desarrolló con asistencia de IA (Claude) y fue revisada por el equipo.</p>
+    <h3>Credits</h3>
+    <p>Jimena Gurbillon, Andrea Coa and Paolo Medrano, DS5343 Data Visualization, UTEC 2026-2. D3.js 7.8.5; Roboto (OFL). Developed with AI assistance (Claude) and reviewed by the team. Method details and tasks: README and RefinedDraftReport.</p>
   </div>
 </dialog>
 
@@ -136,8 +142,8 @@
 <script src="js/scatter.js"></script>
 <script src="js/topomap.js"></script>
 <script src="js/dynamics.js"></script>
-<script src="js/multiverse.js"></script>
 <script src="js/individuals.js"></script>
+<script src="js/secondary.js"></script>
 <script src="js/report.js"></script>
 <script src="js/main.js"></script>
 </body>

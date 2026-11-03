@@ -1,55 +1,55 @@
-# BATIMIX: Una noche sin dormir no le pasa igual a todos
+# BATIMIX: One sleepless night does not affect everyone the same way
 
-Proyecto del curso **DS5343 Data Visualization** (UTEC, 2026-2, Prof. Germain García-Zanabria).
-Explorador interactivo en **D3.js** sobre la vulnerabilidad individual a la privación de sueño en EEG de reposo
-(OpenNeuro ds004902, 71 participantes, 68 con EEG en ambas condiciones).
+Course project for **DS5343 Data Visualization** (UTEC, 2026-2, Prof. Germain García-Zanabria).
+An interactive **D3.js** explorer of individual vulnerability to sleep deprivation in resting-state EEG
+(OpenNeuro ds004902, 71 participants, 68 with EEG in both conditions).
 
-- **Aplicación (Semana 12):** https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/
-- **Página del proyecto:** https://andrea-coa.github.io/data-visualization-project/deliveries/week12/project/
-- **Entrega actual:** [`deliveries/week12/`](deliveries/week12/README.md)
+- **Application (Week 12):** https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/
+- **Project page:** https://andrea-coa.github.io/data-visualization-project/deliveries/week12/project/
+- **Current delivery:** [`deliveries/week12/`](deliveries/week12/README.md)
 
-## Equipo y responsabilidades
+## Team and responsibilities
 
-| Integrante | Responsabilidad principal |
+| Member | Main responsibility |
 |---|---|
-| Jimena Gurbillon | Matriz de topomapas (Q1, Q2), datos y métodos |
-| Andrea Coa | Dinámica intra-registro y moderadores (Q6, Q7), videos |
-| Paolo Medrano | Vulnerabilidad, convergencia y multiverso (Q3 a Q5), resultados |
+| Jimena Gurbillon | Topomap matrix (Q1, Q2), data and methods |
+| Andrea Coa | Within-recording dynamics and moderators (Q6, Q7), videos |
+| Paolo Medrano | Vulnerability, convergence and multiverse (Q3 to Q5), results |
 
-## Estructura
+## Structure
 
 ```
 data-visualization-project/
-  index.html            redirige a la aplicación de la última entrega (GitHub Pages)
-  .nojekyll             GitHub Pages sirve los archivos tal cual, sin Jekyll
-  requirements.txt      dependencias de Python para el preprocesamiento
+  index.html            redirects to the application of the latest delivery (GitHub Pages)
+  .nojekyll             GitHub Pages serves the files as they are, without Jekyll
+  requirements.txt      Python dependencies for preprocessing, secondary views and tests
   deliveries/
-    week04/             dataset, diccionario y adquisición
-    week05/             propuesta
-    week06/             análisis de datos, notebooks, datos procesados, bocetos, papers
-    week10/             prototipo funcional
-    week12/             borrador refinado: app, datos finales, informe, crítica, paper, presentación, página
+    week04/             dataset, data dictionary and acquisition
+    week05/             proposal
+    week06/             data analysis, notebooks, processed data, sketches, papers
+    week10/             working prototype
+    week12/             refined draft: app, final data, report, critique response, paper, presentation, page
 ```
 
-La aplicación tiene tema oscuro (instrumento) y claro (clásico): botón ◐ del header, o `?tema=claro` en la URL.
+The application has a light theme (classic, default) and a dark theme (instrument): ◐ button in the header, or `?theme=dark` in the URL. The interface is in English.
 
-## Ejecutar en local
+## Run locally
 
 ```bash
 cd deliveries/week12/app
 python -m http.server 8000
 ```
 
-Abrir `http://localhost:8000`. También funciona abriendo `deliveries/week12/app/index.html` con doble clic.
+Open `http://localhost:8000`. Opening `deliveries/week12/app/index.html` by double-click also works.
 
-## Publicar en GitHub Pages
+## Publish on GitHub Pages
 
-1. Subir el repositorio a la rama `main`.
-2. En GitHub: **Settings → Pages → Build and deployment → Source: Deploy from a branch**, rama `main`, carpeta `/ (root)`.
-3. Esperar a que termine el despliegue (pestaña Actions) y abrir `https://andrea-coa.github.io/data-visualization-project/`, que redirige a la aplicación.
+1. Push the repository to the `main` branch.
+2. On GitHub: **Settings → Pages → Build and deployment → Source: Deploy from a branch**, branch `main`, folder `/ (root)`.
+3. Wait for the deployment to finish (Actions tab) and open `https://andrea-coa.github.io/data-visualization-project/`, which redirects to the application.
 
-Todas las rutas son relativas y los datos son CC0, así que no hace falta ningún paso de build.
+All paths are relative and the data are CC0, so no build step is needed.
 
-## Datos y licencia
+## Data and license
 
-OpenNeuro ds004902 (Xiang, Fan, Bai, Lv y Lei, 2024, *Scientific Data*), CC0. Los datos crudos (~8.3 GB) no se versionan: ver `deliveries/week06/README.md` para descargarlos y reproducir el procesamiento.
+OpenNeuro ds004902 (Xiang, Fan, Bai, Lv and Lei, 2024, *Scientific Data*), CC0. The raw data (~8.3 GB) are not versioned: see `deliveries/week06/README.md` to download them and reproduce the processing.

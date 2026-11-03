@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BATIMIX, autoprueba</title>
+<style>body{margin:0;font:12px/1.4 ui-monospace,monospace;background:#fff;color:#111}pre{white-space:pre-wrap;word-break:break-all;margin:8px}iframe{width:1600px;height:900px;border:0}</style>
+</head>
+<body>
+<!-- Lo usa tools/check_app.py: carga la app real en el iframe (mismo origen, por HTTP), espera a que dibuje y
+     vuelca en #out, como JSON, lo que la app calcula y muestra. Las comparaciones se hacen en Python. -->
+<pre id="out">pendiente</pre>
+<iframe id="app" src="../index.html"></iframe>
+<script>
+const out = document.getElementById("out"), frame = document.getElementById("app");
+const COLLECT = `(() => {
+  const txt = id => { const n = document.getElementById(id).cloneNode(true); n.querySelectorAll(".info").forEach(x => x.remove()); return n.textContent.replace(/\\s+/g, " ").trim(); };
+  const R = {state:{roi:S.roi, met:S.met, y:S.y}};
+  R.topo = ELEC.map(e => ({e, pv:TOPO[e].sigVar, qv:TOPO[e].qVar, pm:TOPO[e].sigMean, qm:TOPO[e].qMean}));
+  R.rho = [];
+  for(const r of Object.keys(ROI)) for(const met of ["var", "mean"]) for(const k of Object.keys(MK)){
+    const xk = ROI[r][met], s = spearman(EEG, xk, k);
+    R.rho.push({roi:r, met, y:k, rho:s.rho, lo:s.lo, hi:s.hi, n:s.n,
+      rows:EEG.filter(d => d[xk] != null && d[k] != null).map(d => [d.id, d[xk], d[k]])});
+  }
+  R.titles = {sc:txt("t-sc") + " n = " + ([...document.querySelectorAll("#scatter .sbox text")].map(e => e.textContent).pop() || ""), topo:txt("t-topo"), dyn:txt("t-dyn"), heat:txt("t-heat")};
+  R.legendDyn = document.getElementById("k-dyn").textContent;
+  R.activeIds = activeIds();
+  R.rollVar = ["NS", "SD"].map(c => epochStats(activeIds(), "f", c, "var"));
+  R.about = document.querySelector("[data-k='covLong']").textContent;
+  R.report = report.build();
+  // simula pasar el cursor por el primer electrodo del primer mapa y guarda el tooltip
+  const hit = document.querySelector("#topo .ehit"), hd = d3.select(hit).datum();
+  hit.dispatchEvent(new PointerEvent("pointerenter", {bubbles:false, clientX:200, clientY:200}));
+  R.tooltip = {e:hd.e, html:document.getElementById("tooltip").innerHTML};
+  return R;
+})()`;
+frame.addEventListener("load", () => {
+  const W = frame.contentWindow, t0 = Date.now();
+  (function wait(){
+    let ready = false;
+    try { ready = W.eval("typeof ELEC !== 'undefined' && ELEC.length > 0 && !!document.querySelector('#topo svg') && !!document.querySelector('#scatter svg')"); } catch(e){}
+    if(!ready){
+      if(Date.now()-t0 < 30000) return setTimeout(wait, 100);
+      out.textContent = JSON.stringify({error:"la app no terminó de cargar en 30 s"}); return;
+    }
+    try { out.textContent = JSON.stringify(W.eval(COLLECT)); }
+    catch(e){ out.textContent = JSON.stringify({error:String(e)}); }
+  })();
+});
+</script>
+</body>
+</html>
