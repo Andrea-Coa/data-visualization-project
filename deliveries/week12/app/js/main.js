@@ -77,10 +77,11 @@ function fillCmp(){
 function updateStatus(){
   fillCmp(); $("cmpsel").value = S.cmp;
   $("resetbtn").disabled = !S.selected && !S.pair.length && !S.elec && !S.win && S.cmp === "none";
-  // un solo chip en el header dice qué manda en el eje x cuando no es la región: ventana o electrodo
-  const chip = $("xchip"), on = S.elec || S.win;
-  chip.hidden = !on;
-  if(on) chip.textContent = S.win ? `x: ${winTxt(S.win)}` : `x: ${S.elec}`;
+  // el electrodo tiene su selector; el chip queda para la ventana de tiempo elegida en la serie
+  $("elsel").value = S.elec || "";
+  const chip = $("xchip");
+  chip.hidden = !S.win;
+  if(S.win) chip.textContent = `x: ${winTxt(S.win)}`;
   document.querySelectorAll("#roiseg button").forEach(b => b.setAttribute("aria-pressed", !S.elec && b.dataset.v === S.roi));
   document.querySelectorAll("#metseg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === S.met));
 }
@@ -110,7 +111,13 @@ loadData().then(D => {
   }));
   d3.select("#cmpsel").on("change", function(){ setCmp(this.value); });
   d3.select("#resetbtn").on("click", resetAll);
-  d3.select("#xchip").on("click", () => S.win ? setWin(null) : setElec(S.elec));
+  d3.select("#xchip").on("click", () => setWin(null));
+  // selector de electrodo: "None" = la región del header; los electrodos agrupados por región
+  const els = d3.select("#elsel");
+  els.append("option").attr("value", "").text("None");
+  REG.forEach((r, k) => els.append("optgroup").attr("label", r).selectAll("option")
+    .data(electrodes().filter(e => regionOf(e) === k)).join("option").attr("value", e => e).text(e => e));
+  els.on("change", function(){ const v = this.value || null; if(v !== S.elec) setElec(v || S.elec); });
   d3.select("#reportbtn").on("click", () => report.download());
   d3.select("#themebtn").on("click", () => setTheme(themeNow() === "light" ? "dark" : "light"));
   if(themeNow() === "light"){ $("themebtn").setAttribute("aria-label", "Switch to dark theme"); $("themebtn").title = "Dark theme"; }

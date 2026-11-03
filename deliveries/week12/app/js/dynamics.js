@@ -12,7 +12,7 @@
 const dyn = (() => {
   const el = $("dyn");
   let svg, g, W, H, dx, dy, scan, heads, brush, brushG, cur = null, ln, G = null, XS = [];
-  const m = {t:8, r:18, b:30, l:58};   // izquierda: título del eje y en dos líneas y sus números
+  const m = {t:6, r:18, b:24, l:58};   // izquierda: título del eje y en dos líneas y sus números; abajo, solo las marcas
   const leg = floatLegend();            // las series (con su n) se identifican en la leyenda flotante
   const ex = i => dx(XS[i]);           // tiempo (s) del punto i: centro de la época o de la ventana móvil
   const isVar = () => S.met === "var";
@@ -39,7 +39,7 @@ const dyn = (() => {
     dx = d3.scaleLinear().domain([0, 300]).range([m.l, W-m.r]); dy = d3.scaleLinear().domain([lo-pad, hi+pad]).range([H-m.b, m.t]);
     g.append("g").attr("class", "gridl").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(dy).ticks(4).tickSize(-(W-m.l-m.r)).tickFormat(""));
     g.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(dy).ticks(4).tickSize(3).tickPadding(3).tickSizeOuter(0).tickFormat(L.format(isVar() ? ".3~f" : ".2~f"))).call(a => a.select(".domain").remove());
-    g.append("g").attr("class", "axis").attr("transform", `translate(0,${H-m.b})`).call(d3.axisBottom(dx).tickValues(d3.range(0, 301, W < 500 ? 60 : 30)).tickSizeOuter(0).tickFormat(d => d === 300 ? "300 s" : d));
+    g.append("g").attr("class", "axis").attr("transform", `translate(0,${H-m.b})`).call(d3.axisBottom(dx).tickValues(d3.range(0, 301, W < 500 ? 60 : 30)).tickSize(4).tickPadding(3).tickSizeOuter(0).tickFormat(d => d === 300 ? "300 s" : d));
     // título del eje y en dos líneas: la magnitud y, debajo, qué es (más corto que en una sola línea)
     const yTitle = isVar() ? (G ? ["Δ moving σθ", "(SD − NS)"] : ["moving σθ", "(SD within 40 s)"]) : (G ? ["Δ θ power", "(SD − NS)"] : ["relative", "θ power"]);
     const yt = g.append("text").attr("class", "atitle").attr("text-anchor", "middle").attr("transform", "rotate(-90)");
@@ -101,7 +101,7 @@ const dyn = (() => {
     const d = idx.map(i => cur.SD.mean[i]-cur.NS.mean[i]), up = d.filter(v => v > 0).length;
     setTitle("t-dyn", `${isVar() ? "Moving σθ, 40-s windows" : "Relative θ per epoch"}${src}${S.selected ? " · your selection" : ""}${post}`, nb(`n = ${cur.SD.n}`),
       notes(`${isVar() ? "SD of regional relative θ in 40-s windows (10 epochs)" : "Regional relative θ per 4-s epoch"}, mean ± SE across people. Deprivation &gt; normal in ${up} of ${idx.length} ${unit}${S.win ? `; mean Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : ""}.`, key,
-        `${S.elec && ELEP ? `Series of electrode ${S.elec}: noisier than a region and on a larger scale (a region averages 16–28 electrodes). Remove it with the x chip in the header.` : "Click an electrode on a map (or a heatmap row) to see its own series."} Rejected epochs (&gt; 200 µV) are gaps; drag to set a time window for the scatter.`));
+        `${S.elec && ELEP ? `Series of electrode ${S.elec}: noisier than a region and on a larger scale (a region averages 16–28 electrodes). Set the Electrode selector in the header back to None to return to the region.` : "Choose an electrode in the header (or click one on a map or a heatmap row) to see its own series."} Rejected epochs (&gt; 200 µV) are gaps; drag to set a time window for the scatter.`));
   }
   function tipFor(i){
     const r = s => s.mean[i] != null ? `${f3(s.mean[i])} <span class="m">± ${f3(s.sem[i])}</span>` : "n/d";

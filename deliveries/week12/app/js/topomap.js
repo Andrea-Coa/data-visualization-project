@@ -261,10 +261,14 @@ const topo = (() => {
     // con el interruptor Δ apagado solo se dibujan NS y SD, con su barra de color
     const conds = S.showD ? ["NS", "SD", "D"] : ["NS", "SD"], nC = conds.length, nB = nC-1;
     // en pantallas angostas las barras se achican y la unidad pasa al ícono ⓘ del panel (no cabe girada)
-    const narrow = W < 560, labW = 22, barW = narrow ? 58 : 66, topH = 22, rowGap = 10;
-    const s = Math.floor(Math.max(64, Math.min((W-labW-nB*barW-8)/nC, (H-topH-rowGap-4)/2)));
-    const usedW = labW+nC*s+nB*barW, x0 = Math.max(0, (W-usedW)/2), y0 = Math.max(0, (H-(topH+2*s+rowGap))/2);
-    const X = {lab:x0, NS:x0+labW, SD:x0+labW+s, bar1:x0+labW+2*s+6, D:x0+labW+2*s+barW, bar2:x0+labW+3*s+barW+6};
+    const narrow = W < 560, labW = 22, barW = narrow ? 58 : 66, topH = 22;
+    // espacios horizontales por agrupación: juntos lo que se lee junto (NS y SD con su barra, Δ con la suya);
+    // más aire entre el bloque NS/SD y el bloque Δ (otra codificación de color)
+    const gapPair = 8, gapBlock = S.showD ? 20 : 0, rowGap = 10;
+    const s = Math.floor(Math.max(64, Math.min((W-labW-nB*barW-gapPair-gapBlock-8)/nC, (H-topH-rowGap-4)/2)));
+    const usedW = labW+nC*s+gapPair+nB*barW+gapBlock, x0 = Math.max(0, (W-usedW)/2), y0 = Math.max(0, (H-(topH+2*s+rowGap))/2);
+    const sd = x0+labW+s+gapPair;
+    const X = {lab:x0, NS:x0+labW, SD:sd, bar1:sd+s+6, D:sd+s+barW+gapBlock, bar2:sd+2*s+barW+gapBlock+6};
     const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
       .attr("role", "img").attr("aria-label", `Topomap matrix: columns ${S.showD ? "NS, SD and Δ" : "NS and SD"}; rows ${sp.rows.map(r => r.label).join(" and ")}`);
     const defs = svg.append("defs");

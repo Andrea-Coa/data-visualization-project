@@ -8,16 +8,22 @@
    Cada grupo lleva su columna C(e) = proporción del grupo que sube menos la que baja. */
 const indiv = (() => {
   const heatEl = $("heat");
-  const FRONTAL = ["Fp1", "Fp2", "Fpz", "AF3", "AF4", "AF7", "AF8", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "Fz"];
-  const CT = ["FC1", "FC2", "FC3", "FC4", "FC5", "FC6", "FT7", "FT8", "C1", "C2", "C3", "C4", "C5", "C6", "Cz", "T7", "T8",
-    "CP1", "CP2", "CP3", "CP4", "CP5", "CP6", "CPz", "TP7", "TP8", "TP9", "TP10"];
-  const REG = ["Frontal", "Centrotemporal", "Posterior"], REG_SHORT = ["F", "C-T", "P"];
+  const REG_SHORT = ["F", "C-T", "P"];   // regiones y orden de los electrodos: REG, regionOf y electrodes (core.js)
   let model = null, hv = {row:null, col:null};
 
-  const regionOf = e => FRONTAL.includes(e) ? 0 : (CT.includes(e) ? 1 : 2);
-  const electrodes = () => ELEC.slice().sort((a, b) => regionOf(a)-regionOf(b) || COORDS[b][1]-COORDS[a][1] || COORDS[a][0]-COORDS[b][0]);
   const short = id => id.replace("sub-", "S");
   const fs2 = L.format("+.2f");
+  // nombre de grupo en el ancho de su bloque: una línea si cabe; si no, dos líneas partidas por la palabra que más
+  // las iguala; y si aún no cabe, letra menor (mínimo 7 px)
+  function nameLines(full, bw){
+    const fsFor = n => Math.max(7, Math.min(10, bw/(n*.62)));
+    if(full.length*6.2 <= bw) return {lines:[full], fs:10};
+    const w = full.split(" ");
+    if(w.length < 2) return {lines:[full], fs:fsFor(full.length)};
+    const best = d3.range(1, w.length).map(k => [w.slice(0, k).join(" "), w.slice(k).join(" ")])
+      .reduce((a, l) => Math.max(l[0].length, l[1].length) < Math.max(a[0].length, a[1].length) ? l : a);
+    return {lines:best, fs:fsFor(Math.max(best[0].length, best[1].length))};
+  }
 
   function build(){
     const met = S.met, E = electrodes(), all = EEG_IDS.filter(id => SUBTOPO[id]), byId = new Map(P.map(d => [d.id, d]));
@@ -43,26 +49,31 @@ const indiv = (() => {
   // hv.row = persona (columna) y hv.col = índice de electrodo (fila): mismos nombres que en el estado compartido
   function drawHeat(){
     d3.select(heatEl).selectAll("*").remove();
-    const W = heatEl.clientWidth || 400, H = Math.max(180, heatEl.clientHeight || 400), {E, D, groups, lim, mean} = model;   // nunca más alto que su panel
-    const nP = model.ids.length, regW = 14, regGap = 4, gGap = 6, cS = 14, mW = 8, gTop = 14, top0 = gTop+30;
-    const rh = (H-top0-2*regGap-2)/E.length, elecLab = rh >= 8;   // nombres de electrodo solo si caben
+    const W = heatEl.clientWidth || 400, H = Math.max(180, heatEl.clientHeight || 400), {E, D, groups, lim} = model;   // nunca más alto que su panel
+    // encima de las celdas: el nombre de cada grupo (una o dos líneas) y una banda para los rótulos verticales
+    // (códigos de persona y C(e)), del alto justo para ellos
+    const nP = model.ids.length, regW = 14, regGap = 4, gGap = 6, cS = 14, nameLH = 11, band = 22;
+    const rh0 = (H-(2*nameLH+2+band)-2*regGap-2)/E.length, elecLab = rh0 >= 8;   // nombres de electrodo solo si caben
     const labW = regW+(elecLab ? 30 : 6);
-    const cw = Math.min(16, (W-labW-mW-4-groups.length*(cS+3)-(groups.length-1)*gGap-2)/nP);
+    const cw = Math.min(16, (W-labW-4-groups.length*(cS+3)-(groups.length-1)*gGap-2)/nP);
+    // columnas: por grupo, su C(e) seguida de una columna por persona
+    let x = labW; model.colX = new Map();
+    groups.forEach((g, gi) => {
+      if(gi) x += gGap;
+      g.cX = x; x += cS+3; g.x0 = x;
+      g.ids.forEach(id => { model.colX.set(id, x); x += cw; });
+      g.x1 = x;
+      g.lab = nameLines(`${g.name} (${g.ids.length})`, g.x1-g.cX);
+    });
+    const right = x, top0 = d3.max(groups, g => g.lab.lines.length)*nameLH+2+band;
+    const rh = (H-top0-2*regGap-2)/E.length;
     const rowY = i => top0+i*rh+regionOf(E[i])*regGap, bottom = rowY(E.length-1)+rh;
     const svg = d3.select(heatEl).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").attr("role", "img")
       .attr("aria-label", `Heatmap of 61 electrodes by ${nP} people with their ${METN[model.met]} change`);
     const col = v => v == null ? "transparent" : C.div((Math.max(-lim, Math.min(lim, v))+lim)/(2*lim));
     // rótulo vertical sobre una columna, en la banda entre los nombres de grupo y las celdas
     const vlab = (x, txt, size) => svg.append("text").attr("class", "alab").attr("transform", `translate(${x},${top0-4}) rotate(-90)`).attr("dy", ".35em").style("font-size", size+"px").text(txt);
-    // columnas: media de todos, y por grupo su C(e) seguida de una columna por persona
-    let x = labW; const mX = x; x += mW+4; model.colX = new Map();
-    groups.forEach((g, gi) => {
-      if(gi){ x += gGap; svg.append("line").attr("x1", x-gGap/2).attr("x2", x-gGap/2).attr("y1", 2).attr("y2", bottom).attr("stroke", C.ink2).attr("stroke-width", 1.5); }
-      g.cX = x; x += cS+3; g.x0 = x;
-      g.ids.forEach(id => { model.colX.set(id, x); x += cw; });
-      g.x1 = x;
-    });
-    const right = x;
+    groups.forEach((g, gi) => { if(gi) svg.append("line").attr("x1", g.cX-gGap/2).attr("x2", g.cX-gGap/2).attr("y1", 2).attr("y2", bottom).attr("stroke", C.ink2).attr("stroke-width", 1.5); });
     // regiones: nombre vertical a la izquierda; la región del header lleva su línea en tinta
     REG.forEach((r, k) => {
       const idx = E.map((e, i) => regionOf(e) === k ? i : -1).filter(i => i >= 0), y0 = rowY(idx[0]), y1 = rowY(idx[idx.length-1])+rh, yc = (y0+y1)/2;
@@ -73,14 +84,12 @@ const indiv = (() => {
     });
     if(elecLab) svg.append("g").selectAll("text").data(E).join("text").attr("class", "alab").attr("x", labW-3).attr("y", (e, i) => rowY(i)+rh/2).attr("dy", ".35em")
       .attr("text-anchor", "end").style("font-size", Math.min(9, rh)+"px").text(e => e);
-    vlab(mX+mW/2, "mean", 9);
-    svg.append("g").selectAll("rect").data(mean).join("rect").attr("x", mX).attr("y", (v, i) => rowY(i)).attr("width", mW).attr("height", rh+.3).attr("fill", col);
     const cells = svg.append("g");
     groups.forEach(g => {
-      // nombre del grupo sobre su bloque; si no cabe, sin conteo y con letra menor (mínimo 7 px)
-      const bw = g.x1-g.cX, full = `${g.name} (${g.ids.length})`, lab = full.length*6.2 <= bw ? full : g.name;
-      svg.append("text").attr("class", "mdim").attr("x", (g.cX+g.x1)/2).attr("y", gTop-3).attr("text-anchor", "middle").style("fill", g.color)
-        .style("font-size", Math.max(7, Math.min(10, bw/(lab.length*.62)))+"px").text(lab);
+      // nombre del grupo (con su n) sobre su bloque, en una o dos líneas, pegado a la banda de rótulos
+      const t = svg.append("text").attr("class", "mdim").attr("text-anchor", "middle").style("fill", g.color).style("font-size", g.lab.fs+"px");
+      const y1 = top0-band-3;   // línea de base de la última línea del nombre
+      g.lab.lines.forEach((l, i) => t.append("tspan").attr("x", (g.cX+g.x1)/2).attr("y", y1-(g.lab.lines.length-1-i)*nameLH).text(l));
       // C(e): barra horizontal desde el centro de su columna (derecha = sube, izquierda = baja)
       const c0 = g.cX+cS/2, half = cS/2-1;
       vlab(c0, "C(e)", 9);
@@ -136,6 +145,10 @@ const indiv = (() => {
 
   // ---------------- títulos ----------------
   function titles(){
+    // la métrica va en el nombre de la vista ("Individual View · Δσθ"); el subtítulo no se ve (lo usa el reporte)
+    const vt = document.querySelector(".p-heat .vh > span");
+    vt.textContent = "Individual View ";
+    vt.append(Object.assign(document.createElement("span"), {className:"vmet", textContent:`· Δ${METN[model.met]}`}));
     const [a, b] = model.groups, mC = g => d3.mean(g.cons), strong = g => g.cons.filter(c => Math.abs(c) >= .6).length;
     const hInfo = notes(`Δ${METN[model.met]} (deprivation − normal) per person (columns) and electrode (rows, front to back). Groups are defined by behavior only, not by theta.`,
       "C(e): share of the group whose Δ rises minus share whose Δ falls (−1 to +1). Click a column to select a person; click a row to put that electrode on the scatter x-axis.");

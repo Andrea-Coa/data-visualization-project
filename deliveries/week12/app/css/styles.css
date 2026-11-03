@@ -60,7 +60,7 @@ button,select{font:inherit;color:inherit}
 .board{display:grid;--wl:minmax(0,.95fr);--wc:minmax(0,2fr);--ws:minmax(250px,.82fr);grid-template-columns:var(--wl) var(--wc) var(--ws)}
 .col{display:grid;min-height:0;min-width:0}
 .col-l{grid-template-rows:minmax(0,.9fr) minmax(0,1.25fr)}
-.col-c{grid-template-rows:minmax(0,1.6fr) minmax(0,1fr)}
+.col-c{grid-template-rows:minmax(0,1.85fr) minmax(0,1fr)}   /* los topomapas se llevan algo más de alto que la serie */
 .col-s{display:flex;flex-direction:column;border-left:1px solid var(--rule);background:var(--panel)}
 .side-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 8px 8px 16px;border-bottom:1px solid var(--rule);flex:none}
 .side-title{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
@@ -73,7 +73,7 @@ button,select{font:inherit;color:inherit}
 .sec-hd::before{content:"▸";font-size:10px;color:var(--muted);transition:transform .12s}
 .sec[data-open="true"] .sec-hd::before{transform:rotate(90deg)}
 .sec-lbl{min-width:0}
-.sec-lbl b,.sec-lbl > span{display:block}
+.sec-lbl b{display:block}
 .sec-btn{position:absolute;inset:0;width:100%;margin:0;padding:0;border:0;border-radius:inherit;background:transparent;cursor:pointer}
 .sec-hd .info{position:relative;z-index:1}   /* por encima del botón que cubre la barra */
 .sec-body{display:none;flex:1 1 0;min-height:0;flex-direction:column;padding:0 16px 10px}
@@ -303,7 +303,6 @@ body{background:var(--page)}
 .sec-hd{margin:3px 10px;padding:6px 10px;border-radius:2px;background:var(--secbar);color:var(--secbar-ink)}
 .sec-hd::before{color:var(--secbar-ink);opacity:.85}
 .sec-lbl b{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-.sec-lbl > span{font-size:10.5px;font-weight:400;opacity:.82}
 .sec-hd .info{color:var(--secbar-ink);border-color:currentColor;opacity:.75}
 @media (hover:hover) and (pointer:fine){ .sec-hd .info:hover{opacity:1;color:var(--secbar-ink);border-color:currentColor} }
 .sec-body{padding:4px 12px 8px}
@@ -313,10 +312,7 @@ body{background:var(--page)}
 @media (max-width:1100px){ .dset{display:none} .tag{white-space:normal} }
 .dset>span{flex:none}
 .ctrls select{max-width:190px}
-.sec-lbl > span{display:none}
-.sec[data-open="true"] .sec-lbl > span{display:block}
 .sec-hd{padding:5px 10px}
-.sec-lbl > span{margin-top:1px}
 @media (max-width:1499px){ .dset{display:none} .ctrls{gap:8px} .ctrls select{max-width:160px} .tag{font-size:10.5px} }
 .tag{white-space:normal;max-width:235px;line-height:1.2;margin-top:2px}
 @media (max-width:1100px){
@@ -363,8 +359,17 @@ body{background:var(--page)}
 /* dispersión sin título ni leyenda sobre el gráfico: el ⓘ va en la cabecera y la leyenda en el recuadro del gráfico;
    el título queda oculto porque el reporte lo usa (lleva ρ, IC 95% y n) */
 .p-scatter .ph,.p-dyn .ph{display:none}   /* lo mismo en la vista de tiempo: su leyenda (con n) va en un recuadro */
+.panel.p-dyn,:root[data-theme="light"] .panel.p-dyn{padding-bottom:3px}   /* serie compacta: el eje x llega casi al borde del panel (en ambos temas) */
 /* topomapas: sin subtítulo (el alto pasa a los mapas); la leyenda de p y FDR va en la cabecera, junto a ⤢ */
 .p-topo .ph{display:none}
+/* vista individual: la métrica va en el nombre de la vista; del subtítulo solo queda la barra de color */
+.p-heat .ph h2{display:none}
+.vh .vmet{text-transform:none;letter-spacing:0}
+/* banda θ del espectro (vista oscilatoria/aperiódica): un clic hace zoom a 4–8 Hz y otro lo deshace */
+.tband{cursor:zoom-in;outline:none}
+.tband[aria-pressed="true"]{cursor:zoom-out}
+.tband:focus-visible{stroke:var(--ns);stroke-width:1.5}
+@media (hover:hover) and (pointer:fine){ .tband:hover{opacity:.12} }   /* σθ y μθ no pasan a mayúsculas (serían ΣΘ, ΜΘ) */
 .vh .key{margin-left:auto;font-family:var(--sans);font-size:11px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--ink2)}
 .vh .key + .vx{margin-left:6px}
 .p-scatter .ph{flex-wrap:nowrap}

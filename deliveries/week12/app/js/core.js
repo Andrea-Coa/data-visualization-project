@@ -43,6 +43,14 @@ const ROI = {
   ct:   {name:"centrotemporal",  var:"d_ct_var",    mean:"d_ct_pow",    pref:"c"},
 };
 const METN = {var:"σθ", mean:"μθ"};
+// los 61 electrodos en tres regiones (las dos primeras son las regiones del header); el mapa de calor y el selector
+// de electrodo los ordenan igual: por región y, dentro de ella, de adelante hacia atrás y de izquierda a derecha
+const EL_FRONTAL = ["Fp1", "Fp2", "Fpz", "AF3", "AF4", "AF7", "AF8", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "Fz"];
+const EL_CT = ["FC1", "FC2", "FC3", "FC4", "FC5", "FC6", "FT7", "FT8", "C1", "C2", "C3", "C4", "C5", "C6", "Cz", "T7", "T8",
+  "CP1", "CP2", "CP3", "CP4", "CP5", "CP6", "CPz", "TP7", "TP8", "TP9", "TP10"];
+const REG = ["Frontal", "Centrotemporal", "Posterior"];
+const regionOf = e => EL_FRONTAL.includes(e) ? 0 : (EL_CT.includes(e) ? 1 : 2);
+const electrodes = () => ELEC.slice().sort((a, b) => regionOf(a)-regionOf(b) || COORDS[b][1]-COORDS[a][1] || COORDS[a][0]-COORDS[b][0]);
 
 // ---------- estado + bus ----------
 const bus = d3.dispatch("hover", "pin", "select", "axes");
@@ -141,6 +149,8 @@ function setTitle(id, head, sub, info){
 // Sin posición elegida empieza en la esquina que tapa menos marcas y nunca sobre `avoid`. La posición elegida se
 // guarda como fracción del espacio libre y vale mientras no cambie `key` (los ejes). Sin ítems no se dibuja.
 // Ítems: {t: texto, mark: "dot" | "ring" | "line" | "dash", c: color, n: tamaño de la clase (opcional)}.
+// Sin `mark`, el ítem es una fila de lectura: etiqueta tenue a la izquierda y su valor `v` a la derecha
+// (`strong`: el valor principal, en negrita).
 function floatLegend(){
   let c = null, g = null, geo = null, pos = null, key = null, min = false, drag = null;
   const pad = 8, lh = 15, isLine = d => d.mark === "line" || d.mark === "dash";
@@ -159,7 +169,7 @@ function floatLegend(){
     g.style("display", items.length ? null : "none").attr("tabindex", items.length ? 0 : null);
     if(!items.length){ geo = null; return; }
     g.classed("min", min).attr("aria-expanded", !min)
-      .attr("aria-label", min ? "Legend (minimized): press Enter to show it" : `Legend: ${items.map(d => d.t+(d.n != null ? `, n = ${d.n}` : "")).join("; ")}. Enter minimizes it; arrow keys move it`);
+      .attr("aria-label", min ? "Legend (minimized): press Enter to show it" : `Legend: ${items.map(d => d.t+(d.v != null ? ` ${d.v}` : (d.n != null ? `, n = ${d.n}` : ""))).join("; ")}. Enter minimizes it; arrow keys move it`);
     g.append("title").text(min ? "Show the legend" : "Click to minimize · drag to move");
     const bg = g.append("rect").attr("class", "sbox-bg").attr("rx", 5), tg = g.append("g");
     let ox, oy, bw, bh;
@@ -167,17 +177,18 @@ function floatLegend(){
       const s = 22; tg.append("path").attr("class", "sbox-ico").attr("d", "M-3.5,3.5L3.5,-3.5M-1,-3.5H3.5V1");
       bw = bh = s; ox = oy = -s/2;
     } else {
-      const tx = items.some(isLine) ? 19 : 13;
+      const tx = items.some(isLine) ? 19 : (items.some(d => d.mark) ? 13 : 0);
       const labs = items.map((d, i) => {
         const y = i*lh-3.8;
         if(isLine(d)) tg.append("line").attr("x1", 0).attr("x2", 14).attr("y1", y).attr("y2", y).attr("stroke", d.c).attr("stroke-width", 2).attr("stroke-dasharray", d.mark === "dash" ? "4 3" : null);
-        else { const k = tg.append("circle").attr("cx", 4).attr("cy", y).attr("r", 3.5);
+        else if(d.mark){ const k = tg.append("circle").attr("cx", 4).attr("cy", y).attr("r", 3.5);
           if(d.mark === "ring") k.attr("fill", "none").attr("stroke", d.c).attr("stroke-width", 1.4); else k.attr("fill", d.c); }
-        return tg.append("text").attr("x", tx).attr("y", i*lh).text(d.t);
+        return tg.append("text").attr("class", d.mark ? null : "m").attr("x", tx).attr("y", i*lh).text(d.t);
       });
-      // n de cada clase en su propia columna, alineado a la derecha
+      // segunda columna, alineada a la derecha: el valor de una fila de lectura o el n de cada clase
       const len = t => t.node().getComputedTextLength();
-      const ns = items.map((d, i) => d.n != null ? tg.append("text").attr("class", "m").attr("y", i*lh).attr("text-anchor", "end").text(`n = ${d.n}`) : null).filter(Boolean);
+      const ns = items.map((d, i) => d.v != null ? tg.append("text").attr("class", d.strong ? "strong" : null).attr("y", i*lh).attr("text-anchor", "end").text(d.v)
+        : (d.n != null ? tg.append("text").attr("class", "m").attr("y", i*lh).attr("text-anchor", "end").text(`n = ${d.n}`) : null)).filter(Boolean);
       const nx = tx+d3.max(labs, len)+12+(d3.max(ns, len) || 0);
       ns.forEach(t => t.attr("x", nx));
       const bb = tg.node().getBBox(); bw = bb.width+2*pad; bh = bb.height+2*pad-3; ox = bb.x-pad; oy = bb.y-pad+1;

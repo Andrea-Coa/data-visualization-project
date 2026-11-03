@@ -7,6 +7,8 @@
    2. Sincronía θ entre regiones: wPLI² debiased con referencia promedio, 10 regiones y 45 pares. */
 const side = (() => {
   const elA = $("aper"), elC = $("conn"), elE = $("eye");
+  const aperLeg = floatLegend();   // ρ, R² y n dentro de la dispersión de la vista oscilatoria/aperiódica
+  let aperZoom = false;            // espectro: false = 1–40 Hz; true = solo la banda θ (clic en la banda gris)
   const isOpen = el => el.closest(".sec").dataset.open === "true";
   // personas de la vista: la selección (las que tienen dato) o todas
   const idsOf = all => { const s = S.selected ? S.selected.filter(id => all.includes(id)) : []; return s.length ? s : all; };
@@ -38,25 +40,45 @@ const side = (() => {
     const fr = APER.spectrum.freqs, spec = c => fr.map((f, i) => d3.mean(ids, id => APER.spectrum.persons[id] && APER.spectrum.persons[id][c][i]));
     const apOf = c => { const ex = d3.mean(ids, id => d3.mean(APER.persons[id].exp[c === "NS" ? 0 : 1])), of = d3.mean(ids, id => d3.mean(APER.persons[id].off[c === "NS" ? 0 : 1])); return {ex, of}; };
     const lines = ["NS", "SD"].map(c => ({c, col:c === "NS" ? C.ns : C.sd, y:spec(c), ap:apOf(c)}));
-    const m = {l:44, r:12, t:6, b:22}, sx = d3.scaleLinear().domain([1, 40]).range([m.l, W-m.r]);
-    const sy = d3.scaleLinear().domain(d3.extent(lines.flatMap(l => l.y.concat(fr.map(f => l.ap.of-l.ap.ex*Math.log10(f)))))).nice().range([h1-m.b, m.t]);
-    svg.append("rect").attr("x", sx(4)).attr("width", sx(8)-sx(4)).attr("y", m.t).attr("height", h1-m.b-m.t).attr("fill", C.ink).attr("opacity", .06);
-    svg.append("text").attr("class", "mdim").attr("x", (sx(4)+sx(8))/2).attr("y", m.t+10).attr("text-anchor", "middle").text("θ");
-    svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h1-m.b})`).call(d3.axisBottom(sx).tickValues([1, 10, 20, 30, 40]).tickSizeOuter(0));
+    // clic en la banda θ: el espectro pasa a 4–8 Hz (eje y ajustado a ese tramo); con zoom la banda cubre el gráfico
+    // y otro clic vuelve a 1–40 Hz
+    const dom = aperZoom ? [4, 8] : [1, 40], vis = i => fr[i] >= dom[0] && fr[i] <= dom[1], fv = fr.filter((f, i) => vis(i));
+    const m = {l:aperZoom ? 50 : 44, r:12, t:6, b:22}, sx = d3.scaleLinear().domain(dom).range([m.l, W-m.r]);   // con zoom, marcas con un decimal: más margen
+    const sy = d3.scaleLinear().domain(d3.extent(lines.flatMap(l => l.y.filter((v, i) => vis(i)).concat(fv.map(f => l.ap.of-l.ap.ex*Math.log10(f)))))).nice().range([h1-m.b, m.t]);
+    const zoomTip = aperZoom ? "Show 1–40 Hz" : "Zoom into θ (4–8 Hz)";
+    svg.append("rect").attr("class", "tband").attr("x", sx(4)).attr("width", sx(8)-sx(4)).attr("y", m.t).attr("height", h1-m.b-m.t).attr("fill", C.ink).attr("opacity", .06)
+      .attr("tabindex", 0).attr("role", "button").attr("aria-label", zoomTip).attr("aria-pressed", aperZoom)
+      .on("click", () => { aperZoom = !aperZoom; renderAper(); })
+      .on("keydown", ev => { if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); aperZoom = !aperZoom; renderAper(); document.querySelector("#aper .tband").focus(); } })
+      .append("title").text(zoomTip);
+    // rótulo θ sobre la banda; con zoom no hace falta (el eje ya va de 4 a 8 Hz y todo el fondo es la banda)
+    if(!aperZoom) svg.append("text").attr("class", "mdim").attr("x", (sx(4)+sx(8))/2).attr("y", m.t+10).attr("text-anchor", "middle").style("pointer-events", "none").text("θ");
+    svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h1-m.b})`).call(d3.axisBottom(sx).tickValues(aperZoom ? [4, 5, 6, 7, 8] : [1, 10, 20, 30, 40]).tickFormat(d => d).tickSizeOuter(0));
     svg.append("text").attr("class", "mdim").attr("x", m.l-6).attr("y", h1-m.b+14).attr("text-anchor", "end").text("Hz");
-    svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(sy).ticks(3).tickSizeOuter(0)).call(a => a.select(".domain").remove());
+    svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(sy).ticks(aperZoom ? 2 : 3).tickSizeOuter(0)).call(a => a.select(".domain").remove());
     svg.append("text").attr("class", "atitle").attr("transform", "rotate(-90)").attr("x", -(m.t+h1-m.b)/2).attr("y", 8).attr("text-anchor", "middle").style("font-size", "10px").text("log₁₀ power");
     lines.forEach(l => {
-      svg.append("path").attr("fill", "none").attr("stroke", l.col).attr("stroke-width", 1.8).attr("d", d3.line().x((v, i) => sx(fr[i])).y(v => sy(v))(l.y));
-      svg.append("path").attr("fill", "none").attr("stroke", l.col).attr("stroke-width", 1.2).attr("stroke-dasharray", "4 3")
-        .attr("d", d3.line().x(f => sx(f)).y(f => sy(l.ap.of-l.ap.ex*Math.log10(f)))(fr));
+      svg.append("path").attr("fill", "none").attr("stroke", l.col).attr("stroke-width", 1.8).style("pointer-events", "none")
+        .attr("d", d3.line().defined((v, i) => vis(i)).x((v, i) => sx(fr[i])).y(v => sy(v))(l.y));
+      svg.append("path").attr("fill", "none").attr("stroke", l.col).attr("stroke-width", 1.2).attr("stroke-dasharray", "4 3").style("pointer-events", "none")
+        .attr("d", d3.line().x(f => sx(f)).y(f => sy(l.ap.of-l.ap.ex*Math.log10(f)))(fv));
     });
     const lg = svg.append("g").attr("transform", `translate(${W-m.r-62},${m.t+4})`);   // se reubica según el ancho real del texto
     [["Normal Sleep", C.ns, 0], ["Sleep Deprivation", C.sd, 13], ["1/f fit", C.ink2, 26]].forEach(([t, c, dy]) => {
       lg.append("line").attr("x1", 0).attr("x2", 12).attr("y1", dy).attr("y2", dy).attr("stroke", c).attr("stroke-width", 1.6).attr("stroke-dasharray", t === "1/f fit" ? "4 3" : null);
       lg.append("text").attr("class", "mdim").attr("x", 16).attr("y", dy+3.5).text(t);
     });
-    lg.attr("transform", `translate(${W-m.r-lg.node().getBBox().width-2},${m.t+4})`);
+    // la leyenda va en la esquina que tapa menos líneas: arriba a la derecha si se puede (sin zoom siempre está libre);
+    // con zoom en θ suele ser abajo a la izquierda, bajo el ajuste 1/f que baja hacia la derecha
+    const lb = lg.node().getBBox(), lpts = lines.flatMap(l => fr.flatMap((f, i) => vis(i) ? [[sx(f), sy(l.y[i])], [sx(f), sy(l.ap.of-l.ap.ex*Math.log10(f))]] : []));
+    const lx0 = m.l+8, lx1 = W-m.r-lb.width-2, ly0 = m.t+4, ly1 = h1-m.b-lb.height-4;
+    const lhits = ([x, y]) => lpts.filter(([px, py]) => px >= x-4 && px <= x+lb.width+4 && py >= y-4 && py <= y+lb.height+4).length;
+    const [lx, ly] = [[lx1, ly0], [lx0, ly1], [lx1, ly1], [lx0, ly0]].reduce((a, c) => lhits(c) < lhits(a) ? c : a);
+    lg.attr("transform", `translate(${lx-lb.x},${ly-lb.y})`).style("pointer-events", "none");
+    // si el espectro es bajo (pantallas chicas, zoom) ninguna esquina queda libre: la leyenda va debajo de las líneas,
+    // con un fondo que solo tapa la cuadrícula y la banda; las curvas siempre se ven enteras
+    lg.insert("rect", ":first-child").attr("x", lb.x-4).attr("y", lb.y-3).attr("width", lb.width+8).attr("height", lb.height+6).attr("rx", 3).attr("fill", C.panel).attr("opacity", .85);
+    lg.lower();
     // ---- 2. Δ exponente y Δ offset por electrodo (misma interpolación que la matriz)
     const dOf = k => { const v = {}; E.forEach((e, i) => { const x = d3.mean(ids, id => { const a = APER.persons[id][k]; return a[0][i] != null && a[1][i] != null ? a[1][i]-a[0][i] : null; }); if(x != null) v[e] = x; }); return v; };
     const maps = [["exp", "Δ exponent"], ["off", "Δ offset"]], mw = (W-12)/2, R = Math.min(mw/2-14, (h2-34)/2);
@@ -89,12 +111,16 @@ const side = (() => {
       .on("pointermove", ev => moveTip(ev)).on("pointerleave", hideTip)
       .on("click", (ev, d) => { hideTip(); const p = P.find(o => o.id === d.id); if(!p) return; if(ev.shiftKey) pin(p); else togglePick(p); });
     dots.filter(d => ss && ss.has(d.id)).raise();
-    svg.append("text").attr("class", "ab").attr("x", mm.l+4).attr("y", y3+mm.t+12).style("font-size", "11px").text(`ρ = ${f2(sg.rho_periodic)} · 1/f explains ${Math.round(sg.r2_exponent*100)}%`);
-    // ---- título: el hallazgo y, en el ícono ⓘ, de dónde sale
+    // ρ, R² y n en un recuadro dentro de la dispersión (siempre de todas las personas con ajuste válido)
+    aperLeg.mount({svg, parent:svg, area:{x0:mm.l, x1:W-mm.r, y0:y3+mm.t, y1:y3+h3-mm.b}, marks:pts.map(d => [px(d.x), py(d.y)]), avoid:null, key:S.roi,
+      items:[{t:"ρ", v:f2(sg.rho_periodic), strong:true}, {t:"R²", v:f2(sg.r2_exponent)}, {t:"n", v:String(sg.n)}]});
+    // ---- sin título sobre los gráficos: la lectura y de dónde sale cada cifra van en el ícono ⓘ de la barra
     const g = APER.global;
-    setTitle("t-aper", `σθ is oscillatory, not 1/f: ρ = ${f2(sg.rho_periodic)}`, nb(`n = ${sg.n}${sel ? `; maps and spectrum: your selection (${ids.length})` : ""}`),
+    setTitle("t-aper", "", "",
       notes(`specparam (Bai et al., 2024 settings). Aperiodic change: exponent d_z = ${f2(g.exp.dz)} (p = ${fp(g.exp.p)}), offset d_z = ${f2(g.off.dz)} (p = ${fp(g.off.p)}); ${Math.round(APER.theta_peak_fraction.NS*100)}% of electrodes have a 4–8 Hz peak.`,
-        `Bottom: each person's Δσθ vs. Δσθ of the periodic component (1/f removed). They agree (ρ = ${f2(sg.rho_periodic)}): σθ is oscillatory, not the 1/f background.`));
+        `Bottom: each person's Δσθ (relative θ) vs. Δσθ of the periodic component (1/f removed), ${ROI[S.roi].name}. n = ${sg.n}: people with at least 50 well-fitted epochs (R² ≥ 0.8) in each session.`,
+        `Spearman ρ = ${f2(sg.rho_periodic)}: both rank people alike, so the σθ change is mostly oscillatory. R² = ${f2(sg.r2_exponent)}: share of the Δσθ variance explained (linearly) by the change in epoch-to-epoch variability of the aperiodic exponent.`,
+        sel ? `Spectrum and maps: mean of your selection (${ids.length}). The scatter always shows all ${sg.n}, with your selection ringed.` : ""));
   }
 
   // ---------------------------------------------------------------- sincronía θ entre regiones
