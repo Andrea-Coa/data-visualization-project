@@ -1,6 +1,6 @@
 # BATIMIX: One sleepless night does not affect everyone the same way (Week 12)
 
-Refined draft and peer-critique response. A linked D3.js explorer, **in a single view with a single header**, of individual vulnerability to sleep deprivation in resting-state EEG (OpenNeuro ds004902, 68 people with paired EEG). Three columns of boxed views, each with a short uppercase name and icon, in the style of IEEE VIS/TVCG visual analytics systems (VISTA, Unlearning Comparator): in the center, the Topography View (2 × 3 topomap matrix, the main view) with the Time View below (moving σθ or μθ per epoch); on the left, the people (Vulnerability View: scatter; Individual View: person × electrode heatmap); on the right, the collapsible Validation Panel, grouped by purpose: two robustness checks, «Oscillatory or 1/f?» (specparam) and «Driven by blinks?», and one exploratory view, «θ synchrony between regions» (wPLI). Hovering any person shows their EEG quality (epochs used, interpolated channels, blinks). Preprocessing: average reference and ICA (`tools/eeg_ica.py`), as in the sleep-deprivation EEG literature. The 896-analysis multiverse (with the preprocessing pipeline as a dimension) is kept as a robustness analysis in About, in the Report and in `RefinedDraftReport.md` (section 4).
+Refined draft and peer-critique response. A linked D3.js explorer, **in a single view with a single header**, of individual vulnerability to sleep deprivation in resting-state EEG (OpenNeuro ds004902, 68 people with paired EEG). Three columns of boxed views, each with a short uppercase name and icon, in the style of IEEE VIS/TVCG visual analytics systems (VISTA, Unlearning Comparator): in the center, the Topography View (2 × 3 topomap matrix, the main view) with the Time View below (moving σθ or μθ per epoch); on the left, the people (Vulnerability View: scatter; Individual View: person × electrode heatmap); on the right, the collapsible Validation Panel with two robustness checks, «Oscillatory & aperiodic components» (specparam) and «Blink effects on θ variability», and one exploratory view, «θ synchrony between regions» (wPLI). No subtitles or instruction text sit over the charts: each view has an ⓘ icon next to its name with the reading and the figures, and legends live in boxes inside the charts that can be dragged or collapsed. Hovering any person shows their EEG quality (epochs used, interpolated channels, blinks). Preprocessing: average reference and ICA (`tools/eeg_ica.py`), as in the sleep-deprivation EEG literature. The 896-analysis multiverse (with the preprocessing pipeline as a dimension) is kept as a robustness analysis in About, in the Report and in `RefinedDraftReport.md` (section 4).
 
 - **Application:** [`app/index.html`](app/index.html), with a light theme (classic, default) or a dark theme (instrument) from the ◐ button in the header; direct links with `?theme=light` or `?theme=dark`
 - **Deployment (GitHub Pages):** https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/ (verify after the push; see "Deployment")
@@ -24,14 +24,14 @@ deliveries/week12/
   app/                           code of the refined application
     index.html                   single view: header with controls, three columns and the About panel
     css/styles.css               light and dark themes (color and type tokens; dark is the base, light uses data-theme="light"), boxed views with gutters, Roboto and Roboto Condensed
-    js/core.js                   data, state, event bus, groups, selection, statistics
+    js/core.js                   data, state, event bus, groups, selection, statistics, electrode regions, floating legend boxes
     js/topomap.js                2 × 3 topomap matrix (EEGLAB/FieldTrip v4 interpolation; contours, p and FDR, σθ/μθ rows or two people)
-    js/scatter.js                vulnerability scatter, lasso, click selection, A and B, data table
-    js/dynamics.js               five minutes: with μθ, mean ± SE per epoch; with σθ, moving σθ in 40-s windows
-    js/individuals.js            person × electrode heatmap with two behavior-defined groups and their consistency C(e)
-    js/secondary.js              secondary views: oscillatory or aperiodic (spectrum, Δ exponent and offset, Δσθ periodic) and θ synchrony (wPLI graph and effect per pair) and eye-blink check
+    js/scatter.js                Vulnerability View: scatter, «vulnerable» quadrant, lasso, click selection, A and B, legend box, data table
+    js/dynamics.js               Time View: with μθ, mean ± SE per epoch; with σθ, moving σθ in 40-s windows; legend box with each series' n
+    js/individuals.js            Individual View: person × electrode heatmap with two behavior-defined groups and their consistency C(e)
+    js/secondary.js              Validation Panel: oscillatory & aperiodic components (spectrum with click-to-zoom θ band, Δ exponent and offset, Δσθ periodic with ρ, R² and n), blink check and θ synchrony (wPLI graph and effect per pair)
     js/report.js                 downloadable report (self-contained HTML with the view, how to read each chart, and CSV)
-    js/main.js                   data loading, controls and start-up
+    js/main.js                   data loading, controls (including the Electrode selector) and start-up
     data/*.json                  final processed data (and data.js to open the page by double-click)
     tools/eeg_ica.py             shared EEG cleaning: notebook 02 + average reference + ICA (ocular and muscle) + 200 µV rejection
     tools/build_eeg_ica.py       main pipeline: generates ../data/processed_ica/*.csv from the raw EEG (same columns as Week 6)
@@ -140,12 +140,12 @@ All paths are relative. The data are CC0.
 
 ## What changed since Week 10
 
-A single view with no scrolling or animations; one header with all controls; panels with no gaps and no instruction text (each panel title is its finding); three columns with the topomap matrix as the main view and collapsible secondary views (aperiodic and θ synchrony, computed from the raw EEG); σθ/μθ rows or two selected people side by side; group selector (T7); PVT lapses and RT SD; moving σθ in the five-minute view; t, d_z and 95% CI per electrode; multiverse with permutation inference (robustness analysis, without its own panel since 28 October); English interface. Intro, glossary, method and credits in About. Details in `RefinedDraftReport.md` and `PeerCritiqueResponse.pdf`.
+A single view with no scrolling or animations; one header with all controls, including an Electrode selector; boxed views with narrow gutters and no instruction text or subtitles over the charts (an ⓘ icon next to each view name holds the reading and the figures; legends sit in movable, collapsible boxes inside the charts); three columns with the topomap matrix as the main view and a collapsible Validation Panel (oscillatory & aperiodic components, blink check and θ synchrony, computed from the raw EEG); σθ/μθ rows or two selected people side by side; group selector (T7), combinable with a selection; PVT lapses and RT SD; moving σθ in the five-minute view; t, d_z and 95% CI per electrode; multiverse with permutation inference (robustness analysis, without its own panel since 28 October); English interface. Intro, glossary, method and credits in About. Details in `RefinedDraftReport.md` and `PeerCritiqueResponse.pdf`.
 
 ## Dependencies
 
 - D3.js 7.8.5 from cdnjs (ISC license).
-- Google Fonts: Geist and Geist Mono (OFL).
+- Google Fonts: Roboto and Roboto Condensed (OFL).
 - To regenerate the data and run the tests: Python 3 with the packages in `requirements.txt` (numpy, scipy, statsmodels, pandas, mne, mne-connectivity, fooof, pymatreader) and Google Chrome for `check_app.py`. Node.js is optional (`build-data.js`).
 
 ## Data, credits and use of AI
