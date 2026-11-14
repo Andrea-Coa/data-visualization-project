@@ -3,7 +3,8 @@
    Con dos personas elegidas en la dispersión (A y B), las filas pasan a ser A y B con la métrica del header.
    Escalas: NS y SD comparten una secuencial por fila; Δ usa una divergente con cero oscuro. En el modo A y B
    ambas filas comparten las mismas escalas para que la comparación sea honesta.
-   Marcas de significancia (t pareada, FDR) solo en Δ de las 68 personas: con subgrupos no hay prueba por electrodo. */
+   Marcas de significancia (t pareada, FDR) en Δ: de las 68, de la selección o de cada grupo comparado (n ≥ 3);
+   dos personas sueltas no tienen prueba por electrodo. */
 const topo = (() => {
   const el = $("topo"), GN = 96;
   let MAPS = [], linkG = null, curSpec = null;   // posiciones de los 6 mapas para enlazar un mismo electrodo en todos
@@ -22,7 +23,15 @@ const topo = (() => {
       ids.forEach(id => { const t = SUBTOPO[id][e]; if(t){ nm.push(t.NS.mean); nv.push(t.NS.var); sm.push(t.SD.mean); sv.push(t.SD.var); } });
       if(!nm.length) return;
       const NS = {mean:d3.mean(nm), var:d3.mean(nv)}, SD = {mean:d3.mean(sm), var:d3.mean(sv)};
-      out[e] = {NS, SD, dMean:SD.mean-NS.mean, dVar:SD.var-NS.var, nPaired:nm.length};
+      // misma prueba que con los 68: t pareada (Δ de cada persona contra 0) en este subconjunto
+      const tv = tTest1(sv.map((v, i) => v-nv[i])), tm = tTest1(sm.map((v, i) => v-nm[i]));
+      out[e] = {NS, SD, dMean:SD.mean-NS.mean, dVar:SD.var-NS.var, nPaired:nm.length,
+        sigVar:tv ? tv.p : null, sigMean:tm ? tm.p : null, tVar:tv ? tv.t : null, tMean:tm ? tm.t : null};
+    });
+    // FDR de Benjamini y Hochberg sobre los electrodos con prueba, por métrica
+    [["sigVar", "qVar"], ["sigMean", "qMean"]].forEach(([pk, qk]) => {
+      const es = Object.keys(out).filter(e => out[e][pk] != null), q = bh(es.map(e => out[e][pk]));
+      es.forEach((e, i) => { out[e][qk] = q[i]; });
     });
     return {T:out, mode:"group", n:ids.length};
   }
@@ -315,12 +324,16 @@ const topo = (() => {
     g.append("path").attr("class", "head").attr("d", `M ${cx-7} ${cy-R+1.5} L ${cx} ${cy-R-8} L ${cx+7} ${cy-R+1.5}`).attr("stroke-linejoin", "round");
     g.append("path").attr("class", "head").attr("d", `M ${cx-R} ${cy-10} C ${cx-R-7} ${cy-9} ${cx-R-7} ${cy+9} ${cx-R} ${cy+10}`);
     g.append("path").attr("class", "head").attr("d", `M ${cx+R} ${cy-10} C ${cx+R+7} ${cy-9} ${cx+R+7} ${cy+9} ${cx+R} ${cy+10}`);
-    const marks = cond === "D" && mode === "all";
+    // marcas en Δ siempre que haya prueba por electrodo: los 68, un subgrupo o cada grupo de la comparación
+    // (dos personas sueltas no tienen prueba: σθ es un único valor por registro)
+    const marks = cond === "D" && mode !== "pair";
     const pts = ELEC.filter(e => row.T[e]).map(e => ({e, t:row.T[e], px:cx+COORDS[e][0]*R, py:cy-COORDS[e][1]*R}));
+    // null < .05 es verdadero en JS: sin prueba (n < 3) no hay marca
+    const isP = d => marks && pOf(d.t, row.met) != null && pOf(d.t, row.met) < .05, isQ = d => isP(d) && qOf(d.t, row.met) < .05;
     g.append("g").selectAll("circle").data(pts).join("circle").attr("cx", d => d.px).attr("cy", d => d.py)
-      .attr("r", d => marks && pOf(d.t, row.met) < .05 ? 4 : 1.1)
-      .attr("fill", d => marks && qOf(d.t, row.met) < .05 ? C.mark : (marks && pOf(d.t, row.met) < .05 ? "none" : C.edot))
-      .attr("stroke", d => marks && pOf(d.t, row.met) < .05 ? C.mark : "none").attr("stroke-width", 1.5).style("pointer-events", "none");
+      .attr("r", d => isP(d) ? 4 : 1.1)
+      .attr("fill", d => isQ(d) ? C.mark : (isP(d) ? "none" : C.edot))
+      .attr("stroke", d => isP(d) ? C.mark : "none").attr("stroke-width", 1.5).style("pointer-events", "none");
     g.append("g").selectAll("circle").data(pts).join("circle").attr("class", "ehit").attr("cx", d => d.px).attr("cy", d => d.py).attr("r", Math.max(5, R*.09))
       .on("pointerenter", (e, d) => { drawLink(d.e); showTip(e, tipFor(d.e)); }).on("pointermove", e => moveTip(e))
       .on("pointerleave", () => { drawLink(null); hideTip(); })
@@ -354,9 +367,9 @@ const topo = (() => {
     const sp = curSpec, all68 = sp.mode === "all";
     return `<div class="h">${e}</div>` + sp.rows.map(row => {
       const t = row.T[e]; if(!t) return "";
-      const met = row.met, dv = met === "var" ? t.dVar : t.dMean, r = sp.mode === "pair" ? null : elecRho(e, met);
+      const met = row.met, dv = met === "var" ? t.dVar : t.dMean, r = sp.mode === "pair" ? null : elecRho(e, met), hasP = pOf(t, met) != null;
       return `<div class="m" style="margin-top:4px">${row.label}</div>` + trow("Normal · Deprivation", `${fr(t.NS[met])} · ${fr(t.SD[met])}`) +
-        trow("Δ Deprivation − Normal", `${fsr(dv)}${all68 ? ` <span class="m">p ${fp(pOf(t, met))}, q ${fp(qOf(t, met))}</span>` : ""}`) +
+        trow("Δ Deprivation − Normal", `${fsr(dv)}${hasP ? ` <span class="m">p ${fp(pOf(t, met))}, q ${fp(qOf(t, met))}</span>` : ""}`) +
         // tamaño de efecto de la prueba t pareada (solo con las 68 personas, donde hay prueba por electrodo)
         (all68 && t.tVar != null ? (sf => trow("95% CI of Δ", `[${fsr(t["ci"+sf][0])}, ${fsr(t["ci"+sf][1])}]`) +
           trow(`t(${t.nPaired-1}) · d<sub>z</sub>`, `${f2(t["t"+sf])} · ${f2(t["dz"+sf])}`))(met === "var" ? "Var" : "Mean") : "") +
@@ -369,16 +382,26 @@ const topo = (() => {
     const meanD = (T, met) => d3.mean(ELEC.filter(e => T[e]).map(e => met === "var" ? T[e].dVar : T[e].dMean));
     const up = (T, met) => ELEC.filter(e => T[e] && (met === "var" ? T[e].dVar : T[e].dMean) > 0).length;
     const base = ["σθ: SD of relative θ (4–8 / 1–40 Hz) across 4-s epochs; μθ: its mean. Δ = deprivation − normal. v4 interpolation (EEGLAB, FieldTrip)."];
+    // conteos de p y q de un conjunto de mapas ya probado
+    const cnt = (T, met) => ({p: ELEC.filter(e => T[e] && pOf(T[e], met) != null && pOf(T[e], met) < .05).length,
+      q: ELEC.filter(e => T[e] && qOf(T[e], met) != null && qOf(T[e], met) < .05).length});
+    const legend = () => { if(S.showD) k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`); };
     if(sp.mode === "pair" || sp.mode === "cmp"){
       const [r0, r1] = sp.rows, m0 = meanD(r0.T, S.met), m1 = meanD(r1.T, S.met);
       const n0 = sp.mode === "pair" ? sp.names[0] : sp.G[0].name, n1 = sp.mode === "pair" ? sp.names[1] : sp.G[1].name;
+      const test = sp.mode === "pair" ? "No per-electrode test for single people."
+        : `Paired t-test per electrode within each group, FDR per group. Ring: p &lt; 0.05; dot: q &lt; 0.05 (${n0}: ${cnt(r0.T, S.met).p} and ${cnt(r0.T, S.met).q}; ${n1}: ${cnt(r1.T, S.met).p} and ${cnt(r1.T, S.met).q}). Marks show where each group changes, not where the groups differ.`;
       setTitle("t-topo", `θ topomaps: ${sp.mode === "pair" ? "two people" : "two groups"}`,
-        `mean Δ${METN[S.met]}: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`, notes(...base, "Both rows share the same scales. No per-electrode test."));
+        `mean Δ${METN[S.met]}: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`, notes(...base, "Both rows share the same scales.", test));
+      if(sp.mode === "cmp") legend();
       return;
     }
     if(sp.mode === "group"){
+      const v = cnt(sp.rows[0].T, "var"), m = cnt(sp.rows[0].T, "mean"), tested = sp.n >= 3;
       setTitle("t-topo", sp.n === 1 && S.selected ? `θ topomaps: ${S.selected[0]}` : "θ topomaps: your selection", nb(`n = ${sp.n}`),
-        notes(...base, `Δσθ &gt; 0 at ${up(sp.rows[0].T, "var")} of 61 electrodes. No per-electrode test in subgroups.`));
+        notes(...base, `Δσθ &gt; 0 at ${up(sp.rows[0].T, "var")} of 61 electrodes.`,
+          tested ? `Paired t-test per electrode (n = ${sp.n}). Ring: p &lt; 0.05 (σθ ${v.p}, μθ ${m.p}); dot: FDR q &lt; 0.05 (${v.q + m.q}).` : "No per-electrode test with fewer than 3 people."));
+      if(tested) legend();
       return;
     }
     const v = sigCount("var"), m = sigCount("mean");

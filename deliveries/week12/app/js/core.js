@@ -271,6 +271,32 @@ function bh(ps){
   for(let k = m-1; k >= 0; k--){ mn = Math.min(mn, o[k][0]*m/(k+1)); q[o[k][1]] = mn; }
   return q;
 }
+// beta incompleta regularizada I_x(a, b) por fracción continua (Numerical Recipes, betacf)
+function betaInc(x, a, b){
+  if(x <= 0) return 0; if(x >= 1) return 1;
+  const lg = z => { const c = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, .1208650973866179e-2, -.5395239384953e-5];
+    let y = z, t = z+5.5; t -= (z+.5)*Math.log(t); let s = 1.000000000190015; for(const ci of c) s += ci/++y; return -t+Math.log(2.5066282746310005*s/z); };
+  const front = Math.exp(lg(a+b)-lg(a)-lg(b)+a*Math.log(x)+b*Math.log(1-x));
+  const cf = (x, a, b) => {
+    let c = 1, d = 1-(a+b)*x/(a+1); if(Math.abs(d) < 1e-300) d = 1e-300; d = 1/d; let h = d;
+    for(let m = 1; m <= 300; m++){
+      const m2 = 2*m; let aa = m*(b-m)*x/((a+m2-1)*(a+m2));
+      d = 1+aa*d; if(Math.abs(d) < 1e-300) d = 1e-300; c = 1+aa/c; if(Math.abs(c) < 1e-300) c = 1e-300; d = 1/d; h *= d*c;
+      aa = -(a+m)*(a+b+m)*x/((a+m2)*(a+m2+1));
+      d = 1+aa*d; if(Math.abs(d) < 1e-300) d = 1e-300; c = 1+aa/c; if(Math.abs(c) < 1e-300) c = 1e-300; d = 1/d;
+      const del = d*c; h *= del; if(Math.abs(del-1) < 3e-14) break;
+    }
+    return h;
+  };
+  return x < (a+1)/(a+b+2) ? front*cf(x, a, b)/a : 1-front*cf(1-x, b, a)/b;
+}
+// prueba t pareada sobre las diferencias (una muestra contra 0): {t, p bilateral, n}; null con menos de 3 personas
+function tTest1(d){
+  const n = d.length; if(n < 3) return null;
+  const m = d3.mean(d), sd = d3.deviation(d); if(!sd) return null;
+  const t = m/(sd/Math.sqrt(n)), df = n-1;
+  return {t, p:betaInc(df/(df+t*t), df/2, .5), n};
+}
 const pOf = (t, met) => met === "var" ? t.sigVar : t.sigMean;
 const qOf = (t, met) => met === "var" ? t.qVar : t.qMean;
 const sigCount = met => ({p: ELEC.filter(e => pOf(TOPO[e], met) < .05).length, q: ELEC.filter(e => qOf(TOPO[e], met) < .05).length});
