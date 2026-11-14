@@ -327,13 +327,15 @@ const topo = (() => {
     // marcas en Δ donde hay prueba por electrodo: los 68 o cada grupo de una comparación definida fuera de Δθ
     // (sexo, orden, PSQI). Sin prueba: dos personas, selecciones (se eligen por su Δθ) y vulnerables vs resto (circular)
     const marks = cond === "D" && mode !== "pair";
-    const pts = ELEC.filter(e => row.T[e]).map(e => ({e, t:row.T[e], px:cx+COORDS[e][0]*R, py:cy-COORDS[e][1]*R}));
+    const pts = ELEC.filter(e => row.T[e]).map(e => ({e, t:row.T[e], px:cx+dpos(e)[0]*R, py:cy-dpos(e)[1]*R}));
     // null < .05 es verdadero en JS: sin prueba (n < 3) no hay marca
     const isP = d => marks && pOf(d.t, row.met) != null && pOf(d.t, row.met) < .05, isQ = d => isP(d) && qOf(d.t, row.met) < .05;
+    const mr = Math.max(2, Math.min(3.2, R*.024));   // radio de la marca según el tamaño del mapa
     g.append("g").selectAll("circle").data(pts).join("circle").attr("cx", d => d.px).attr("cy", d => d.py)
-      .attr("r", d => isP(d) ? 4 : 1.1)
+      .attr("r", d => isQ(d) ? mr : (isP(d) ? mr+.4 : 1.1))
       .attr("fill", d => isQ(d) ? C.mark : (isP(d) ? "none" : C.edot))
-      .attr("stroke", d => isP(d) ? C.mark : "none").attr("stroke-width", 1.5).style("pointer-events", "none");
+      .attr("stroke", d => isQ(d) ? "rgba(255,255,255,.75)" : (isP(d) ? C.mark : "none"))
+      .attr("stroke-width", d => isQ(d) ? .8 : 1.2).style("pointer-events", "none");
     g.append("g").selectAll("circle").data(pts).join("circle").attr("class", "ehit").attr("cx", d => d.px).attr("cy", d => d.py).attr("r", Math.max(5, R*.09))
       .on("pointerenter", (e, d) => { drawLink(d.e); showTip(e, tipFor(d.e)); }).on("pointermove", e => moveTip(e))
       .on("pointerleave", () => { drawLink(null); hideTip(); })
@@ -356,7 +358,7 @@ const topo = (() => {
   // un mismo electrodo marcado en los seis mapas
   function drawLink(e){
     if(!linkG) return;
-    const at = (m, k) => ({x:m.cx+COORDS[k][0]*m.R, y:m.cy-COORDS[k][1]*m.R});
+    const at = (m, k) => ({x:m.cx+dpos(k)[0]*m.R, y:m.cy-dpos(k)[1]*m.R});
     const rings = [];
     if(S.elec && COORDS[S.elec]) MAPS.forEach(m => rings.push({...at(m, S.elec), c:C.vuln, w:2}));
     if(e && e !== S.elec) MAPS.forEach(m => rings.push({...at(m, e), c:C.mark, w:1.6}));

@@ -92,7 +92,7 @@ const side = (() => {
       svg.append("path").attr("class", "head").attr("d", `M ${cx-5} ${cy-R+1} L ${cx} ${cy-R-6} L ${cx+5} ${cy-R+1}`);
       const g = APER.group[k];
       E.forEach((e, i) => { if(!COORDS[e]) return; const sig = !sel && g.p[i] < .05;
-        svg.append("circle").attr("cx", cx+COORDS[e][0]*R).attr("cy", cy-COORDS[e][1]*R).attr("r", sig ? 3 : .9)
+        svg.append("circle").attr("cx", cx+dpos(e)[0]*R).attr("cy", cy-dpos(e)[1]*R).attr("r", sig ? 3 : .9)
           .attr("fill", sig && g.q[i] < .05 ? C.mark : (sig ? "none" : C.edot)).attr("stroke", sig ? C.mark : "none").attr("stroke-width", 1.2); });
       svg.append("text").attr("class", "mdim").attr("x", cx).attr("y", cy+R+12).attr("text-anchor", "middle").text(`${fsr(-mx)} to ${fsr(mx)}`);
     });

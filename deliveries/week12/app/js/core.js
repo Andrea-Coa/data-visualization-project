@@ -297,6 +297,9 @@ function tTest1(d){
   const t = m/(sd/Math.sqrt(n)), df = n-1;
   return {t, p:betaInc(df/(df+t*t), df/2, .5), n};
 }
+// posición dibujada de un electrodo: TP9 y TP10 quedan fuera del círculo de la cabeza (radio 1.2) y se traen
+// justo dentro del borde; la interpolación usa las posiciones reales
+const RIM = .94, dpos = e => { const [x, y] = COORDS[e], r = Math.hypot(x, y), k = r > RIM ? RIM/r : 1; return [x*k, y*k]; };
 const pOf = (t, met) => met === "var" ? t.sigVar : t.sigMean;
 const qOf = (t, met) => met === "var" ? t.qVar : t.qMean;
 const sigCount = met => ({p: ELEC.filter(e => pOf(TOPO[e], met) < .05).length, q: ELEC.filter(e => qOf(TOPO[e], met) < .05).length});
