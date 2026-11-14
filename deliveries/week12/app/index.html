@@ -11,7 +11,8 @@
   try{ const u = new URLSearchParams(location.search), q = u.get("theme") || u.get("tema"), t = q === "light" || q === "claro" ? "light" : q === "dark" || q === "oscuro" ? "dark" : localStorage.getItem("batimix-tema");
     if(t !== "dark"){ document.documentElement.dataset.theme = "light"; document.querySelector('meta[name="theme-color"]').content = "#FFFFFF"; } }catch(e){}
 </script>
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -24,7 +25,7 @@
 
 <header class="bar">
   <div class="brand">
-    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="17" r="12" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 4.5 16 1.5 18 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 18c2-5 4-5 5 0s3 5 5 0 3-5 5 0 3 5 5 0" fill="none" stroke="var(--sd)" stroke-width="2.2" stroke-linecap="round"/></svg>
+    <img class="mark" src="assets/logo.png" alt="" width="64" height="30">
     <div class="brand-t"><span class="logo">BATIMIX</span><span class="tag">A Visual Analytics System for Individual Vulnerability to Sleep Deprivation</span></div>
   </div>
   <div class="dset" aria-label="Dataset">

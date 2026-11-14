@@ -271,7 +271,7 @@ body{background:var(--page)}
 .bar{background:var(--panel);border-bottom:1px solid var(--border);gap:18px;padding:0 14px}
 :root[data-theme="light"] .bar{background:var(--panel);border-bottom:1px solid var(--border)}
 .brand{align-items:center;gap:10px;flex:none}
-.brand .mark{width:30px;height:30px;color:var(--ink);flex:none}
+.brand .mark{width:auto;height:30px;flex:none}   /* logo: topo de BATIMIX (assets/logo.png) */
 .brand-t{display:flex;flex-direction:column;line-height:1.1}
 .logo,:root[data-theme="light"] .logo{font-family:var(--cond);font-size:22px;font-weight:700;letter-spacing:.03em;color:var(--ink)}
 .logo::before,:root[data-theme="light"] .logo::before{display:none}
