@@ -330,9 +330,9 @@ const topo = (() => {
     const pts = ELEC.filter(e => row.T[e]).map(e => ({e, t:row.T[e], px:cx+dpos(e)[0]*R, py:cy-dpos(e)[1]*R}));
     // null < .05 es verdadero en JS: sin prueba (n < 3) no hay marca
     const isP = d => marks && pOf(d.t, row.met) != null && pOf(d.t, row.met) < .05, isQ = d => isP(d) && qOf(d.t, row.met) < .05;
-    const mr = Math.max(2, Math.min(3.2, R*.024));   // radio de la marca según el tamaño del mapa
+    const mr = Math.max(2.8, Math.min(4, R*.032));   // radio de la marca según el tamaño del mapa; anillo y punto iguales
     g.append("g").selectAll("circle").data(pts).join("circle").attr("cx", d => d.px).attr("cy", d => d.py)
-      .attr("r", d => isQ(d) ? mr : (isP(d) ? mr+.4 : 1.1))
+      .attr("r", d => isP(d) ? mr : 1.1)
       .attr("fill", d => isQ(d) ? C.mark : (isP(d) ? "none" : C.edot))
       .attr("stroke", d => isQ(d) ? "rgba(255,255,255,.75)" : (isP(d) ? C.mark : "none"))
       .attr("stroke-width", d => isQ(d) ? .8 : 1.2).style("pointer-events", "none");
