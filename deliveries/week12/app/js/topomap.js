@@ -3,8 +3,8 @@
    Con dos personas elegidas en la dispersión (A y B), las filas pasan a ser A y B con la métrica del header.
    Escalas: NS y SD comparten una secuencial por fila; Δ usa una divergente con cero oscuro. En el modo A y B
    ambas filas comparten las mismas escalas para que la comparación sea honesta.
-   Marcas de significancia (t pareada, FDR) en Δ: de las 68, de la selección o de cada grupo comparado (n ≥ 3);
-   dos personas sueltas no tienen prueba por electrodo. */
+   Marcas de significancia (t pareada, FDR) en Δ: de las 68 o de cada grupo comparado por una variable externa a Δθ.
+   Sin prueba: dos personas, selecciones y vulnerables vs resto (grupos definidos por el propio Δθ: sería circular). */
 const topo = (() => {
   const el = $("topo"), GN = 96;
   let MAPS = [], linkG = null, curSpec = null;   // posiciones de los 6 mapas para enlazar un mismo electrodo en todos
@@ -13,7 +13,7 @@ const topo = (() => {
 
   // promedio por electrodo del grupo activo; sin grupo, el agregado de los 68 con sus pruebas
   // promedio por electrodo de un conjunto de personas (o el agregado de los 68, con sus pruebas)
-  function groupTopo(sel){
+  function groupTopo(sel, test){
     if(!sel) return {T:TOPO, mode:"all"};
     const ids = sel.filter(id => SUBTOPO[id]);
     if(!ids.length) return {T:TOPO, mode:"all"};
@@ -24,7 +24,7 @@ const topo = (() => {
       if(!nm.length) return;
       const NS = {mean:d3.mean(nm), var:d3.mean(nv)}, SD = {mean:d3.mean(sm), var:d3.mean(sv)};
       // misma prueba que con los 68: t pareada (Δ de cada persona contra 0) en este subconjunto
-      const tv = tTest1(sv.map((v, i) => v-nv[i])), tm = tTest1(sm.map((v, i) => v-nm[i]));
+      const tv = test ? tTest1(sv.map((v, i) => v-nv[i])) : null, tm = test ? tTest1(sm.map((v, i) => v-nm[i])) : null;
       out[e] = {NS, SD, dMean:SD.mean-NS.mean, dVar:SD.var-NS.var, nPaired:nm.length,
         sigVar:tv ? tv.p : null, sigMean:tm ? tm.p : null, tVar:tv ? tv.t : null, tMean:tm ? tm.t : null};
     });
@@ -33,7 +33,7 @@ const topo = (() => {
       const es = Object.keys(out).filter(e => out[e][pk] != null), q = bh(es.map(e => out[e][pk]));
       es.forEach((e, i) => { out[e][qk] = q[i]; });
     });
-    return {T:out, mode:"group", n:ids.length};
+    return {T:out, mode:"group", n:ids.length, tested:!!test && ids.length >= 3};
   }
   function spec(){
     // dos personas lado a lado: las fijadas con Mayús + clic (A y B) o una selección de exactamente dos;
@@ -47,10 +47,10 @@ const topo = (() => {
     }
     const G = viewGroups();
     if(G){
-      const ts = G.map(gr => groupTopo(gr.ids));
-      return {mode:"cmp", G, rows:G.map((gr, i) => ({label:`${gr.name} (${ts[i].n || gr.ids.length})`, met:S.met, T:ts[i].T, color:gr.color}))};
+      const ts = G.map(gr => groupTopo(gr.ids, !gr.circular));
+      return {mode:"cmp", G, circular:G[0].circular, rows:G.map((gr, i) => ({label:`${gr.name} (${ts[i].n || gr.ids.length})`, met:S.met, T:ts[i].T, color:gr.color}))};
     }
-    const g = groupTopo(S.selected);
+    const g = groupTopo(S.selected, false);
     return {mode:g.mode, n:g.n, rows:[{label:"σθ", met:"var", T:g.T}, {label:"μθ", met:"mean", T:g.T}]};
   }
   function scalesFor(rows){
@@ -324,8 +324,8 @@ const topo = (() => {
     g.append("path").attr("class", "head").attr("d", `M ${cx-7} ${cy-R+1.5} L ${cx} ${cy-R-8} L ${cx+7} ${cy-R+1.5}`).attr("stroke-linejoin", "round");
     g.append("path").attr("class", "head").attr("d", `M ${cx-R} ${cy-10} C ${cx-R-7} ${cy-9} ${cx-R-7} ${cy+9} ${cx-R} ${cy+10}`);
     g.append("path").attr("class", "head").attr("d", `M ${cx+R} ${cy-10} C ${cx+R+7} ${cy-9} ${cx+R+7} ${cy+9} ${cx+R} ${cy+10}`);
-    // marcas en Δ siempre que haya prueba por electrodo: los 68, un subgrupo o cada grupo de la comparación
-    // (dos personas sueltas no tienen prueba: σθ es un único valor por registro)
+    // marcas en Δ donde hay prueba por electrodo: los 68 o cada grupo de una comparación definida fuera de Δθ
+    // (sexo, orden, PSQI). Sin prueba: dos personas, selecciones (se eligen por su Δθ) y vulnerables vs resto (circular)
     const marks = cond === "D" && mode !== "pair";
     const pts = ELEC.filter(e => row.T[e]).map(e => ({e, t:row.T[e], px:cx+COORDS[e][0]*R, py:cy-COORDS[e][1]*R}));
     // null < .05 es verdadero en JS: sin prueba (n < 3) no hay marca
@@ -390,18 +390,17 @@ const topo = (() => {
       const [r0, r1] = sp.rows, m0 = meanD(r0.T, S.met), m1 = meanD(r1.T, S.met);
       const n0 = sp.mode === "pair" ? sp.names[0] : sp.G[0].name, n1 = sp.mode === "pair" ? sp.names[1] : sp.G[1].name;
       const test = sp.mode === "pair" ? "No per-electrode test for single people."
+        : sp.circular ? "No per-electrode test: these groups are defined by Δθ itself, so testing their Δθ would be circular."
         : `Paired t-test per electrode within each group, FDR per group. Ring: p &lt; 0.05; dot: q &lt; 0.05 (${n0}: ${cnt(r0.T, S.met).p} and ${cnt(r0.T, S.met).q}; ${n1}: ${cnt(r1.T, S.met).p} and ${cnt(r1.T, S.met).q}). Marks show where each group changes, not where the groups differ.`;
       setTitle("t-topo", `θ topomaps: ${sp.mode === "pair" ? "two people" : "two groups"}`,
         `mean Δ${METN[S.met]}: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`, notes(...base, "Both rows share the same scales.", test));
-      if(sp.mode === "cmp") legend();
+      if(sp.mode === "cmp" && !sp.circular) legend();
       return;
     }
     if(sp.mode === "group"){
-      const v = cnt(sp.rows[0].T, "var"), m = cnt(sp.rows[0].T, "mean"), tested = sp.n >= 3;
       setTitle("t-topo", sp.n === 1 && S.selected ? `θ topomaps: ${S.selected[0]}` : "θ topomaps: your selection", nb(`n = ${sp.n}`),
         notes(...base, `Δσθ &gt; 0 at ${up(sp.rows[0].T, "var")} of 61 electrodes.`,
-          tested ? `Paired t-test per electrode (n = ${sp.n}). Ring: p &lt; 0.05 (σθ ${v.p}, μθ ${m.p}); dot: FDR q &lt; 0.05 (${v.q + m.q}).` : "No per-electrode test with fewer than 3 people."));
-      if(tested) legend();
+          "No per-electrode test: a selection is usually picked by its Δθ, so the test would be circular."));
       return;
     }
     const v = sigCount("var"), m = sigCount("mean");

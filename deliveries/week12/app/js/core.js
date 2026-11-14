@@ -117,11 +117,11 @@ const COMPARES = [
   {k:"sex",   name:"Women vs men", g:[["Women", d => d.gender === "F"], ["Men", d => d.gender === "M"]]},
   {k:"order", name:"Session order", g:[["Normal sleep first", d => d.order === "NS->SD"], ["Deprivation first", d => d.order === "SD->NS"]]},
   {k:"psqi",  name:"Habitual sleep (PSQI)", g:[["PSQI > 5", d => d.psqi != null && d.psqi > 5], ["PSQI ≤ 5", d => d.psqi != null && d.psqi <= 5]]},
-  {k:"vuln",  name:"Vulnerable vs rest", g:[["Vulnerable", d => S.vuln.has(d.id)], ["Rest", d => !S.vuln.has(d.id)]]},
+  {k:"vuln",  name:"Vulnerable vs rest", circular:true, g:[["Vulnerable", d => S.vuln.has(d.id)], ["Rest", d => !S.vuln.has(d.id)]]},
 ];
 function cmpGroups(){
   const c = COMPARES.find(c => c.k === S.cmp); if(!c || !c.g) return null;
-  return c.g.map(([name, f], i) => { const ids = EEG.filter(f).map(d => d.id); return {name, ids, set:new Set(ids), color:i ? C.g2 : C.g1}; });
+  return c.g.map(([name, f], i) => { const ids = EEG.filter(f).map(d => d.id); return {name, ids, set:new Set(ids), color:i ? C.g2 : C.g1, circular:!!c.circular}; });
 }
 // grupos que muestran las vistas de detalle (topomapas y serie por época): la selección manda sobre la comparación;
 // la comparación sigue coloreando la dispersión y agrupando el mapa de calor
