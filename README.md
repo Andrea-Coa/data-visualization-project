@@ -60,4 +60,6 @@ OpenNeuro ds004902 (Xiang, Fan, Bai, Lv and Lei, 2024, *Scientific Data*), CC0. 
 
 Remove each item once it is done.
 
-- [ ] Retake the dashboard screenshots (`deliveries/week12/assets/dashboard-*.png`, `mobile-390.png` and `deliveries/week12/paper/dashboard-1365x768.png`) so they show the new mole logo and the significance marks in subgroups and in the playback.
+- [ ] Retake the dashboard screenshots (`deliveries/week12/assets/dashboard-*.png`, `mobile-390.png` and `deliveries/week12/paper/dashboard-1365x768.png`) so they show the new mole logo and the significance marks in subgroups and in the playback, the Window selector and the Series of Δ maps.
+- [ ] Series of Δ maps: replace the FDR across blocks × electrodes with a cluster-based permutation test over electrodes × time (Maris and Oostenveld, 2007), the stricter standard in EEG.
+- [ ] Translate the new ⓘ texts of the Window and Series modes in `js/i18n.js` (the short labels and buttons are already in Spanish).

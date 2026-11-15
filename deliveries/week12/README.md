@@ -24,9 +24,9 @@ deliveries/week12/
     index.html                   single view: header with controls, three columns and the About panel
     css/styles.css               light and dark themes (color and type tokens; dark is the base, light uses data-theme="light"), boxed views with gutters, Roboto and Roboto Condensed
     js/core.js                   data, state, event bus, groups, selection, statistics, electrode regions, floating legend boxes
-    js/topomap.js                2 × 3 topomap matrix (EEGLAB/FieldTrip v4 interpolation; contours, p and FDR, σθ/μθ rows or two people)
+    js/topomap.js                2 × 3 topomap matrix (EEGLAB/FieldTrip v4 interpolation; contours, p and FDR, σθ/μθ rows or two people); a chosen time window; the Series of Δ maps in time blocks
     js/scatter.js                Vulnerability View: scatter, «vulnerable» quadrant, lasso, click selection, A and B, legend box, data table
-    js/dynamics.js               Time View: with μθ, mean ± SE per epoch; with σθ, moving σθ in 40-s windows; legend box with each series' n
+    js/dynamics.js               Time View: with μθ, mean ± SE per epoch; with σθ, moving σθ in windows of the chosen length (32, 60 or 100 s); click to pick a window; ▶ playback; block edges of the Series
     js/individuals.js            Individual View: person × electrode heatmap with two behavior-defined groups and their consistency C(e)
     js/secondary.js              Validation Panel: oscillatory & aperiodic components (spectrum with click-to-zoom θ band, Δ exponent and offset, Δσθ periodic with ρ, R² and n), blink check and θ synchrony (wPLI graph and effect per pair)
     js/report.js                 downloadable report (self-contained HTML with the view, how to read each chart, and CSV)
@@ -87,6 +87,25 @@ python3 tools/build_data.py      # or, with Node.js: node tools/build-data.js
 ```
 
 `build_eeg_ica.py` is the main pipeline (`tools/eeg_ica.py`): notebook 02 (50 Hz notch, 1–40 Hz, bad channels by log-variance and interpolation), FCz re-inserted and average reference, extended Infomax ICA with 30 components, ocular components (correlation with Fp1/Fp2 an outlier, MNE `find_bads_eog`, or ICLabel eye p > 0.85) and muscle components (ICLabel p > 0.85) removed, channels still above 200 µV in more than half of the epochs interpolated, 75 4-s epochs with those above 200 µV peak-to-peak rejected. It writes `../data/processed_ica/` with the same columns as the Week 6 CSVs, plus `eeg_theta_epochs_electrode.npz` (relative theta per epoch and electrode, used by the time view when an electrode is chosen), and caches each recording's ICA in `ds004902/derivatives/batimix-ica/` (not versioned); it takes about 20 minutes the first time. Result: 5.1 components removed per recording (2.5 ocular, 2.6 muscle), 71 of 75 epochs kept, the same 68 paired people. `build_multiverse.py` reads both pipelines (ICA and Week 6) and prints a consistency check against each `merged_summary.csv`. `build_participants.py` reproduces the Week 10 `participants.json` and `subject_epochs.json` exactly when pointed at the Week 6 data (`--proc ../../week06/data/processed`). `build_topo_stats.py` uses the 68 paired people and the exact t distribution.
+
+## Time in the topomaps: window, Series and playback
+
+Added on 15 November 2026. The topomaps answer *where* theta changes; this answers *when*, within the five minutes, without turning the maps into an animation by default.
+
+| Mode | How to open it | What the maps show | Per-electrode test |
+|---|---|---|---|
+| Full recording (default) | — | The five minutes (75 epochs) | Paired t-test, FDR over the 61 electrodes (68 people, or each group of a sex / session-order / PSQI comparison) |
+| Window | Click a moment in the Time View (or drag an interval) | Only the epochs of that window; NS, SD and Δ | Same test inside the window, FDR over its 61 electrodes. **Exploratory**: not corrected across windows, and a window picked after looking at the data favours large effects |
+| Series | **Series** button in the Topography View | Δ maps in consecutive non-overlapping blocks (5 × 60 s or 3 × 100 s), each above its own stretch of the Time View | Paired t-test per electrode and block, **FDR across all blocks × electrodes** of each row (5 × 61 = 305 tests) |
+| Playback | ▶ in the Topography View | The window slides epoch by epoch over the five minutes; every view follows | As in Window (exploratory) |
+
+- **Window length** (Time View header): 32, 60 or 100 s (8, 15 or 25 epochs of 4 s; 60 s by default). Epochs last 4 s, so 30 s does not exist exactly. With σθ the minimum is 60 s: a standard deviation over 8 values has a relative error of about 27 %. The moving σθ curve of the Time View uses the same length. With 32 s the Series uses 60-s blocks (9 blocks would not fit aligned).
+- **A label at the foot of the maps** always says which data are shown (full recording, window, playback or Series) and has a *Back to the full recording* link; **Clear** does the same.
+- **σθ of a window or block is not the five-minute σθ.** It is the SD within that stretch only (fast fluctuations). The five-minute σθ also contains the slow drift between stretches, for example growing drowsiness. Comparing the Series with the full map tells which part the deprivation effect comes from.
+- **Other views:** in Window and Playback the scatter, the heatmap and the similarity graph follow the window; in Series they stay on the five minutes, and hovering a block highlights it in the Time View. Clicking a block opens it as a window.
+- **Results on the real data (frontal, 68 people):** moving σθ is higher after deprivation in 57 of 61 windows of 60 s (60 of 66 with 40 s, 51 of 51 with 100 s). In the Series of 5 × 60 s with the 68 people, 58 electrode-blocks reach p < 0.05 and none survives FDR across blocks; with the session-order comparison (Series of 3 × 100 s, σθ), 131 electrode-blocks survive FDR, in line with the order effect already seen in the full maps.
+- **Why this design:** for analysis, small multiples are more accurate than animation, which works better for presentation (Robertson et al., 2008; Brehmer et al., 2020). In resting recordings wakefulness drifts within minutes (Tagliazucchi and Laufs, 2014), so time within the recording matters, and more so after a sleepless night. Short sliding windows produce spurious fluctuations (Leonardi and Van De Ville, 2015). The stricter test over electrodes × time would be a cluster-based permutation (Maris and Oostenveld, 2007); it is listed as pending in the root README. Details and verified references: `research/literatura_verificada.md`, group F.
+- **Code:** state and helpers (`S.winLen`, `S.series`, `WINLENS`, `seriesBlocks`, `winCentered`) in `js/core.js`; Series, window labels and their ⓘ in `js/topomap.js`; click, playback length, block edges and axis alignment in `js/dynamics.js`; controls in `js/main.js` and `index.html`; Spanish strings in `js/i18n.js`.
 
 ## Secondary views (from the raw EEG)
 
@@ -153,4 +172,4 @@ Dataset OpenNeuro ds004902 (Xiang, Fan, Bai, Lv and Lei, 2024, *Scientific Data*
 
 ## Known limitations
 
-PVT paired for only 30 people (low power); ICA components are selected automatically, without visual review; per-electrode tests are not shown for subgroups; three eyes-open recordings (`sub-01`, `sub-28` and `sub-44`, session 2) are truncated in the OpenNeuro bucket and MNE cannot read them, which was verified with a download on 2 November 2026, so downloading again does not fix them; user evaluation pending. See `RefinedDraftReport.md`, section 6.
+PVT paired for only 30 people (low power); ICA components are selected automatically, without visual review; per-electrode tests are not shown for selections, two single people or groups defined by Δθ (vulnerable vs rest), where they would be circular; tests in a chosen window or during playback are not corrected across windows (the Series is), and there is no vigilance marker, so a drift within the five minutes can be drowsiness, fatigue or time on task; three eyes-open recordings (`sub-01`, `sub-28` and `sub-44`, session 2) are truncated in the OpenNeuro bucket and MNE cannot read them, which was verified with a download on 2 November 2026, so downloading again does not fix them; user evaluation pending. See `RefinedDraftReport.md`, section 6.

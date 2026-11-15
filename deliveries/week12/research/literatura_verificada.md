@@ -1,7 +1,7 @@
 # Literatura verificada para BATIMIX (Semana 12)
 
 Proyecto: BATIMIX, DS5343 Visualización de Datos, UTEC 2026-2 (Jimena Gurbillon, Andrea Coa, Paolo Medrano).
-Fecha de verificación: 27 de octubre de 2026; grupo E (preprocesamiento del EEG) añadido el 2 de noviembre de 2026.
+Fecha de verificación: 27 de octubre de 2026; grupo E (preprocesamiento del EEG) añadido el 2 de noviembre de 2026; grupo F (vista temporal de los topomapas) añadido el 15 de noviembre de 2026.
 
 ## Cómo se verificó
 
@@ -54,6 +54,11 @@ Fecha de verificación: 27 de octubre de 2026; grupo E (preprocesamiento del EEG
 | E4 | Liu, Xie & Ma (2024) | 10.2147/NSS.S485412 | Verificado (texto completo) | ICA semiautomático en vulnerabilidad a la privación |
 | E5 | Pion-Tonachini, Kreutz-Delgado & Makeig (2019) | 10.1016/j.neuroimage.2019.05.026 | Verificado con salvedad | ICLabel |
 | E6 | Bai, Hu, Jülich & Lei (2024) | 10.1152/jn.00304.2024 | Verificado con salvedad | Aperiódico en ds004902; specparam |
+| F1 | Robertson, Fernandez, Fisher, Lee & Stasko (2008) | 10.1109/TVCG.2008.125 | Verificado | Animación vs small multiples para analizar tendencias |
+| F2 | Brehmer, Lee, Isenberg & Choe (2020) | 10.1109/TVCG.2019.2934397 | Verificado | Replicación: small multiples más rápidos |
+| F3 | Tagliazucchi & Laufs (2014) | 10.1016/j.neuron.2014.03.020 | Verificado | Deriva de la vigilia durante el reposo |
+| F4 | Maris & Oostenveld (2007) | 10.1016/j.jneumeth.2007.03.024 | Verificado | Permutación por clusters (electrodos × tiempo) |
+| F5 | Leonardi & Van De Ville (2015) | 10.1016/j.neuroimage.2014.09.007 | Verificado | Fluctuaciones espurias con ventanas cortas |
 
 ---
 
@@ -361,6 +366,47 @@ Por qué este grupo: decidir si el pipeline principal debía usar ICA y referenc
 
 ---
 
+## Grupo F. Vista temporal de los topomapas (ventana, serie y reproducción)
+
+Añadido el 15 de noviembre de 2026, al rediseñar cómo los topomapas muestran el tiempo dentro de los cinco minutos. Metadatos confirmados en Crossref; contenido por resumen y textos de los autores.
+
+### F1. Robertson, Fernandez, Fisher, Lee & Stasko (2008)
+- **Cita (APA):** Robertson, G., Fernandez, R., Fisher, D., Lee, B., & Stasko, J. (2008). Effectiveness of animation in trend visualization. *IEEE Transactions on Visualization and Computer Graphics, 14*(6), 1325–1332. https://doi.org/10.1109/TVCG.2008.125
+- **Abierto:** copia de autor en faculty.cc.gatech.edu (texto completo).
+- **Estado:** [Verificado]
+- **Qué dice:** Para analizar tendencias, la animación fue la técnica más lenta y menos precisa; los small multiples fueron los más precisos. Para presentar, la animación fue la más rápida.
+- **Cómo lo usamos en BATIMIX:** Los topomapas son estáticos por defecto; la serie (mapas lado a lado) es el modo de análisis y la reproducción ▶ queda como modo de presentación.
+
+### F2. Brehmer, Lee, Isenberg & Choe (2020)
+- **Cita (APA):** Brehmer, M., Lee, B., Isenberg, P., & Choe, E. K. (2020). A comparative evaluation of animation and small multiples for trend visualization on mobile phones. *IEEE Transactions on Visualization and Computer Graphics, 26*(1), 364–374. https://doi.org/10.1109/TVCG.2019.2934397
+- **Abierto:** arXiv 1907.03919 (texto completo).
+- **Estado:** [Verificado]
+- **Qué dice:** Con small multiples las tareas se completaron en menos tiempo que con animación, aunque con algo menos de confianza.
+- **Cómo lo usamos en BATIMIX:** Refuerza F1 en pantallas chicas: la serie se mantiene visible a la vez en lugar de animarse.
+
+### F3. Tagliazucchi & Laufs (2014)
+- **Cita (APA):** Tagliazucchi, E., & Laufs, H. (2014). Decoding wakefulness levels from typical fMRI resting-state data reveals reliable drifts between wakefulness and sleep. *Neuron, 82*(3), 695–708. https://doi.org/10.1016/j.neuron.2014.03.020
+- **Abierto:** resumen y highlights oficiales.
+- **Estado:** [Verificado con salvedad: solo resumen y highlights]
+- **Qué dice:** En 1147 registros de reposo, cerca de un tercio de las personas pierde la vigilia en los primeros 3 minutos; el reposo es una mezcla dinámica de vigilia y etapas de sueño.
+- **Cómo lo usamos en BATIMIX:** Justifica mirar el tiempo dentro de los cinco minutos: tras una noche sin dormir es esperable una deriva hacia la somnolencia. La serie separa la variabilidad dentro de cada bloque de la deriva entre bloques. Salvedad: es fMRI con ojos cerrados en su mayoría; ds004902 es EEG con ojos abiertos y sin marcador de vigilancia.
+
+### F4. Maris & Oostenveld (2007)
+- **Cita (APA):** Maris, E., & Oostenveld, R. (2007). Nonparametric statistical testing of EEG- and MEG-data. *Journal of Neuroscience Methods, 164*(1), 177–190. https://doi.org/10.1016/j.jneumeth.2007.03.024
+- **Abierto:** registro de PubMed (resumen) y documentación de FieldTrip y MNE.
+- **Estado:** [Verificado con salvedad: resumen y documentación de las implementaciones]
+- **Qué dice:** Propone una prueba por permutación con estadístico de cluster para el problema de comparaciones múltiples en pares (sensor, tiempo).
+- **Cómo lo usamos en BATIMIX:** Es la alternativa más estricta que citamos en la ⓘ de la serie y queda como trabajo pendiente en el README. Hoy la serie usa t pareada por electrodo y bloque con FDR sobre todos los bloques × electrodos.
+
+### F5. Leonardi & Van De Ville (2015)
+- **Cita (APA):** Leonardi, N., & Van De Ville, D. (2015). On spurious and real fluctuations of dynamic functional connectivity during rest. *NeuroImage, 104*, 430–436. https://doi.org/10.1016/j.neuroimage.2014.09.007
+- **Abierto:** copia de autor en miplab.epfl.ch.
+- **Estado:** [Verificado con salvedad: resumen y diapositivas de los autores]
+- **Qué dice:** Con ventanas deslizantes más cortas que la longitud de onda más larga de la señal aparecen fluctuaciones espurias, aun en señales con una relación fija.
+- **Cómo lo usamos en BATIMIX:** Argumento para no ofrecer ventanas demasiado cortas: el mínimo es 32 s con μθ y 60 s con σθ, y la ⓘ explica que las ventanas cortas son más ruidosas. Es un resultado de conectividad en fMRI; aquí se usa como analogía, no como regla.
+
+---
+
 ## Cui et al. 2026: cómo calcularon la correlación y por qué podríamos no replicarla
 
 Fuente: PDF local de Cui et al. (2026). Las páginas son las del PDF publicado (numeración de pie "Frontiers in Neuroscience 0X").
@@ -466,6 +512,7 @@ Entradas: tabla E (68 sujetos × Δ EEG para cada ROI × {media, variabilidad}) 
 - **Kosara & Mackinlay (2013), texto completo:** la copia de Tableau devolvió 403; solo se leyó el resumen.
 - **Padilla, Kay & Hullman, "2022 handbook":** no encontramos en Crossref una versión de 2022; citamos la entrada de 2021 en Wiley StatsRef.
 - **Bai et al. (2024, E6), texto completo:** tras suscripción en journals.physiology.org (403); se usó el registro de Europe PMC. Su preprocesamiento no se pudo leer.
+- **Gudmundsson et al. (2007), «40 s»:** el código de la Time View justificaba la ventana fija de 40 s diciendo que la confiabilidad del espectro llega a su máximo hacia los 40 s según este artículo (10.1016/j.clinph.2007.06.018, metadatos confirmados en Crossref). No encontramos esa cifra en lo que pudimos leer; lo único cercano es una cita de Gasser et al. (1985) dentro del artículo, según la cual épocas de 40 o 60 s no mejoraron la confiabilidad. Dejamos de usarla como justificación (15 de noviembre de 2026): la duración ahora la elige quien analiza.
 - **Resultados finales de EEGManyPipelines:** no localizamos un artículo revisado por pares con resultados; solo se cita el artículo de diseño (2024).
 
 ---
@@ -890,5 +937,45 @@ Entradas: tabla E (68 sujetos × Δ EEG para cada ROI × {media, variabilidad}) 
   pages   = {1577--1588},
   year    = {2024},
   doi     = {10.1152/jn.00304.2024}
+}
+
+@article{robertson2008animation,
+  author  = {Robertson, George and Fernandez, Roland and Fisher, Danyel and Lee, Bongshin and Stasko, John},
+  title   = {Effectiveness of Animation in Trend Visualization},
+  journal = {IEEE Transactions on Visualization and Computer Graphics},
+  volume  = {14}, number = {6}, pages = {1325--1332}, year = {2008},
+  doi     = {10.1109/TVCG.2008.125}
+}
+
+@article{brehmer2020animation,
+  author  = {Brehmer, Matthew and Lee, Bongshin and Isenberg, Petra and Choe, Eun Kyoung},
+  title   = {A Comparative Evaluation of Animation and Small Multiples for Trend Visualization on Mobile Phones},
+  journal = {IEEE Transactions on Visualization and Computer Graphics},
+  volume  = {26}, number = {1}, pages = {364--374}, year = {2020},
+  doi     = {10.1109/TVCG.2019.2934397}
+}
+
+@article{tagliazucchi2014wakefulness,
+  author  = {Tagliazucchi, Enzo and Laufs, Helmut},
+  title   = {Decoding Wakefulness Levels from Typical {fMRI} Resting-State Data Reveals Reliable Drifts between Wakefulness and Sleep},
+  journal = {Neuron},
+  volume  = {82}, number = {3}, pages = {695--708}, year = {2014},
+  doi     = {10.1016/j.neuron.2014.03.020}
+}
+
+@article{maris2007nonparametric,
+  author  = {Maris, Eric and Oostenveld, Robert},
+  title   = {Nonparametric statistical testing of {EEG}- and {MEG}-data},
+  journal = {Journal of Neuroscience Methods},
+  volume  = {164}, number = {1}, pages = {177--190}, year = {2007},
+  doi     = {10.1016/j.jneumeth.2007.03.024}
+}
+
+@article{leonardi2015spurious,
+  author  = {Leonardi, Nora and Van De Ville, Dimitri},
+  title   = {On spurious and real fluctuations of dynamic functional connectivity during rest},
+  journal = {NeuroImage},
+  volume  = {104}, pages = {430--436}, year = {2015},
+  doi     = {10.1016/j.neuroimage.2014.09.007}
 }
 ```
