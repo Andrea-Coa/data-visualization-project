@@ -154,11 +154,12 @@ def test_consistency(R):
     q_true = sum(int((multipletests([r[k] for r in R["topo"]], method="fdr_bh")[1] < .05).sum()) for k in ("pv", "pm"))
     check("electrodos con q < 0.05", q_title == q_true and f"{q_title} of 61 electrodes with q" in html.unescape(rep),
           f"título {q_title}, statsmodels {q_true}, mismo texto en el Reporte")
-    n_dyn = int(re.search(r"n = (\d+)", R["titles"]["dyn"]).group(1)); n_leg = int(re.search(r"n = (\d+)", R["legendDyn"]).group(1))
+    n_dyn = int(re.search(r"n = (\d+)", R["titles"]["dyn"]).group(1)); n_leg = max(int(x) for x in re.findall(r"n = (\d+)", R["legendDyn"]))   # la leyenda da un n por serie (NS y SD); se compara el mayor
     n_state = int(re.search(r"Active people</span><b>(\d+)", rep).group(1)); n_long = int(re.search(r"(\d+) have EEG", R["about"]).group(1))
     check("n de Cinco minutos", n_dyn == n_leg == n_state == n_long, f"título {n_dyn}, leyenda {n_leg}, Reporte {n_state}, Acerca de {n_long}")
     sub_ep = json.loads((APP / "data" / "subject_epochs.json").read_text(encoding="utf-8"))
     worst = 0.0
+    wl = int(R.get("winLen", 10))   # ventana móvil de la app (épocas); antes fija en 10 (40 s)
     for k, cond in enumerate(("NS", "SD")):
         per = []
         for pid in R["activeIds"]:   # las mismas personas que el gráfico (grupo activo)
@@ -166,13 +167,13 @@ def test_consistency(R):
             if not a:
                 continue
             row = []
-            for i in range(75 - 10 + 1):
-                w = np.array([v for v in a[i:i + 10] if v is not None], float)
-                row.append(w.std() if len(w) >= 8 else np.nan)   # np.std: mismo divisor que σθ en el pipeline
+            for i in range(75 - wl + 1):
+                w = np.array([v for v in a[i:i + wl] if v is not None], float)
+                row.append(w.std() if len(w) >= wl * .8 else np.nan)   # np.std: mismo divisor que σθ en el pipeline
             per.append(row)
         want = np.nanmean(np.array(per), axis=0); got = np.array(R["rollVar"][k]["mean"], float)
         worst = max(worst, np.nanmax(np.abs(want - got)))
-    check("σθ móvil de Cinco minutos (frontal, ventanas de 40 s)", worst < 1e-12, f"diferencia máx. con numpy {worst:.1e}")
+    check(f"σθ móvil de Cinco minutos (frontal, ventanas de {wl * 4} s)", worst < 1e-12, f"diferencia máx. con numpy {worst:.1e}")
     tip = R["tooltip"]; rec = json.loads((APP / "data" / "topo.json").read_text(encoding="utf-8"))[tip["e"]]
     shown = [float(x.replace("−", "-")) for x in re.findall(r"t\(\d+\) · d<sub>z</sub></span><b>([−\d.]+) · ([−\d.]+)", tip["html"])[0]] if "d<sub>z</sub>" in tip["html"] else []
     want = [round(rec["tVar"], 2), round(rec["dzVar"], 2)]
