@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BATIMIX: one sleepless night</title>
 <meta name="description" content="BATIMIX: an interactive visualization of how each person's resting-EEG theta rhythm changes after a sleepless night. DS5343, UTEC 2026-2.">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light">
 <link rel="icon" href="../app/assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,12 +15,16 @@
 <body>
 <a class="skip" href="#content">Skip to content</a>
 
+<body>
+<a class="skip" href="#story">Skip to the tour</a>
+
 <div class="bar">
   <div class="wrap">
     <span class="logo">BATIMIX</span>
     <nav aria-label="Sections">
-      <a href="#h-summary">Summary</a>
-      <a href="#h-app">Application</a>
+      <a href="#story">Tour</a>
+      <a href="#h-findings">Findings</a>
+      <a href="#h-gloss">Plain-words guide</a>
       <a href="#h-docs">Paper and reports</a>
       <a href="#h-run">How to run</a>
       <a href="#h-credits">Credits</a>
@@ -30,13 +34,14 @@
 
 <header class="head">
   <div class="wrap">
-    <p class="kicker">Data visualization project · Week 12</p>
+    <p class="kicker">Data visualization project · DS5343</p>
     <h1>One sleepless night does not affect everyone <em>the same way</em></h1>
     <p class="team"><b>Jimena Gurbillon</b>, <b>Andrea Coa</b> and <b>Paolo Medrano</b></p>
     <p class="course">DS5343 Data Visualization · UTEC 2026-2 · Prof. Germain García-Zanabria</p>
+    <p class="lead intro">One screen, read in eight steps. Scroll to walk through the tool and see what each part answers.</p>
     <ul class="actions">
-      <li><a class="btn primary" href="../app/index.html">Open the application</a></li>
-      <li><a class="btn" href="../app/index.html?theme=dark">Dark theme (instrument)</a></li>
+      <li><a class="btn primary" href="#story">Start the tour</a></li>
+      <li><a class="btn" href="../app/index.html">Open the application</a></li>
       <li><a class="btn" href="../paper/FinalPaper_draft.pdf">Paper draft (PDF)</a></li>
       <li><a class="btn" href="https://github.com/Andrea-Coa/data-visualization-project">GitHub repository</a></li>
     </ul>
@@ -45,22 +50,94 @@
       <span><i class="dot sd" aria-hidden="true"></i><b>SD</b>&nbsp;24–30 h without sleep</span>
       <span><i class="dot vuln" aria-hidden="true"></i>vulnerable quadrant</span>
     </p>
-    <figure class="hero">
-      <img src="../assets/dashboard-1600x900.png" width="1600" height="900"
-           alt="BATIMIX single view in the light theme: a header with the title and controls, the vulnerability scatter and person × electrode heatmap on the left, the topomap matrix and five-minute series in the center, and the secondary views on the right.">
-      <figcaption>The application in a single view (screenshot at 1600 × 900).</figcaption>
-    </figure>
   </div>
 </header>
 
+<section class="story" id="story" aria-label="Guided tour of the application">
+  <div class="story-grid">
+    <div class="steps">
+      <article class="step" data-focus="" data-n="1">
+        <div class="card">
+          <p class="num" aria-hidden="true">01</p>
+          <h3>One night without sleep, 68 brains</h3>
+          <p>Each person was recorded resting for five minutes twice: after a normal night (<b class="ns">NS</b>) and after 24 to 30 hours awake (<b class="sd">SD</b>). We look at theta, a slow rhythm that tends to rise when we are sleepy, and ask who changes and how.</p><p>Everything lives on one screen. Follow it in this order.</p>
+          <p class="ans">The whole tool</p>
+        </div>
+      </article>
+      <article class="step" data-focus="topo" data-n="2">
+        <div class="card">
+          <p class="num" aria-hidden="true">02</p>
+          <h3>Where does the rhythm change?</h3>
+          <p>Each head is the scalp seen from above. Warm colors mean theta went up after the sleepless night, cool colors that it went down. A ring marks places where the change is unlikely to be chance.</p><p>The two rows separate two things: how much theta changed (<i>amount</i>) and how irregular it became (<i>variability</i>).</p>
+          <p class="ans">Where · what kind of change</p>
+        </div>
+      </article>
+      <article class="step" data-focus="scatter" data-n="3">
+        <div class="card">
+          <p class="num" aria-hidden="true">03</p>
+          <h3>Who gets hit, and does it show in behavior?</h3>
+          <p>Every dot is a person. Left to right, theta became more unstable; bottom to top, they got slower on the reaction test. The amber corner holds people who got worse on both.</p><p>If instability went with slowness, the dots would line up along a diagonal. Here they do not.</p>
+          <p class="ans">Who · does it go together</p>
+        </div>
+      </article>
+      <article class="step" data-focus="heat" data-n="4">
+        <div class="card">
+          <p class="num" aria-hidden="true">04</p>
+          <h3>Is it the same pattern in everyone?</h3>
+          <p>Now one column per person and one row per electrode. If the vulnerable people shared a signature, their columns would look alike. Instead, red and blue are mixed: each person changes differently.</p>
+          <p class="ans">Same pattern, or one each</p>
+        </div>
+      </article>
+      <article class="step" data-focus="maps" data-do="play" data-n="5">
+        <div class="card">
+          <p class="num" aria-hidden="true">05</p>
+          <h3>When, within the five minutes?</h3>
+          <p>Press play in the Topography View and the whole tool moves through time: the maps evolve, a dot travels along this chart, the scatter and the heatmap recompute for the same 40-second window, and the similarity graph regroups.</p>
+          <p class="ans">When · does it build up</p>
+        </div>
+      </article>
+      <article class="step" data-focus="compare" data-n="6">
+        <div class="card">
+          <p class="num" aria-hidden="true">06</p>
+          <h3>Does it depend on who the person is?</h3>
+          <p>One control splits everyone in two: women and men, which night came first, good or poor sleepers. Every view repaints with two colors, so any difference shows up everywhere at once.</p>
+          <p class="ans">Who it depends on</p>
+        </div>
+      </article>
+      <article class="step" data-focus="side" data-do="sec:b-graph" data-n="7">
+        <div class="card">
+          <p class="num" aria-hidden="true">07</p>
+          <h3>Can we trust what we just saw?</h3>
+          <p>The right-hand panel tries to break the finding: is it a real rhythm or background noise, could blinks explain it, do regions synchronize differently? Below them, a network links each person to the three whose pattern of change is most alike. The vulnerable people do not form a cluster.</p>
+          <p class="ans">Would it survive another analysis</p>
+        </div>
+      </article>
+      <article class="step" data-focus="" data-n="8">
+        <div class="card">
+          <p class="num" aria-hidden="true">08</p>
+          <h3>So, what do we take home?</h3>
+          <p>A sleepless night moves theta in different directions in different people, and that movement does not reliably tell who deteriorates. Close to 900 alternative analyses point the same way: none does better than chance. So the result asks for caution, and it points to where to look next.</p>
+          <p class="ans">The answer</p>
+        </div>
+      </article>
+    </div>
+    <div class="stage">
+      <div class="stage-box" id="stagebox">
+        <iframe id="appframe" title="BATIMIX application" src="../app/index.html?embed=1&amp;theme=light"></iframe>
+      </div>
+      <div class="stage-foot">
+        <ol class="dots" id="dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ol>
+        <div class="stage-tools">
+          <button class="btn" id="explore" type="button" aria-pressed="false">Try it yourself</button>
+          <a class="btn" href="../app/index.html" target="_blank" rel="noopener">Open full screen</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <main id="content">
   <div class="wrap">
-
-    <section aria-labelledby="h-summary">
-      <h2 id="h-summary">Summary</h2>
-      <p class="lead">BATIMIX is an interactive visualization to explore whether a sleepless night changes each person's resting-EEG theta rhythm and whether that change anticipates who deteriorates. It uses the public ds004902 dataset: 68 people with EEG after normal sleep and after 24–30 hours without sleep. One view coordinates a vulnerability scatter, a person × electrode heatmap, scalp maps, the dynamics within five minutes and two secondary views (oscillatory versus aperiodic activity, and theta synchrony between regions); a multiverse of 896 analyses (two preprocessing pipelines, the main one with ICA) with permutation inference supports the robustness of the conclusions. The change is individual (39 people more unstable and 29 more stable), diffuse, oscillatory rather than 1/f, and does not predict slowing on the vigilance task (ρ = −0.10, n = 30). The only hint appears with mood.</p>
-      <p class="muted">Audience: sleep physiology researchers doing exploratory screening on public data. The tool helps decide which electrodes, regions and covariates deserve a formal test; it is neither diagnostic nor predictive.</p>
-    </section>
 
     <section aria-labelledby="h-findings">
       <h2 id="h-findings">Preliminary findings</h2>
@@ -75,21 +152,22 @@
       <p class="muted" style="margin-top:16px">Preliminary conclusion: without sleep, each person's theta moves in different directions, and that change does not robustly predict who deteriorates. The only hint is with mood (PANAS+), not with vigilance (PVT).</p>
     </section>
 
-    <section aria-labelledby="h-app">
-      <h2 id="h-app">The application</h2>
-      <p>A single header holds the title and all controls: region (frontal or centrotemporal), metric (σθ or μθ), group, Y-axis marker, Clear, Report and About, plus a chip with the pipeline (band, reference, epochs). Below, three contiguous columns, separated only by 1-px lines, fill the screen without scrolling. There is no instruction text: each panel title is its finding.</p>
-      <ul class="panels">
-        <li><b>Scalp maps (center)</b><span>2 × 3 matrix: NS, SD and Δ (SD minus NS) columns; σθ and μθ rows of the active group, with p and FDR marks. With exactly two people selected, the rows become those two people, with the header metric and shared scales.</span></li>
-        <li><b>Five minutes (center)</b><span>Follows the header metric: with μθ, relative theta per 4-s epoch; with σθ, moving σθ in 40-s windows. NS versus SD, mean ± SE.</span></li>
-        <li><b>Vulnerability scatter (left)</b><span>Frontal Δσθ against the Y-axis marker, with ρ and its n; the vulnerable quadrant is amber. The lasso defines a group and clicking points adds or removes people (1 to n); selected people are ringed.</span></li>
-        <li><b>Person × electrode heatmap (left)</b><span>Two behavior-defined groups (deteriorate, resist) and their consistency C(e); selected people are outlined.</span></li>
-        <li><b>Secondary views (right, collapsible)</b><span>Robustness checks that defend the main finding: «Oscillatory or 1/f?» (spectrum with 1/f fit, Δ exponent and offset, Δσθ versus periodic Δσθ) and «Driven by blinks?» (blink rate and Δσθ with and without blink windows). Exploratory: «θ synchrony between regions» (wPLI graph and effect per pair with 95% CI). Hovering any person shows their EEG quality.</span></li>
-        <li><b>About</b><span>Introduction, data, glossary, tasks, method, robustness (896-analysis multiverse), secondary views, limitations, data table and credits.</span></li>
-      </ul>
-      <div class="linkbox">
-        <p><b>In this repository:</b> <a href="../app/index.html">deliveries/week12/app/index.html</a></p>
-        <p><b>Published:</b> <a href="https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/">andrea-coa.github.io/data-visualization-project/deliveries/week12/app/</a> <span class="tag">verify after deployment</span></p>
-      </div>
+    <section aria-labelledby="h-gloss">
+      <h2 id="h-gloss">What each view lets you do, in plain words</h2>
+      <p class="muted">The course vocabulary (Brehmer and Munzner, 2013) next to what it means for someone who has never seen the data.</p>
+      <div class="tscroll"><table class="gloss">
+        <thead><tr><th>Task</th><th>In plain words</th><th>Where in the tool</th></tr></thead>
+        <tbody>
+          <tr><td>T1 Locate</td><td>Where on the head does theta change?</td><td>Topography View, Δ map</td></tr>
+          <tr><td>T2 Compare metrics</td><td>Did the amount of theta change, or how erratic it is?</td><td>Topography View, σθ and μθ rows</td></tr>
+          <tr><td>T3 Identify</td><td>Who is hit hardest?</td><td>Vulnerability View (amber corner), Individual View</td></tr>
+          <tr><td>T4 Compare</td><td>Do the people who deteriorate share one pattern, or does each change in their own way?</td><td>Individual View, similarity graph, two selected people (A and B)</td></tr>
+          <tr><td>T5 Correlate</td><td>Does a bigger brain change go with doing worse on a test?</td><td>Vulnerability View, Y-axis selector and ρ</td></tr>
+          <tr><td>T6 Describe a trend</td><td>When within the five minutes does it happen? Does it build up?</td><td>Time View and its play button</td></tr>
+          <tr><td>T7 Moderators</td><td>Does it depend on sex, sleep quality or which night came first?</td><td>Compare selector in the header</td></tr>
+          <tr><td>T8 Robustness</td><td>Would a different analysis choice change the answer?</td><td>Validation Panel; 896-analysis multiverse in About</td></tr>
+        </tbody>
+      </table></div>
     </section>
 
     <section aria-labelledby="h-videos">
@@ -190,5 +268,31 @@ python -m http.server 8000</code></pre></li>
     <p>BATIMIX · DS5343 Data Visualization, UTEC 2026-2 · Initial project page, Week 12 (28 October 2026, updated 2 November 2026). Code at <a href="https://github.com/Andrea-Coa/data-visualization-project">github.com/Andrea-Coa/data-visualization-project</a>.</p>
   </div>
 </footer>
+<script>
+(() => {
+  const frame = document.getElementById("appframe"), box = document.getElementById("stagebox"), btn = document.getElementById("explore");
+  const steps = [...document.querySelectorAll(".step")], dots = [...document.querySelectorAll("#dots li")];
+  let ready = false, cur = steps[0], last = null, free = false;
+  const send = el => { if(!ready) return; frame.contentWindow.postMessage({batimix:true, type:"step", focus:free ? null : (el.dataset.focus || null), do:free ? [] : (el.dataset.do || "").split(" ").filter(Boolean)}, "*"); };
+  function zoom(r){
+    last = r; const W = box.clientWidth, H = box.clientHeight, pad = r.w > 1000 ? 0 : 24;
+    const k = Math.min((W-2*pad)/r.w, (H-2*pad)/r.h, 2.4);
+    // centered on the view, but never showing blank space beyond the edges of the application
+    let tx = W/2-(r.x+r.w/2)*k, ty = H/2-(r.y+r.h/2)*k;
+    tx = Math.min(0, Math.max(W-1440*k, tx)); ty = Math.min(0, Math.max(H-860*k, ty));
+    frame.style.transform = `translate(${tx}px,${ty}px) scale(${k})`;
+  }
+  addEventListener("message", e => {
+    if(e.source !== frame.contentWindow || !e.data || !e.data.batimix) return;
+    if(e.data.type === "ready"){ ready = true; send(cur); }
+    if(e.data.type === "rect") zoom(e.data.rect);
+  });
+  addEventListener("resize", () => { if(last) zoom(last); });
+  const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ cur = e.target; dots.forEach((d, i) => d.classList.toggle("on", steps[i] === cur)); steps.forEach(s => s.classList.toggle("on", s === cur)); send(cur); } }),
+    {rootMargin:"-45% 0px -45% 0px"});
+  steps.forEach(s => io.observe(s));
+  btn.addEventListener("click", () => { free = !free; btn.setAttribute("aria-pressed", free); btn.textContent = free ? "Back to the tour" : "Try it yourself"; box.classList.toggle("free", free); send(cur); });
+})();
+</script>
 </body>
 </html>

@@ -9,7 +9,6 @@ Refined draft and peer-critique response. A linked D3.js explorer, **in a single
 
 ![Single view at 1365 × 768](assets/dashboard-1365x768.png)
 
-![Dark theme (instrument)](assets/dashboard-dark-1600x900.png)
 
 ## Folder contents
 

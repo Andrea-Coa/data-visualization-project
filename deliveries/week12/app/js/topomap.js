@@ -6,13 +6,37 @@
    Marcas de significancia (t pareada, FDR) solo en Δ de las 68 personas: con subgrupos no hay prueba por electrodo. */
 const topo = (() => {
   const el = $("topo"), GN = 96;
-  let MAPS = [], linkG = null, curSpec = null;   // posiciones de los 6 mapas para enlazar un mismo electrodo en todos
+  let MAPS = [], linkG = null, curSpec = null;
+  // Reproducción: mientras corre, los mapas muestran una ventana de 10 épocas (40 s) que avanza por el registro:
+  // μθ = media de la ventana y σθ = desviación estándar dentro de ella, por electrodo, para el grupo activo.
+  // frame = [época inicial, época final] o null; lock = escalas fijas durante la reproducción (los colores no se reescalan).
+  let frame = null, lock = null;
+  const winCache = new Map();
+  function winTopo(ids, [a, b]){
+    const key = ids.join(",")+"|"+a+"|"+b; if(winCache.has(key)) return winCache.get(key);
+    const out = {};
+    ELEC.forEach(e => {
+      const i = ELEP.idx[e]; if(i == null) return;
+      const nm = [], nv = [], sm = [], sv = [];
+      ids.forEach(id => {
+        const p = ELEP.persons[id]; if(!p || !p.NS || !p.SD) return;
+        const f = c => { const arr = p[c][i].slice(a, b+1).filter(v => v != null).map(v => v/ELEP.scale); return arr.length >= 3 ? [d3.mean(arr), sdPop(arr)] : null; };
+        const n = f("NS"), sd = f("SD"); if(n && sd){ nm.push(n[0]); nv.push(n[1]); sm.push(sd[0]); sv.push(sd[1]); }
+      });
+      if(!nm.length) return;
+      const NS = {mean:d3.mean(nm), var:d3.mean(nv)}, SD = {mean:d3.mean(sm), var:d3.mean(sv)};
+      out[e] = {NS, SD, dMean:SD.mean-NS.mean, dVar:SD.var-NS.var, nPaired:nm.length};
+    });
+    if(winCache.size > 4000) winCache.clear();
+    winCache.set(key, out); return out;
+  }   // posiciones de los 6 mapas para enlazar un mismo electrodo en todos
   const cnv = document.createElement("canvas"); cnv.width = GN; cnv.height = GN; const ctx = cnv.getContext("2d");
   const val = (t, cond, met) => cond === "D" ? (met === "var" ? t.dVar : t.dMean) : (t[cond] ? t[cond][met] : null);
 
   // promedio por electrodo del grupo activo; sin grupo, el agregado de los 68 con sus pruebas
   // promedio por electrodo de un conjunto de personas (o el agregado de los 68, con sus pruebas)
   function groupTopo(sel){
+    if(frame){ const ids = (sel || EEG_IDS).filter(id => ELEP.persons[id]); return {T:winTopo(ids, frame), mode:"group", n:ids.length}; }
     if(!sel) return {T:TOPO, mode:"all"};
     const ids = sel.filter(id => SUBTOPO[id]);
     if(!ids.length) return {T:TOPO, mode:"all"};
@@ -34,7 +58,7 @@ const topo = (() => {
     const [a, b] = S.pair.length === 2 ? S.pair.map(d => d.id) : (sel2 || []);
     if(a && b && SUBTOPO[a] && SUBTOPO[b]){
       const lab = S.pair.length === 2 ? ["A · ", "B · "] : ["", ""];
-      return {mode:"pair", names:[lab[0]+a, lab[1]+b], rows:[{label:lab[0]+a, met:S.met, T:SUBTOPO[a]}, {label:lab[1]+b, met:S.met, T:SUBTOPO[b]}]};
+      return {mode:"pair", names:[lab[0]+a, lab[1]+b], rows:[{label:lab[0]+a, met:S.met, T:frame ? winTopo([a], frame) : SUBTOPO[a]}, {label:lab[1]+b, met:S.met, T:frame ? winTopo([b], frame) : SUBTOPO[b]}]};
     }
     const G = viewGroups();
     if(G){
@@ -257,7 +281,7 @@ const topo = (() => {
   function render(){
     d3.select(el).selectAll("*").remove();
     const W = el.clientWidth || 600, H = Math.max(200, el.clientHeight || 400);
-    const sp = spec(), sc = scalesFor(sp.rows);
+    const sp = spec(), sc0 = scalesFor(sp.rows), sc = frame && lock ? (rs => lock[rs[0].met] || sc0(rs)) : sc0;
     // con el interruptor Δ apagado solo se dibujan NS y SD, con su barra de color
     const conds = S.showD ? ["NS", "SD", "D"] : ["NS", "SD"], nC = conds.length, nB = nC-1;
     // en pantallas angostas las barras se achican y la unidad pasa al ícono ⓘ del panel (no cabe girada)
@@ -298,6 +322,11 @@ const topo = (() => {
     // capa de enlace: anillo del electrodo bajo el cursor (blanco) y del electrodo que manda en la dispersión (ámbar)
     linkG = svg.append("g").style("pointer-events", "none");
     drawLink(null);
+    if(frame){
+      svg.append("text").attr("class", "mdim").attr("x", W/2).attr("y", H-4).attr("text-anchor", "middle").style("font-size", "12px")
+        .text(`${frame[0]*4}–${(frame[1]+1)*4} s · ${frame[1]-frame[0]+1}-epoch window`);
+      return;   // durante la reproducción no se reescriben el título ni la leyenda
+    }
     header(sp);
   }
   function drawMap(svg, defs, id, x, y, s, row, cond, color, _c, mode){
@@ -391,5 +420,18 @@ const topo = (() => {
   bus.on("pin.topo", () => render());
   // mapa suelto para las vistas secundarias: mismo método de interpolación que la matriz
   function mini(values, color){ const T = {}; for(const e in values) if(values[e] != null) T[e] = {dMean:values[e]}; return field(T, "D", "mean", color); }
-  return {render, rebuild(){}, stats, mini};
+  // reproducción: se prueban todas las ventanas una vez para fijar las escalas, y luego se avanza ventana a ventana
+  function startFrames(){
+    if(!ELEP) return false;
+    lock = {}; frame = [0, 9];
+    const upd = (met, d) => { const l = lock[met] || (lock[met] = {seq:[Infinity, -Infinity], div:0});
+      l.seq = [Math.min(l.seq[0], d.seq[0]), Math.max(l.seq[1], d.seq[1])]; l.div = Math.max(l.div, d.div); };
+    const sc0 = scalesFor();
+    for(let a = 0; a <= 65; a += 3){ frame = [a, a+9]; const sp = spec(); sp.rows.forEach(r => upd(r.met, scalesFor(sp.rows)([r]))); }
+    frame = [0, 9]; render(); return true;
+  }
+  // ventana cualquiera [época, época]: la de la reproducción o un intervalo elegido sobre la serie; null = estado normal
+  const setFrame = w => { if(!w){ endFrames(); return; } if(!frame || frame[0] !== w[0] || frame[1] !== w[1]){ frame = w; render(); } };
+  function endFrames(){ if(!frame) return; frame = null; lock = null; render(); }
+  return {render, rebuild(){}, stats, mini, startFrames, setFrame, endFrames, framing:() => !!frame, winT:(ids, w) => ELEP ? winTopo(ids.filter(id => ELEP.persons[id]), w) : {}, winOne:(id, w) => ELEP && ELEP.persons[id] ? winTopo([id], w) : null};
 })();

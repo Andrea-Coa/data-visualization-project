@@ -11,7 +11,8 @@
    cada persona dentro de esa ventana (σθ o μθ, según el header). */
 const dyn = (() => {
   const el = $("dyn");
-  let svg, g, W, H, dx, dy, scan, heads, brush, brushG, cur = null, ln, G = null, XS = [];
+  let svg, g, W, H, dx, dy, scan, heads, brush, brushG, cur = null, ln, G = null, XS = [], rev = null, playT = null, readout = null;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const m = {t:6, r:18, b:24, l:58};   // izquierda: título del eje y en dos líneas y sus números; abajo, solo las marcas
   const leg = floatLegend();            // las series (con su n) se identifican en la leyenda flotante
   const ex = i => dx(XS[i]);           // tiempo (s) del punto i: centro de la época o de la ventana móvil
@@ -20,6 +21,7 @@ const dyn = (() => {
   const spanTxt = i => isVar() ? `${XS[i]-ROLL_W*2}–${XS[i]+ROLL_W*2} s` : `${XS[i]-2}–${XS[i]+2} s`;
 
   function render(){
+    stopPlay({keep:true});
     d3.select(el).selectAll("*").remove();
     W = el.clientWidth || 600; H = Math.round(Math.max(120, el.clientHeight || 220));
     const met = S.met;
@@ -50,17 +52,19 @@ const dyn = (() => {
     const plot = g.append("g").attr("clip-path", "url(#dclip)").style("pointer-events", "none");
     if(G) plot.append("line").attr("class", "zero").attr("x1", m.l).attr("x2", W-m.r).attr("y1", dy(0)).attr("y2", dy(0));
     const items = G ? cur.D.map((s, i) => ({s, col:G[i].color, lab:G[i].name})) : [{s:cur.NS, col:C.ns, lab:"Normal Sleep"}, {s:cur.SD, col:C.sd, lab:"Sleep Deprivation"}];
+    rev = plot.append("g");   // las series van aquí: la reproducción las descubre de izquierda a derecha
     items.forEach(({s, col}) => {
-      plot.append("path").attr("fill", col).attr("fill-opacity", .13)
+      rev.append("path").attr("fill", col).attr("fill-opacity", .13)
         .attr("d", d3.area().defined((v, i) => s.mean[i] != null).x((v, i) => ex(i)).y0((v, i) => dy(s.mean[i]-s.sem[i])).y1((v, i) => dy(s.mean[i]+s.sem[i])).curve(d3.curveMonotoneX)(s.mean));
-      plot.append("path").attr("class", "ts-line").attr("stroke", col).attr("d", ln(s.mean));
+      rev.append("path").attr("class", "ts-line").attr("stroke", col).attr("d", ln(s.mean));
       // tendencia lineal ajustada sobre el registro (la pendiente que cita el título)
       const pts = s.mean.map((v, i) => [XS[i], v]).filter(p => p[1] != null), mx = d3.mean(pts, p => p[0]), my = d3.mean(pts, p => p[1]);
       const b = d3.sum(pts, p => (p[0]-mx)*(p[1]-my))/d3.sum(pts, p => (p[0]-mx)**2), x0 = XS[0], x1 = XS[XS.length-1];
-      plot.append("line").attr("x1", dx(x0)).attr("x2", dx(x1)).attr("y1", dy(my+b*(x0-mx))).attr("y2", dy(my+b*(x1-mx))).attr("stroke", col).attr("stroke-width", 1.5).attr("stroke-dasharray", "6 4").attr("opacity", .9);
+      rev.append("line").attr("x1", dx(x0)).attr("x2", dx(x1)).attr("y1", dy(my+b*(x0-mx))).attr("y2", dy(my+b*(x1-mx))).attr("stroke", col).attr("stroke-width", 1.5).attr("stroke-dasharray", "6 4").attr("opacity", .9);
     });
     scan = g.append("line").attr("class", "scan").attr("y1", m.t).attr("y2", H-m.b).style("opacity", 0);
     heads = g.append("g").style("pointer-events", "none");
+    pg = g.append("g").style("pointer-events", "none");
     brush = d3.brushX().extent([[m.l, m.t], [W-m.r, H-m.b]]).on("end", ev => {
       if(!ev.sourceEvent) return;                       // movimientos programáticos no cambian el estado
       if(!ev.selection){ if(S.win) setWin(null); return; }
@@ -83,6 +87,86 @@ const dyn = (() => {
     }).on("pointerleave", () => { scan.style("opacity", 0); heads.selectAll("*").remove(); hideTip(); });
     title();
   }
+  // Reproducir (desde el botón ▶ de la vista de topografía): los topomapas avanzan ventana a ventana por los cinco
+  // minutos (40 s por ventana) y aquí se ve el mismo instante como una bolita sobre cada serie, con una lectura del
+  // tiempo y los valores. Un clic más la detiene y los mapas vuelven a su estado normal.
+  function setPlayBtn(on){ const b = $("playbtn"); if(b){ b.setAttribute("aria-pressed", on); b.title = on ? "Stop" : "Play the five minutes: the maps evolve and the dot follows in the Time View"; b.setAttribute("aria-label", b.title); } }
+  // ---------------------------------------------------------------- reproducción (botón ▶ de la vista de topografía)
+  // Una ventana de 40 s (10 épocas) se desliza por el registro época a época (4 s), con una bolita continua en esta serie: los mapas, la
+  // dispersión, el mapa de calor y el grafo de similitud se recalculan para esa ventana y aquí una bolita y una banda
+  // marcan el instante. Se puede pausar para analizar la ventana (◀ ▶ la mueven de 40 en 40) y ■ devuelve todo a su estado
+  // normal. Arrastrar sobre la serie fija un intervalo propio, que las demás vistas también siguen (ver setWin).
+  // ventana deslizante de 10 épocas centrada en el instante t: avanza época a época (4 s), sin saltos de bloque
+  const DUR = 26000, frameOf = t => Math.max(0, Math.min(65, Math.floor(t/4)-5)), winAt = t => { const a = frameOf(t); return [a, a+9]; };
+  let mode = "idle", pt = 0, tmr = null, curIdx = -1, held = false, keep = null, openedSec = null, pg = null;
+  const btn = id => $(id);
+  function ui(){
+    const b = btn("playbtn"); if(b){ b.setAttribute("aria-pressed", mode === "playing");
+      b.title = mode === "playing" ? "Pause" : (mode === "paused" ? "Resume" : "Play the five minutes with a sliding 40-s window: every view follows"); b.setAttribute("aria-label", b.title); }
+    [["stopbtn", mode !== "idle"], ["prevbtn", mode === "paused"], ["nextbtn", mode === "paused"]].forEach(([id, on]) => { const e = btn(id); if(e) e.hidden = !on; });
+  }
+  // lo que sigue a la ventana: dispersión (cambio de cada persona dentro de ella), mapas, mapa de calor y grafo
+  function follow(w){
+    if(!held){ held = true; keep = {win:S.win, elec:S.elec}; }
+    S.win = w; S.elec = null; computeX(); scatter.render(); updateStatus();
+    topo.setFrame(w); bus.call("frame", null, w);
+  }
+  function release(){
+    if(!held) return; held = false;
+    S.win = keep.win; S.elec = keep.elec; computeX(); scatter.render(); updateStatus();
+    topo.endFrames(); if(keep.win) topo.setFrame(keep.win); bus.call("frame", null, keep.win);
+    if(openedSec){ const b = $(openedSec === "none" ? "b-graph" : openedSec); if(b && (openedSec === "none" || b.closest(".sec").dataset.open !== "true")) b.click(); openedSec = null; }
+  }
+  function clearPlay(){ if(pg) pg.selectAll("*").remove(); }
+  function drawPlay(t){
+    if(!pg) return;
+    const i = nearest(t), w = winAt(t), x = dx(Math.max(0, Math.min(300, t)));
+    pg.selectAll("rect.wb").data([0]).join(en => en.insert("rect", ":first-child").attr("class", "wb")).attr("x", dx(w[0]*4)).attr("width", dx((w[1]+1)*4)-dx(w[0]*4))
+      .attr("y", m.t).attr("height", H-m.t-m.b).attr("fill", C.ink).attr("opacity", .08);
+    pg.selectAll("line.ps").data([0]).join("line").attr("class", "scan ps").attr("x1", x).attr("x2", x).attr("y1", m.t).attr("y2", H-m.b).style("opacity", 1);
+    const pts = G ? cur.D.map((s, k) => ({c:G[k].color, v:s.mean[i]})) : [{c:C.ns, v:cur.NS.mean[i]}, {c:C.sd, v:cur.SD.mean[i]}];
+    pg.selectAll("circle").data(pts.filter(o => o.v != null)).join("circle").attr("r", 6.5).attr("cx", x).attr("cy", o => dy(o.v)).attr("fill", o => o.c).attr("stroke", C.panel).attr("stroke-width", 1.5);
+    const vs = G ? cur.D.map((s, j) => [G[j].name, s.mean[i]]) : [["NS", cur.NS.mean[i]], ["SD", cur.SD.mean[i]]];
+    const txt = `${w[0]*4}–${(w[1]+1)*4} s · ` + vs.filter(v => v[1] != null).map(v => `${v[0]} ${f3(v[1])}`).join("  ");
+    const right = x > (m.l+W-m.r)/2;
+    pg.selectAll("text.rd").data([txt]).join("text").attr("class", "ab rd").attr("y", H-m.b-6).style("font-size", "10.5px")
+      .attr("x", right ? x-10 : x+10).attr("text-anchor", right ? "end" : "start").text(d => d);
+  }
+  function show(t){
+    pt = Math.max(0, Math.min(300, t)); const idx = frameOf(pt);
+    if(idx !== curIdx){ curIdx = idx; follow(winAt(pt)); }
+    drawPlay(pt);
+  }
+  function begin(){
+    hideTip(); curIdx = -1;
+    topo.startFrames();   // fija las escalas de color de los mapas para toda la pasada
+    // el grafo de similitud también sigue la ventana: se abre mientras dura la reproducción
+    const cur0 = document.querySelector(".sec[data-open=true] .sec-btn");
+    if(document.querySelector(".board:not(.side-off)") && (!cur0 || cur0.id !== "b-graph")){ openedSec = cur0 ? cur0.id : "none"; $("b-graph").click(); }
+  }
+  function tick(){ pt += 300*50/DUR; if(pt >= 300){ show(300); pause(); return; } show(pt); }
+  function play(){
+    if(!svg || reduce) return;   // con movimiento reducido no se anima
+    if(mode === "playing"){ pause(); return; }
+    if(mode === "idle"){ begin(); pt = 0; } else if(pt >= 300) pt = 0;
+    mode = "playing"; ui(); show(pt);
+    // setInterval y no requestAnimationFrame: avanza igual aunque la pestaña esté en segundo plano
+    clearInterval(tmr); tmr = setInterval(tick, 50);
+  }
+  function pause(){ clearInterval(tmr); tmr = null; if(mode === "playing") mode = "paused"; ui(); }
+  function step(d){
+    if(mode !== "paused") return;
+    show(Math.max(0, Math.min(300, pt+d*4)));
+  }
+  // parada completa: todo vuelve a su estado anterior
+  function stopPlay(opts){
+    clearInterval(tmr); tmr = null;
+    const was = mode !== "idle"; mode = "idle"; clearPlay(); ui();
+    if(opts && opts.keep){ held = false; openedSec = null; return; }   // otra acción cambió el estado (arrastre, comparación…): se respeta
+    if(was || held) release();
+  }
+  { const on = (id, f) => { const e = $(id); if(e) e.addEventListener("click", f); };
+    on("playbtn", play); on("stopbtn", () => stopPlay()); on("prevbtn", () => step(-1)); on("nextbtn", () => step(1)); }
   function title(){
     // puntos dentro de la ventana elegida (por su tiempo central), o todos
     const idx = d3.range(XS.length).filter(i => !S.win || (XS[i] >= S.win[0]*4 && XS[i] <= (S.win[1]+1)*4));
@@ -109,12 +193,12 @@ const dyn = (() => {
     return `<div class="h">${head}</div>` +
       (G ? G.map((gr, k) => trow(`${gr.name}, Δ`, r(cur.D[k]), gr.color)).join("") : trow("Normal Sleep", r(cur.NS), C.ns) + trow("Sleep Deprivation", r(cur.SD), C.sd));
   }
-  function drawHead(i){
+  function drawHead(i, big){
     scan.attr("x1", ex(i)).attr("x2", ex(i)).style("opacity", 1);
     const pts = G ? cur.D.map((s, k) => ({c:G[k].color, v:s.mean[i]})) : [{c:C.ns, v:cur.NS.mean[i]}, {c:C.sd, v:cur.SD.mean[i]}];
-    heads.selectAll("circle").data(pts.filter(o => o.v != null)).join("circle").attr("r", 4).attr("cx", ex(i)).attr("cy", o => dy(o.v))
+    heads.selectAll("circle").data(pts.filter(o => o.v != null)).join("circle").attr("r", big ? 6.5 : 4).attr("cx", ex(i)).attr("cy", o => dy(o.v))
       .attr("fill", o => o.c).attr("stroke", C.panel).attr("stroke-width", 1.5);
   }
   bus.on("select.dyn", e => { if(!(e && e.live)) render(); }); bus.on("axes.dyn", () => render());
-  return {render, withFullBox:fn => leg.withFull(fn), rebuild(){}};
+  return {render, play, stop:() => stopPlay(), withFullBox:fn => leg.withFull(fn), rebuild(){}};
 })();

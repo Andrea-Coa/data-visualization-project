@@ -3,13 +3,13 @@
    cuadrante vulnerable = ámbar, tipografía Geist y Geist Mono.
    Estática, sin animaciones ni transiciones; contraste AA; funciona desde 390 px. */
 :root{
-  --bg:#0B0D12; --panel:#0F1218; --raise:#161A22; --rule:#1F2430; --rule2:#2B3140;
-  --ink:#E8EAF0; --ink2:#B4BAC6; --muted:#8C93A1; --faint:#4A5160;
-  --ns:#3DD6F5; --sd:#FF5C8A; --vuln:#FFB547;
+  --bg:#FFFFFF; --panel:#F6F7F9; --raise:#F1F3F6; --rule:#E4E7EC; --rule2:#CDD2DA;
+  --ink:#14181F; --ink2:#394150; --muted:#5E6675; --faint:#9AA2B0;
+  --ns:#0B7FA3; --sd:#D6245F; --vuln:#B86E00;
   --sans:"Geist","Helvetica Neue",Arial,sans-serif;
   --mono:"Geist Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
   --wrap:1080px;
-  color-scheme:dark;
+  color-scheme:light;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -45,7 +45,7 @@ h1 em{font-style:italic;color:var(--sd)}
   border:1px solid var(--rule2);background:var(--raise);color:var(--ink)}
 .btn:hover{border-color:var(--ink2);color:var(--ink)}
 .btn.primary{background:var(--ink);border-color:var(--ink);color:var(--bg)}
-.btn.primary:hover{background:#fff;color:var(--bg)}
+.btn.primary:hover{background:#000;color:var(--bg)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:22px 0 0;font-size:14px;color:var(--ink2)}
 .legend span{display:inline-flex;align-items:center;gap:7px}
 .legend b{font-weight:600;color:var(--ink)}
@@ -131,3 +131,42 @@ ol.steps li{margin:0 0 8px}
 @media print{
   .actions,.skip,.bar nav{display:none}
 }
+
+/* ---------- recorrido (scrollytelling) ---------- */
+.bar{position:sticky;top:0;z-index:20;background:var(--bg)}
+.intro{margin-top:18px}
+.story{border-bottom:1px solid var(--rule);background:var(--panel)}
+.story-grid{display:grid;grid-template-columns:minmax(300px,390px) 1fr;gap:0 28px;max-width:1560px;margin:0 auto;padding:0 24px}
+.step{min-height:92vh;display:flex;align-items:center;padding:6vh 0}
+.step .card{background:var(--bg);border:1px solid var(--rule2);border-radius:10px;padding:20px 22px;opacity:.45;transition:opacity .3s,border-color .3s}
+.step.on .card{opacity:1;border-color:var(--ink2)}
+.step .num{margin:0 0 6px;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted)}
+.step h3{margin:0 0 10px;font-size:22px;line-height:1.2;letter-spacing:-.012em}
+.step p{font-size:16px;line-height:1.55}
+.step .ans{margin:12px 0 0;font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+b.ns{color:var(--ns)} b.sd{color:var(--sd)}
+.stage{position:sticky;top:48px;height:calc(100vh - 48px);display:flex;flex-direction:column;justify-content:center;gap:8px}
+.stage-box{position:relative;width:100%;height:calc(100vh - 112px);overflow:hidden;background:#fff;border:1px solid var(--rule2);border-radius:10px;box-shadow:0 2px 14px rgba(20,24,31,.08)}
+.stage-box iframe{position:absolute;left:0;top:0;width:1440px;height:860px;border:0;transform-origin:0 0;transform:scale(.6);pointer-events:none;
+  transition:transform .9s cubic-bezier(.4,0,.2,1)}
+.stage-box.free iframe{pointer-events:auto;transition:none}
+.stage-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;height:32px}
+.stage-tools{display:flex;gap:8px}
+.stage-tools .btn{padding:5px 11px;font-size:13px;box-shadow:0 1px 6px rgba(20,24,31,.12)}
+.dots{display:flex;gap:6px;margin:0;padding:0;list-style:none}
+.dots li{width:8px;height:8px;border-radius:50%;background:var(--rule2)}
+.dots li.on{background:var(--ink)}
+.tscroll{overflow-x:auto}
+.gloss{width:100%;border-collapse:collapse;font-size:15.5px}
+.gloss th,.gloss td{text-align:left;vertical-align:top;padding:10px 14px 10px 0;border-bottom:1px solid var(--rule)}
+.gloss th{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule2)}
+.gloss td:first-child{white-space:nowrap;font-weight:600}
+@media (max-width:900px){
+  .story-grid{display:flex;flex-direction:column-reverse;padding:0 16px}
+  .stage{position:sticky;top:48px;height:46vh;z-index:5;background:var(--panel);padding:8px 0}
+  .stage-box{height:100%}
+  .step{min-height:70vh}
+  .step .card{opacity:.96}
+  .stage-foot{display:none}
+}
+@media (prefers-reduced-motion:reduce){ .stage-box iframe,.step .card{transition:none} }

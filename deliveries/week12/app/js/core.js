@@ -53,7 +53,7 @@ const regionOf = e => EL_FRONTAL.includes(e) ? 0 : (EL_CT.includes(e) ? 1 : 2);
 const electrodes = () => ELEC.slice().sort((a, b) => regionOf(a)-regionOf(b) || COORDS[b][1]-COORDS[a][1] || COORDS[a][0]-COORDS[b][0]);
 
 // ---------- estado + bus ----------
-const bus = d3.dispatch("hover", "pin", "select", "axes");
+const bus = d3.dispatch("hover", "pin", "select", "axes", "frame");
 const S = {
   y:"d_pvt", roi:"front", met:"var",
   hovered:null, pair:[], selected:null, group:"all", vuln:new Set(), elec:null, win:null, cmp:"none", showD:true,   // la matriz siempre muestra NS, SD y Δ (6 mapas)
