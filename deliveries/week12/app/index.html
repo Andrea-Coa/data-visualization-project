@@ -47,8 +47,10 @@
     <div class="fld"><i>Behavior (y)</i><select id="ysel" aria-label="Behavioral marker on the Y-axis"></select></div>
     <button class="btn" id="resetbtn" disabled>Clear</button>
     <button class="btn" id="reportbtn">Report</button>
+    <button class="btn" id="guidebtn" type="button" title="Step-by-step guide to the tool">Guide</button>
     <button class="btn" id="aboutbtn" aria-haspopup="dialog">About</button>
     <button class="btn btn-icon" id="swapbtn" type="button" aria-pressed="false" aria-label="Swap columns" title="Swap columns">⇄</button>
+    <button class="btn btn-icon" id="linkbtn" type="button" aria-label="Copy a link to this exact view" title="Copy a link to this exact view"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6.7 9.3a2.6 2.6 0 0 0 3.7 0l2.4-2.4a2.6 2.6 0 0 0-3.7-3.7l-.8.8M9.3 6.7a2.6 2.6 0 0 0-3.7 0L3.2 9.1a2.6 2.6 0 0 0 3.7 3.7l.8-.8"/></svg></button>
     <button class="btn btn-icon" id="themebtn" aria-label="Switch to light theme" title="Light theme">◐</button>
   </div>
 </header>
@@ -70,7 +72,7 @@
   </div>
   <div class="col col-c">
   <section class="panel p-topo" aria-labelledby="t-topo">
-    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.6 2.9 8 1 9.4 2.9" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="7.5" r="2.4"/></svg><span>Topography View</span><div class="key" id="k-topo"></div><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div>
+    <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.6 2.9 8 1 9.4 2.9" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="7.5" r="2.4"/></svg><span>Topography View</span><button class="vplay" id="playbtn" type="button" aria-pressed="false" aria-label="Play the five minutes" title="Play the five minutes (follow it in the Time View)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="pl" d="M5 3.2v9.6L12.6 8z"/><path class="pa" d="M5.2 3.5v9M10.8 3.5v9"/></svg></button><button class="vplay" id="prevbtn" type="button" hidden aria-label="Previous epoch (4 s)" title="Previous epoch (4 s)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></button><button class="vplay" id="nextbtn" type="button" hidden aria-label="Next epoch (4 s)" title="Next epoch (4 s)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg></button><button class="vplay" id="stopbtn" type="button" hidden aria-label="Stop and return to the normal view" title="Stop and return to the normal view"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="4" width="8" height="8" rx="1" fill="currentColor" stroke="none"/></svg></button><div class="key" id="k-topo"></div><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div>
     <div class="ph"><h2 id="t-topo"></h2></div>
     <div class="view" id="topo"></div>
   </section>
@@ -94,6 +96,10 @@
       <section class="sec" data-open="false" aria-labelledby="b-conn">
         <div class="sec-hd"><button class="sec-btn" id="b-conn" type="button" aria-expanded="false" aria-labelledby="l-conn"></button><div class="sec-lbl"><b id="l-conn">θ synchrony between regions</b></div></div>
         <div class="sec-body"><div class="ph"><h2 id="t-conn"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="conn"></div></div>
+      </section>
+      <section class="sec" data-open="false" aria-labelledby="b-graph">
+        <div class="sec-hd"><button class="sec-btn" id="b-graph" type="button" aria-expanded="false" aria-labelledby="l-graph"></button><div class="sec-lbl"><b id="l-graph">Similarity between people</b></div></div>
+        <div class="sec-body"><div class="ph"><h2 id="t-graph"></h2><div class="key" id="k-graph"></div><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="graph"></div></div>
       </section>
     </div>
   </aside>
@@ -123,6 +129,15 @@
     <p>Multiverse of 896 analyses (2 pipelines, with and without ICA × 4 regions × 2 metrics × 2 change forms × 7 markers × 2 correlations × 2 outlier rules), with joint inference by 2000 permutations (Simonsohn et al., 2020): no joint statistic exceeds chance (σθ only: median r = +0.089, p = 0.11). The only consistent hint is mood (PANAS+). All results: <a href="../data/multiverse_specs.csv">multiverse_specs.csv</a>.</p>
     <h3>Limitations</h3>
     <p>PVT for only 30 people (power ≈ 0.35 for ρ = 0.3); public PVT summary columns, whereas Cui et al. likely recomputed median RT from trials; ICA components selected by rule, without visual review; no task EEG or event markers (no ERP).</p>
+    <h3>How to read it</h3>
+    <ol class="kf">
+      <li><b>Topography:</b> where on the scalp theta changes, and whether it is the amount (μθ) or its fluctuation (σθ).</li>
+      <li><b>Vulnerability:</b> who changes most and whether that goes with doing worse on the behavioral marker.</li>
+      <li><b>Individual:</b> whether those people share one pattern or each changes differently.</li>
+      <li><b>Time:</b> when within the five minutes it happens; press play to follow it.</li>
+      <li><b>Compare (header):</b> whether it depends on sex, sleep quality or session order.</li>
+      <li><b>Validation panel:</b> whether the result survives other explanations, plus the similarity network between people.</li>
+    </ol>
     <h3>Glossary</h3>
     <table class="tasks">
       <tbody>
@@ -145,7 +160,13 @@
 <script src="js/dynamics.js"></script>
 <script src="js/individuals.js"></script>
 <script src="js/secondary.js"></script>
+<script src="js/graph.js"></script>
 <script src="js/report.js"></script>
 <script src="js/main.js"></script>
+<script src="js/share.js"></script>
+<script src="js/tour.js"></script>
+<script src="js/about.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/embed.js"></script>
 </body>
 </html>

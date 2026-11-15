@@ -9,7 +9,7 @@
 const indiv = (() => {
   const heatEl = $("heat");
   const REG_SHORT = ["F", "C-T", "P"];   // regiones y orden de los electrodos: REG, regionOf y electrodes (core.js)
-  let model = null, hv = {row:null, col:null};
+  let model = null, hv = {row:null, col:null}, fw = null, limHold = 0;   // fr: ventana [época, época] durante la reproducción
 
   const short = id => id.replace("sub-", "S");
   const fs2 = L.format("+.2f");
@@ -27,9 +27,11 @@ const indiv = (() => {
 
   function build(){
     const met = S.met, E = electrodes(), all = EEG_IDS.filter(id => SUBTOPO[id]), byId = new Map(P.map(d => [d.id, d]));
-    const D = new Map(all.map(id => [id, E.map(e => { const t = SUBTOPO[id][e]; return t ? (met === "var" ? t.dVar : t.dMean) : null; })]));
+    const D0 = new Map(all.map(id => [id, E.map(e => { const t = SUBTOPO[id][e]; return t ? (met === "var" ? t.dVar : t.dMean) : null; })]));
+    // durante la reproducción, el Δ de cada celda es el de la ventana de 40 s en curso; el orden de las columnas no cambia
+    const D = fw ? new Map(all.map(id => { const w = topo.winOne(id, fw); return [id, E.map(e => { const t = w && w[e]; return t ? (met === "var" ? t.dVar : t.dMean) : null; })]; })) : D0;
     const roiIdx = E.map((e, i) => regionOf(e) === (S.roi === "front" ? 0 : 1) ? i : -1).filter(i => i >= 0);
-    const rowMean = id => d3.mean(roiIdx, i => D.get(id)[i]);
+    const rowMean = id => d3.mean(roiIdx, i => D0.get(id)[i]);
     const G = cmpGroups(), yk = yK(), mk = mkY(), withY = all.filter(id => byId.get(id) && byId.get(id)[yk] != null);
     let groups;
     if(G) groups = G.map(g => ({name:g.name, color:g.color, ids:g.ids.filter(id => D.has(id))}));
@@ -42,7 +44,7 @@ const indiv = (() => {
       return {...g, ids, cons};
     });
     const ids = groups.flatMap(g => g.ids), abs = ids.flatMap(id => D.get(id)).filter(v => v != null).map(Math.abs).sort(d3.ascending);
-    model = {met, E, D, groups, ids, mk, lim:d3.quantile(abs, .95) || 1, mean:E.map((e, i) => d3.mean(ids, id => D.get(id)[i]))};
+    model = {met, E, D, groups, ids, mk, lim:fw ? (limHold = Math.max(limHold, d3.quantile(abs, .95) || 0)) : (limHold = 0, d3.quantile(abs, .95) || 1), mean:E.map((e, i) => d3.mean(ids, id => D.get(id)[i]))};
   }
 
   // ---------------- heatmap ----------------
@@ -52,10 +54,10 @@ const indiv = (() => {
     const W = heatEl.clientWidth || 400, H = Math.max(180, heatEl.clientHeight || 400), {E, D, groups, lim} = model;   // nunca más alto que su panel
     // encima de las celdas: el nombre de cada grupo (una o dos líneas) y una banda para los rótulos verticales
     // (códigos de persona y C(e)), del alto justo para ellos
-    const nP = model.ids.length, regW = 14, regGap = 4, gGap = 6, cS = 14, nameLH = 11, band = 22;
+    const nP = model.ids.length, regW = 14, regGap = 4, gGap = 6, cS = W > 640 ? 30 : 14, nameLH = 11, band = 22;   // ampliada: celdas y franja C(e) crecen con el ancho
     const rh0 = (H-(2*nameLH+2+band)-2*regGap-2)/E.length, elecLab = rh0 >= 8;   // nombres de electrodo solo si caben
     const labW = regW+(elecLab ? 30 : 6);
-    const cw = Math.min(16, (W-labW-4-groups.length*(cS+3)-(groups.length-1)*gGap-2)/nP);
+    const cw = Math.min(W > 640 ? 46 : 16, (W-labW-4-groups.length*(cS+3)-(groups.length-1)*gGap-2)/nP);
     // columnas: por grupo, su C(e) seguida de una columna por persona
     let x = labW; model.colX = new Map();
     groups.forEach((g, gi) => {
@@ -161,6 +163,7 @@ const indiv = (() => {
   function render(){ build(); titles(); drawHeat(); }
   bus.on("pin.indiv", () => paintHeat());
   bus.on("hover.indiv", d => { const id = d ? d.id : null; if(hv.row !== id){ hv.row = id; paintHeat(); } });
+  bus.on("frame.indiv", w => { fw = w; render(); });
   bus.on("select.indiv", () => paintHeat());   // la selección solo cambia los contornos
   bus.on("axes.indiv", () => render());
   return {render};

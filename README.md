@@ -55,3 +55,9 @@ All paths are relative and the data are CC0, so no build step is needed.
 ## Data and license
 
 OpenNeuro ds004902 (Xiang, Fan, Bai, Lv and Lei, 2024, *Scientific Data*), CC0. The raw data (~8.3 GB) are not versioned: see `deliveries/week06/README.md` to download them and reproduce the processing.
+
+## To do
+
+Remove each item once it is done.
+
+- [ ] Retake the dashboard screenshots (`deliveries/week12/assets/dashboard-*.png`, `mobile-390.png` and `deliveries/week12/paper/dashboard-1365x768.png`) so they show the new mole logo and the significance marks in subgroups and in the playback.

@@ -59,10 +59,11 @@ function setMet(v){ S.met = v; segMet.set(v); computeX(); scatter.clearBrushVisu
 // electrodo elegido en un mapa: manda en el eje x de la dispersión (clic de nuevo = volver a la región)
 function setElec(e){ S.elec = S.elec === e ? null : e; if(S.elec) S.win = null; computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 // ventana de tiempo elegida en la serie: el eje x usa el cambio theta de cada persona dentro de la ventana
-function setWin(w){ S.win = w; if(w) S.elec = null; computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
+// el intervalo elegido lo siguen también los mapas, el mapa de calor y el grafo (como en la reproducción)
+function setWin(w){ S.win = w; if(w) S.elec = null; computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.setFrame(w); if(!w) topo.render(); bus.call("axes"); bus.call("frame", null, w); }
 function resetAll(){
   scatter.clearBrushVisual(); S.pair = []; S.elec = null; S.win = null; S.cmp = "none"; computeX();
-  setSelected(null); bus.call("pin", null, S.pair); scatter.render(); topo.render(); bus.call("axes");
+  setSelected(null); bus.call("pin", null, S.pair); scatter.render(); topo.endFrames(); topo.render(); bus.call("axes"); bus.call("frame", null, null);
 }
 // comparación de dos grupos: las cuatro vistas se dibujan con los dos colores; anula el lazo
 function setCmp(k){
@@ -124,7 +125,7 @@ loadData().then(D => {
   d3.select("#aboutbtn").on("click", () => { const d = $("about"); d.showModal ? d.showModal() : d.setAttribute("open", ""); });
   // el chip de pipeline abre Acerca de en la sección de método
   d3.select("#pipebtn").on("click", () => { const d = $("about"); d.showModal ? d.showModal() : d.setAttribute("open", "");
-    const h = [...d.querySelectorAll("h3")].find(x => x.textContent.trim() === "Method"); if(h) h.scrollIntoView({block:"start"}); });
+    const h = [...d.querySelectorAll("h3")].find(x => x.id === "h-method"); if(h) h.scrollIntoView({block:"start"}); });
   document.querySelectorAll("dialog [data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
   document.querySelectorAll("dialog").forEach(d => d.addEventListener("click", e => { if(e.target === d) d.close(); }));
   // Esc limpia la vista

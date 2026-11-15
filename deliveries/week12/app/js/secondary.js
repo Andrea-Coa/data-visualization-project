@@ -19,6 +19,7 @@ const side = (() => {
     if(isOpen(elA)) renderAper(); else d3.select(elA).selectAll("*").remove();
     if(isOpen(elC)) renderConn(); else d3.select(elC).selectAll("*").remove();
     if(isOpen(elE)) renderEye(); else d3.select(elE).selectAll("*").remove();
+    simg.render();   // grafo de similitud entre personas (graph.js): se dibuja solo si su sección está abierta
     // el título de cada vista se escribe al final del dibujo y puede pasar a dos líneas, lo que achica la caja:
     // si el gráfico quedó más alto que su caja, se redibuja una vez con el alto real
     [[elA, renderAper], [elC, renderConn], [elE, renderEye]].forEach(([el, f]) => {
