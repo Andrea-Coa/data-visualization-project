@@ -1,24 +1,33 @@
 /* Vista 3 · Cinco minutos (tarea T6, pregunta Q6: dinámica dentro del registro).
    Sigue a la métrica del header:
    - μθ: potencia theta relativa por época de 4 s, media ± error estándar entre personas del grupo activo.
-   - σθ: σθ móvil, la desviación estándar de la θ regional en una ventana deslizante de 10 épocas (40 s), persona a
+   - σθ: σθ móvil, la desviación estándar de la θ regional en una ventana deslizante del largo elegido (60 s por defecto), persona a
      persona, y luego media ± error estándar. σθ resume la inestabilidad entre épocas (Cui et al., 2026); su versión
      móvil muestra cuándo aparece dentro de los cinco minutos, en línea con la hipótesis de inestabilidad de estado
      tras la privación de sueño (Doran, Van Dongen y Dinges, 2001). Es exploratoria: Cui et al. resumen la
      variabilidad en un solo número por registro, sin orden temporal.
    Con dos grupos comparados se muestra Δ (SD − NS) de cada grupo.
-   Interacción: arrastrar sobre el eje del tiempo elige una ventana; la dispersión pasa a usar el cambio theta de
-   cada persona dentro de esa ventana (σθ o μθ, según el header). */
+   Interacción (vista temporal, noviembre 2026):
+   - Por defecto todo es estático: los mapas muestran los cinco minutos completos.
+   - Clic sobre la serie: los mapas pasan a una ventana del largo elegido (32, 60 o 100 s, selector «Window» de esta
+     vista) centrada en ese instante; arrastrar fija un intervalo propio. La dispersión, el mapa de calor y el grafo
+     siguen esa ventana. Las marcas de p de una ventana elegida a mano son exploratorias (se puede elegir la ventana
+     después de ver dónde el efecto es grande).
+   - ▶ (en la vista de topografía) anima la ventana por el registro, época a época.
+   - «Series» (en la vista de topografía) muestra bloques sin solapamiento alineados con este eje; aquí se dibujan
+     sus límites y, al pasar sobre un mapa de la serie, se resalta su bloque.
+   Por qué así: para analizar, los mapas pequeños lado a lado son más precisos que la animación (Robertson et al.,
+   2008; Brehmer et al., 2020); la animación queda como modo de presentación. */
 const dyn = (() => {
   const el = $("dyn");
-  let svg, g, W, H, dx, dy, scan, heads, brush, brushG, cur = null, ln, G = null, XS = [], rev = null, playT = null, readout = null;
+  let svg, g, W, H, dx, dy, scan, heads, brush, brushG, cur = null, ln, G = null, XS = [], rev = null, playT = null, readout = null, blk = null;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const m = {t:6, r:18, b:24, l:58};   // izquierda: título del eje y en dos líneas y sus números; abajo, solo las marcas
   const leg = floatLegend();            // las series (con su n) se identifican en la leyenda flotante
   const ex = i => dx(XS[i]);           // tiempo (s) del punto i: centro de la época o de la ventana móvil
   const isVar = () => S.met === "var";
   const nearest = t => Math.max(0, Math.min(XS.length-1, Math.round((t-XS[0])/4)));
-  const spanTxt = i => isVar() ? `${XS[i]-ROLL_W*2}–${XS[i]+ROLL_W*2} s` : `${XS[i]-2}–${XS[i]+2} s`;
+  const spanTxt = i => isVar() ? `${XS[i]-rollW()*2}–${XS[i]+rollW()*2} s` : `${XS[i]-2}–${XS[i]+2} s`;
 
   function render(){
     stopPlay({keep:true});
@@ -26,7 +35,7 @@ const dyn = (() => {
     W = el.clientWidth || 600; H = Math.round(Math.max(120, el.clientHeight || 220));
     const met = S.met;
     svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").attr("role", "img")
-      .attr("aria-label", isVar() ? "Moving σθ in 40-s windows, NS and SD, mean and standard error of the active group"
+      .attr("aria-label", isVar() ? `Moving σθ in ${S.winLen*4}-s windows, NS and SD, mean and standard error of the active group`
         : "Theta power per epoch, NS and SD, mean and standard error of the active group");
     svg.append("defs").append("clipPath").attr("id", "dclip").append("rect").attr("x", m.l).attr("y", m.t).attr("width", W-m.l-m.r).attr("height", H-m.t-m.b);
     g = svg.append("g");
@@ -43,7 +52,7 @@ const dyn = (() => {
     g.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(dy).ticks(4).tickSize(3).tickPadding(3).tickSizeOuter(0).tickFormat(L.format(isVar() ? ".3~f" : ".2~f"))).call(a => a.select(".domain").remove());
     g.append("g").attr("class", "axis").attr("transform", `translate(0,${H-m.b})`).call(d3.axisBottom(dx).tickValues(d3.range(0, 301, W < 500 ? 60 : 30)).tickSize(4).tickPadding(3).tickSizeOuter(0).tickFormat(d => d === 300 ? "300 s" : d));
     // título del eje y en dos líneas: la magnitud y, debajo, qué es (más corto que en una sola línea)
-    const yTitle = isVar() ? (G ? ["Δ moving σθ", "(SD − NS)"] : ["moving σθ", "(SD within 40 s)"]) : (G ? ["Δ θ power", "(SD − NS)"] : ["relative", "θ power"]);
+    const yTitle = isVar() ? (G ? ["Δ moving σθ", "(SD − NS)"] : ["moving σθ", `(SD within ${S.winLen*4} s)`]) : (G ? ["Δ θ power", "(SD − NS)"] : ["relative", "θ power"]);
     const yt = g.append("text").attr("class", "atitle").attr("text-anchor", "middle").attr("transform", "rotate(-90)");
     yTitle.forEach((t, i) => yt.append("tspan").attr("x", -(m.t+H-m.b)/2).attr("y", 9+i*12).text(t));
     // ventana de tiempo (debajo de las series para no taparlas)
@@ -67,13 +76,19 @@ const dyn = (() => {
     pg = g.append("g").style("pointer-events", "none");
     brush = d3.brushX().extent([[m.l, m.t], [W-m.r, H-m.b]]).on("end", ev => {
       if(!ev.sourceEvent) return;                       // movimientos programáticos no cambian el estado
-      if(!ev.selection){ if(S.win) setWin(null); return; }
+      // clic sin arrastre: ventana del largo elegido centrada en ese instante
+      if(!ev.selection){ const [px] = d3.pointer(ev.sourceEvent, svg.node()); if(px >= m.l && px <= W-m.r) setWin(winCentered(dx.invert(px))); return; }
       const [x0, x1] = ev.selection, a = Math.max(0, Math.floor(dx.invert(x0)/4)), b = Math.min(74, Math.floor(dx.invert(x1)/4));
-      if(b-a < 2){ brushG.call(brush.move, null); if(S.win) setWin(null); return; }
+      if(b-a < 2){ brushG.call(brush.move, null); return; }
       setWin([a, b]);
     });
     brushG.call(brush);
     if(S.win) brushG.call(brush.move, [dx(S.win[0]*4), dx((S.win[1]+1)*4)]);
+    // modo serie: límites de los bloques (líneas tenues) y franja del bloque bajo el cursor en la serie de mapas
+    blk = g.append("g").style("pointer-events", "none");
+    if(S.series) seriesBlocks().forEach(([a, b], k) => {
+      if(k) blk.append("line").attr("class", "blk-edge").attr("x1", dx(a*4)).attr("x2", dx(a*4)).attr("y1", m.t).attr("y2", H-m.b);
+    });
     // leyenda flotante (encima de la ventana de tiempo: arrastrarla no elige una ventana); n de cada serie.
     // Vuelve a buscar la esquina más libre cuando cambia qué se dibuja (métrica, región o electrodo, comparación)
     const legItems = (G ? G.map((gr, i) => ({mark:"line", c:gr.color, t:gr.name, n:cur.D[i].n}))
@@ -88,21 +103,22 @@ const dyn = (() => {
     title();
   }
   // Reproducir (desde el botón ▶ de la vista de topografía): los topomapas avanzan ventana a ventana por los cinco
-  // minutos (40 s por ventana) y aquí se ve el mismo instante como una bolita sobre cada serie, con una lectura del
+  // minutos (ventana del largo elegido) y aquí se ve el mismo instante como una bolita sobre cada serie, con una lectura del
   // tiempo y los valores. Un clic más la detiene y los mapas vuelven a su estado normal.
   function setPlayBtn(on){ const b = $("playbtn"); if(b){ b.setAttribute("aria-pressed", on); b.title = on ? "Stop" : "Play the five minutes: the maps evolve and the dot follows in the Time View"; b.setAttribute("aria-label", b.title); } }
   // ---------------------------------------------------------------- reproducción (botón ▶ de la vista de topografía)
-  // Una ventana de 40 s (10 épocas) se desliza por el registro época a época (4 s), con una bolita continua en esta serie: los mapas, la
+  // Una ventana del largo elegido (S.winLen épocas) se desliza por el registro época a época (4 s), con una bolita continua en esta serie: los mapas, la
   // dispersión, el mapa de calor y el grafo de similitud se recalculan para esa ventana y aquí una bolita y una banda
   // marcan el instante. Se puede pausar para analizar la ventana (◀ ▶ la mueven de 40 en 40) y ■ devuelve todo a su estado
   // normal. Arrastrar sobre la serie fija un intervalo propio, que las demás vistas también siguen (ver setWin).
   // ventana deslizante de 10 épocas centrada en el instante t: avanza época a época (4 s), sin saltos de bloque
-  const DUR = 26000, frameOf = t => Math.max(0, Math.min(65, Math.floor(t/4)-5)), winAt = t => { const a = frameOf(t); return [a, a+9]; };
+  // largo de la ventana = el elegido en «Window» (S.winLen épocas); frameOf da la primera época de la ventana en t
+  const DUR = 26000, frameOf = t => Math.max(0, Math.min(75-S.winLen, Math.floor(t/4)-Math.floor(S.winLen/2))), winAt = t => { const a = frameOf(t); return [a, a+S.winLen-1]; };
   let mode = "idle", pt = 0, tmr = null, curIdx = -1, held = false, keep = null, openedSec = null, pg = null;
   const btn = id => $(id);
   function ui(){
-    const b = btn("playbtn"); if(b){ b.setAttribute("aria-pressed", mode === "playing");
-      b.title = mode === "playing" ? "Pause" : (mode === "paused" ? "Resume" : "Play the five minutes with a sliding 40-s window: every view follows"); b.setAttribute("aria-label", b.title); }
+    const b = btn("playbtn"); if(b){ b.setAttribute("aria-pressed", mode === "playing"); b.disabled = !!S.series;   // en modo serie no se anima
+      b.title = S.series ? "Close the series to play" : (mode === "playing" ? "Pause" : (mode === "paused" ? "Resume" : `Play the five minutes with a sliding ${S.winLen*4}-s window: every view follows`)); b.setAttribute("aria-label", b.title); }
     [["stopbtn", mode !== "idle"], ["prevbtn", mode === "paused"], ["nextbtn", mode === "paused"]].forEach(([id, on]) => { const e = btn(id); if(e) e.hidden = !on; });
   }
   // lo que sigue a la ventana: dispersión (cambio de cada persona dentro de ella), mapas, mapa de calor y grafo
@@ -146,7 +162,7 @@ const dyn = (() => {
   }
   function tick(){ pt += 300*50/DUR; if(pt >= 300){ show(300); pause(); return; } show(pt); }
   function play(){
-    if(!svg || reduce) return;   // con movimiento reducido no se anima
+    if(!svg || reduce || S.series) return;   // con movimiento reducido o en modo serie no se anima
     if(mode === "playing"){ pause(); return; }
     if(mode === "idle"){ begin(); pt = 0; } else if(pt >= 300) pt = 0;
     mode = "playing"; ui(); show(pt);
@@ -167,6 +183,8 @@ const dyn = (() => {
   }
   { const on = (id, f) => { const e = $(id); if(e) e.addEventListener("click", f); };
     on("playbtn", play); on("stopbtn", () => stopPlay()); on("prevbtn", () => step(-1)); on("nextbtn", () => step(1)); }
+  // ayuda común de la ⓘ: cómo se elige una ventana y qué vale cada duración
+  const WINDOW_HELP = "Click the chart to show a window of the chosen length (Window: 32, 60 or 100 s) on the maps; drag to set your own interval. Shorter windows follow faster changes but are noisier; σθ needs at least 60 s (15 epochs). Clear returns to the full five minutes.";
   function title(){
     // puntos dentro de la ventana elegida (por su tiempo central), o todos
     const idx = d3.range(XS.length).filter(i => !S.win || (XS[i] >= S.win[0]*4 && XS[i] <= (S.win[1]+1)*4));
@@ -179,13 +197,13 @@ const dyn = (() => {
     if(G){
       const u = cur.D.map(upOf);
       setTitle("t-dyn", `${isVar() ? "Δ moving σθ" : "Δθ per epoch"}${src}: two groups${post}`, nb(`n = ${cur.D[0].n} and ${cur.D[1].n}`),
-        notes(`Δ (deprivation − normal), mean ± SE per group: Δ &gt; 0 in ${u[0]} (${G[0].name}) and ${u[1]} (${G[1].name}) of ${idx.length} ${unit}.`, key, "Drag over the chart to set a time window for the scatter."));
+        notes(`Δ (deprivation − normal), mean ± SE per group: Δ &gt; 0 in ${u[0]} (${G[0].name}) and ${u[1]} (${G[1].name}) of ${idx.length} ${unit}.`, key, WINDOW_HELP));
       return;
     }
     const d = idx.map(i => cur.SD.mean[i]-cur.NS.mean[i]), up = d.filter(v => v > 0).length;
-    setTitle("t-dyn", `${isVar() ? "Moving σθ, 40-s windows" : "Relative θ per epoch"}${src}${S.selected ? " · your selection" : ""}${post}`, nb(`n = ${cur.SD.n}`),
-      notes(`${isVar() ? "SD of regional relative θ in 40-s windows (10 epochs)" : "Regional relative θ per 4-s epoch"}, mean ± SE across people. Deprivation &gt; normal in ${up} of ${idx.length} ${unit}${S.win ? `; mean Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : ""}.`, key,
-        `${S.elec && ELEP ? `Series of electrode ${S.elec}: noisier than a region and on a larger scale (a region averages 16–28 electrodes). Set the Electrode selector in the header back to None to return to the region.` : "Choose an electrode in the header (or click one on a map or a heatmap row) to see its own series."} Rejected epochs (&gt; 200 µV) are gaps; drag to set a time window for the scatter.`));
+    setTitle("t-dyn", `${isVar() ? `Moving σθ, ${S.winLen*4}-s windows` : "Relative θ per epoch"}${src}${S.selected ? " · your selection" : ""}${post}`, nb(`n = ${cur.SD.n}`),
+      notes(`${isVar() ? `SD of regional relative θ in ${S.winLen*4}-s windows (${S.winLen} epochs)` : "Regional relative θ per 4-s epoch"}, mean ± SE across people. Deprivation &gt; normal in ${up} of ${idx.length} ${unit}${S.win ? `; mean Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : ""}.`, key,
+        `${S.elec && ELEP ? `Series of electrode ${S.elec}: noisier than a region and on a larger scale (a region averages 16–28 electrodes). Set the Electrode selector in the header back to None to return to the region.` : "Choose an electrode in the header (or click one on a map or a heatmap row) to see its own series."} Rejected epochs (&gt; 200 µV) are gaps.`, WINDOW_HELP));
   }
   function tipFor(i){
     const r = s => s.mean[i] != null ? `${f3(s.mean[i])} <span class="m">± ${f3(s.sem[i])}</span>` : "n/d";
@@ -200,5 +218,16 @@ const dyn = (() => {
       .attr("fill", o => o.c).attr("stroke", C.panel).attr("stroke-width", 1.5);
   }
   bus.on("select.dyn", e => { if(!(e && e.live)) render(); }); bus.on("axes.dyn", () => render());
-  return {render, play, stop:() => stopPlay(), withFullBox:fn => leg.withFull(fn), rebuild(){}};
+  // posición en pantalla del eje del tiempo (0 y 300 s): la serie de mapas se alinea con ella
+  function plotX(){
+    if(!svg) return null; const r = svg.node().getBoundingClientRect(), k = r.width/W;
+    return {left:r.left+dx(0)*k, right:r.left+dx(300)*k};
+  }
+  // franja de un bloque de la serie bajo el cursor (k = índice del bloque o null)
+  function hiBlock(k){
+    if(!blk) return; blk.selectAll("rect").remove();
+    if(k == null) return; const [a, b] = seriesBlocks()[k];
+    blk.insert("rect", ":first-child").attr("x", dx(a*4)).attr("width", dx((b+1)*4)-dx(a*4)).attr("y", m.t).attr("height", H-m.t-m.b).attr("fill", C.ink).attr("opacity", .08);
+  }
+  return {render, play, stop:() => stopPlay(), stopKeep:() => stopPlay({keep:true}), ui, plotX, hiBlock, withFullBox:fn => leg.withFull(fn), rebuild(){}};
 })();

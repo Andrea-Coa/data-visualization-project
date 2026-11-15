@@ -28,7 +28,7 @@ const indiv = (() => {
   function build(){
     const met = S.met, E = electrodes(), all = EEG_IDS.filter(id => SUBTOPO[id]), byId = new Map(P.map(d => [d.id, d]));
     const D0 = new Map(all.map(id => [id, E.map(e => { const t = SUBTOPO[id][e]; return t ? (met === "var" ? t.dVar : t.dMean) : null; })]));
-    // durante la reproducción, el Δ de cada celda es el de la ventana de 40 s en curso; el orden de las columnas no cambia
+    // durante la reproducción, el Δ de cada celda es el de la ventana en curso (largo elegido en «Window»); el orden de las columnas no cambia
     const D = fw ? new Map(all.map(id => { const w = topo.winOne(id, fw); return [id, E.map(e => { const t = w && w[e]; return t ? (met === "var" ? t.dVar : t.dMean) : null; })]; })) : D0;
     const roiIdx = E.map((e, i) => regionOf(e) === (S.roi === "front" ? 0 : 1) ? i : -1).filter(i => i >= 0);
     const rowMean = id => d3.mean(roiIdx, i => D0.get(id)[i]);

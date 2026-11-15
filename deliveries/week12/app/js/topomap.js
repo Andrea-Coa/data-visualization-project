@@ -8,7 +8,7 @@
 const topo = (() => {
   const el = $("topo"), GN = 96;
   let MAPS = [], linkG = null, curSpec = null;
-  // Reproducción: mientras corre, los mapas muestran una ventana de 10 épocas (40 s) que avanza por el registro:
+  // Reproducción: mientras corre, los mapas muestran una ventana del largo elegido (S.winLen épocas; 60 s por defecto) que avanza por el registro:
   // μθ = media de la ventana y σθ = desviación estándar dentro de ella, por electrodo, para el grupo activo.
   // frame = [época inicial, época final] o null; lock = escalas fijas durante la reproducción (los colores no se reescalan).
   let frame = null, lock = null;
@@ -298,6 +298,7 @@ const topo = (() => {
   function render(){
     d3.select(el).selectAll("*").remove();
     const W = el.clientWidth || 600, H = Math.max(200, el.clientHeight || 400);
+    if(S.series && ELEP){ renderSeries(W, H); return; }
     const sp = spec(), sc0 = scalesFor(sp.rows), sc = frame && lock ? (rs => lock[rs[0].met] || sc0(rs)) : sc0;
     // con el interruptor Δ apagado solo se dibujan NS y SD, con su barra de color
     const conds = S.showD ? ["NS", "SD", "D"] : ["NS", "SD"], nC = conds.length, nB = nC-1;
@@ -340,13 +341,15 @@ const topo = (() => {
     linkG = svg.append("g").style("pointer-events", "none");
     drawLink(null);
     if(frame){
-      svg.append("text").attr("class", "mdim").attr("x", W/2).attr("y", H-4).attr("text-anchor", "middle").style("font-size", "12px")
-        .text(`${frame[0]*4}–${(frame[1]+1)*4} s · ${frame[1]-frame[0]+1}-epoch window`);
-      return;   // durante la reproducción no se reescriben el título ni la leyenda
+      // rótulo fijo: qué datos muestran los mapas (contra la confusión entre los cinco minutos, una ventana y la serie)
+      const len = (frame[1]-frame[0]+1)*4;
+      status(svg, W, H, lock ? `Playing · window ${winTxt(frame)} · ${len} s` : `Window ${winTxt(frame)} · ${len} s · exploratory, not corrected across time`);
+      if(!lock) frameHeader(sp);   // durante la reproducción no se reescriben el título ni la leyenda
+      return;
     }
     header(sp);
   }
-  function drawMap(svg, defs, id, x, y, s, row, cond, color, _c, mode){
+  function drawMap(svg, defs, id, x, y, s, row, cond, color, _c, mode, tip){
     const R = s/2-10, cx = x+s/2, cy = y+s/2+3, cid = `tc${id}`;
     MAPS.push({cx, cy, R});
     defs.append("clipPath").attr("id", cid).append("circle").attr("cx", cx).attr("cy", cy).attr("r", R);
@@ -374,7 +377,7 @@ const topo = (() => {
       .attr("stroke", d => isQ(d) ? "rgba(255,255,255,.75)" : (isP(d) ? C.mark : "none"))
       .attr("stroke-width", d => isQ(d) ? .8 : 1.2).style("pointer-events", "none");
     g.append("g").selectAll("circle").data(pts).join("circle").attr("class", "ehit").attr("cx", d => d.px).attr("cy", d => d.py).attr("r", Math.max(5, R*.09))
-      .on("pointerenter", (e, d) => { drawLink(d.e); showTip(e, tipFor(d.e)); }).on("pointermove", e => moveTip(e))
+      .on("pointerenter", (e, d) => { drawLink(d.e); showTip(e, (tip || tipFor)(d.e)); }).on("pointermove", e => moveTip(e))
       .on("pointerleave", () => { drawLink(null); hideTip(); })
       .on("click", (e, d) => { hideTip(); setElec(d.e); });
   }
@@ -448,6 +451,113 @@ const topo = (() => {
     // las marcas de p y FDR solo se dibujan sobre los mapas Δ
     if(S.showD) k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);
   }
+  // rótulo de estado al pie de la vista, con un enlace para volver a los cinco minutos completos
+  function status(svg, W, H, txt){
+    const t = svg.append("text").attr("class", "tstatus").attr("x", W/2).attr("y", H-5).attr("text-anchor", "middle");
+    t.append("tspan").text(txt + " · ");
+    t.append("tspan").attr("class", "tlink").attr("role", "button").attr("tabindex", 0).text("Back to the full recording")
+      .on("click", () => backToFull()).on("keydown", ev => { if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); backToFull(); } });
+  }
+  // ⓘ de una ventana elegida en la Vista de tiempo
+  function frameHeader(sp){
+    const k = d3.select("#k-topo"); k.selectAll("*").remove();
+    const n = frame[1]-frame[0]+1, tested = sp.rows.some(r => ELEC.some(e => r.T[e] && pOf(r.T[e], r.met) != null));
+    setTitle("t-topo", `θ maps · window ${winTxt(frame)}`, nb(`${n} epochs`),
+      notes(`Only the ${n} epochs (${n*4} s) of this window: μθ is their mean and σθ their SD. This window σθ is a different and noisier measure than the five-minute σθ, which also contains the slow drift across the recording.`,
+        tested ? `Paired t-test per electrode within this window, FDR across the 61 electrodes of this window only. Exploratory: not corrected across windows, and a window chosen after looking at the data favours large effects. For a corrected view across time, use Series.`
+          : "No per-electrode test here (selection, two people or groups defined by Δθ).",
+        "Click another moment in the Time View to move the window; Back to the full recording (or Clear) returns to the five minutes."));
+    if(tested) k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);
+  }
+  // ---------------------------------------------------------------- serie completa (botón «Series»)
+  // Bloques consecutivos sin solapamiento (seriesBlocks: 5 × 60 s o 3 × 100 s), solo mapas Δ, alineados con el eje
+  // de la Vista de tiempo que queda debajo: el mapa de 60–120 s está sobre los segundos 60–120 de la curva.
+  // Filas: Δσθ y Δμθ del grupo activo; con comparación, un grupo por fila (métrica del header); con dos personas, una
+  // persona por fila. Una escala de color por fila (la misma en todos sus bloques; compartida entre filas cuando
+  // son grupos o personas con la misma métrica).
+  // Prueba: t pareada por electrodo y bloque con las mismas reglas que el resto (los 68 o grupos no circulares,
+  // n ≥ 3) y FDR de Benjamini y Hochberg sobre todos los bloques × electrodos de la fila (5 × 61 = 305 pruebas):
+  // más estricta que la de un solo mapa, así que es esperable ver menos marcas que en el mapa de cinco minutos.
+  function seriesSpec(){
+    const sel2 = S.selected && S.selected.length === 2 ? S.selected : null;
+    const [a, b] = S.pair.length === 2 ? S.pair.map(d => d.id) : (sel2 || []);
+    if(a && b && ELEP.persons[a] && ELEP.persons[b]){
+      const lab = S.pair.length === 2 ? ["A · ", "B · "] : ["", ""];
+      return {mode:"pair", rows:[a, b].map((id, i) => ({label:lab[i]+id, met:S.met, ids:[id], test:false}))};
+    }
+    const G = viewGroups();
+    if(G) return {mode:"cmp", circular:G[0].circular, rows:G.map(gr => ({label:gr.name, color:gr.color, met:S.met, ids:gr.ids.filter(id => ELEP.persons[id]), test:!gr.circular}))};
+    const ids = (S.selected || EEG_IDS).filter(id => ELEP.persons[id]);
+    return {mode:S.selected ? "group" : "all", rows:[{label:"Δσθ", met:"var", ids, test:!S.selected}, {label:"Δμθ", met:"mean", ids, test:!S.selected}]};
+  }
+  function renderSeries(W, H){
+    const sp = seriesSpec(), blocks = seriesBlocks(), nBlk = blocks.length, len = seriesLen();
+    // celdas: mapa de cada bloque, con su FDR recalculado sobre todos los bloques de la fila
+    sp.rows.forEach(row => {
+      const test = row.test && row.ids.length >= 3, P = row.met === "var" ? "sigVar" : "sigMean", Q = row.met === "var" ? "qVar" : "qMean";
+      const raw = blocks.map(w => winTopo(row.ids, w, test));
+      const all = []; raw.forEach((T, k) => ELEC.forEach(e => { if(T[e] && T[e][P] != null) all.push([k, e, T[e][P]]); }));
+      const q = bh(all.map(d => d[2])), qOf2 = new Map(all.map((d, i) => [d[0]+"|"+d[1], q[i]]));
+      row.cells = raw.map((T, k) => { const out = {}; for(const e in T) out[e] = {...T[e], [Q]:test ? qOf2.get(k+"|"+e) : null}; return out; });
+      row.tested = test;
+    });
+    const divOf = rows => d3.max(rows.flatMap(r => r.cells.flatMap(T => ELEC.map(e => T[e] ? Math.abs(val(T[e], "D", r.met)) : 0)))) || 1;
+    const sharedDiv = sp.mode === "pair" || sp.mode === "cmp" ? divOf(sp.rows) : null;
+    // alineación con el eje de la Vista de tiempo (si no está, se usa todo el ancho con el mismo margen)
+    const px = dyn.plotX ? dyn.plotX() : null, er = el.getBoundingClientRect(), kk = W/(er.width || W);
+    const x0 = px ? (px.left-er.left)*kk : 58, x1 = px ? (px.right-er.left)*kk : W-18, tx = t => x0+(x1-x0)*t/300;
+    const nR = sp.rows.length, topH = 20, botH = 40, rowGap = 8;
+    const bw = tx(len*4)-tx(0), s = Math.floor(Math.max(40, Math.min(bw-6, (H-topH-botH-(nR-1)*rowGap)/nR, 170)));
+    const y0 = Math.max(0, (H-botH-topH-nR*s-(nR-1)*rowGap)/2);
+    const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
+      .attr("role", "img").attr("aria-label", `Series of Δ topomaps: ${nBlk} blocks of ${len*4} s; rows ${sp.rows.map(r => r.label).join(" and ")}`);
+    const defs = svg.append("defs");
+    MAPS = []; curSpec = {mode:sp.mode, rows:[]};
+    blocks.forEach(([a, b], k) => svg.append("text").attr("class", "colhead").attr("x", tx((a+b+1)*2)).attr("y", y0+14).text(`${a*4}–${(b+1)*4} s`));
+    const tipCell = k => e => `<div class="h">${e} <span class="m">${blocks[k][0]*4}–${(blocks[k][1]+1)*4} s</span></div>` + sp.rows.map(r => {
+      const t = r.cells[k][e]; if(!t) return ""; const pv = pOf(t, r.met);
+      return trow(r.label.startsWith("Δ") ? r.label : `${r.label}, Δ${METN[r.met]}`, `${fsr(val(t, "D", r.met))}${pv != null ? ` <span class="m">p ${fp(pv)}, q ${fp(qOf(t, r.met))}</span>` : ""}`, r.color);
+    }).join("");
+    const legends = [];
+    sp.rows.forEach((row, ri) => {
+      const y = y0+topH+ri*(s+rowGap), div = sharedDiv || divOf([row]), divF = v => C.div((v+div)/(2*div));
+      svg.append("text").attr("class", "rowhead").attr("transform", `translate(${Math.max(10, x0-14)},${y+s/2}) rotate(-90)`).style("fill", row.color || null).text(row.label);
+      blocks.forEach(([a, b], k) => {
+        const cx = tx((a+b+1)*2), cell = svg.append("g").attr("class", "scell").style("cursor", "pointer")
+          .on("pointerenter", () => dyn.hiBlock && dyn.hiBlock(k)).on("pointerleave", () => dyn.hiBlock && dyn.hiBlock(null));
+        // clic en el fondo de un bloque: ver ese bloque como ventana (sale de la serie); clic en un electrodo: elegirlo
+        cell.append("rect").attr("x", cx-s/2).attr("y", y).attr("width", s).attr("height", s).attr("fill", "transparent")
+          .on("click", () => setWin([a, b]));
+        cell.append("title").text(`${a*4}–${(b+1)*4} s · click to open this block as a window`);
+        drawMap(cell, defs, `s${ri}_${k}`, cx-s/2, y, s, {T:row.cells[k], met:row.met}, "D", divF, divF, sp.mode === "pair" ? "pair" : "series", tipCell(k));
+      });
+      if(!sharedDiv || ri === 0) legends.push({lab:sharedDiv ? `Δ${METN[S.met]}` : row.label, div});
+    });
+    // leyendas de color horizontales al pie (no hay margen a la derecha: el eje del tiempo llega al borde)
+    const ly = H-botH+6;
+    legends.forEach((lg, i) => {
+      const lx = x0+i*190, gid = `sg${i}`, grad = defs.append("linearGradient").attr("id", gid);
+      d3.range(0, 1.001, .1).forEach(t => grad.append("stop").attr("offset", t).attr("stop-color", C.div(t)));
+      svg.append("text").attr("class", "mdim").attr("x", lx).attr("y", ly+8).text(lg.lab);
+      svg.append("rect").attr("x", lx+34).attr("y", ly).attr("width", 90).attr("height", 8).attr("rx", 3).attr("fill", `url(#${gid})`);
+      svg.append("text").attr("class", "mdim").attr("x", lx+130).attr("y", ly+8).text(`±${L.format(".2~r")(lg.div)}`);
+    });
+    linkG = svg.append("g").style("pointer-events", "none"); drawLink(null);
+    const tested = sp.rows.some(r => r.tested);
+    status(svg, W, H, `Series · ${nBlk} blocks of ${len*4} s${tested ? " · FDR across blocks × electrodes" : ""}`);
+    seriesHeader(sp, nBlk, len, tested);
+  }
+  function seriesHeader(sp, nBlk, len, tested){
+    const k = d3.select("#k-topo"); k.selectAll("*").remove();
+    const cnt = row => { let p = 0, q = 0; row.cells.forEach(T => ELEC.forEach(e => { const t = T[e]; if(t && pOf(t, row.met) != null){ if(pOf(t, row.met) < .05) p++; if(qOf(t, row.met) < .05) q++; } })); return {p, q}; };
+    const counts = sp.rows.filter(r => r.tested).map(r => { const c = cnt(r); return `${r.label}: ${c.p} with p &lt; 0.05, ${c.q} with q &lt; 0.05`; }).join("; ");
+    setTitle("t-topo", `θ series · ${nBlk} blocks of ${len*4} s`, sp.mode === "pair" ? "" : nb(`n = ${sp.rows[0].ids.length}`),
+      notes(`Δ maps (deprivation − normal) in ${nBlk} consecutive, non-overlapping blocks of ${len*4} s, aligned with the Time View below. Hover a map to highlight its block; click it to open that block as a window.`,
+        "σθ of a block is the SD within that block only (fast fluctuations). The five-minute σθ also includes the slow drift between blocks (for example, growing drowsiness), so comparing the two tells which part the deprivation effect comes from.",
+        tested ? `Paired t-test per electrode and block, Benjamini–Hochberg FDR across all ${nBlk} × 61 tests of each row (stricter than one map, so fewer marks than in the five-minute map are expected). ${counts}.` : "No per-electrode test (selection, two people or groups defined by Δθ).",
+        "Limits: five minutes with eyes open and no vigilance marker, so a drift over time can be drowsiness, fatigue or time on task. A cluster-based permutation test over electrodes × time (Maris and Oostenveld, 2007) would be the stricter alternative."));
+    if(tested) k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);
+  }
   bus.on("select.topo", e => { if(!(e && e.live)) render(); });
   bus.on("pin.topo", () => render());
   // mapa suelto para las vistas secundarias: mismo método de interpolación que la matriz
@@ -455,12 +565,12 @@ const topo = (() => {
   // reproducción: se prueban todas las ventanas una vez para fijar las escalas, y luego se avanza ventana a ventana
   function startFrames(){
     if(!ELEP) return false;
-    lock = {}; frame = [0, 9];
+    const L = S.winLen; lock = {}; frame = [0, L-1];
     const upd = (met, d) => { const l = lock[met] || (lock[met] = {seq:[Infinity, -Infinity], div:0});
       l.seq = [Math.min(l.seq[0], d.seq[0]), Math.max(l.seq[1], d.seq[1])]; l.div = Math.max(l.div, d.div); };
     const sc0 = scalesFor();
-    for(let a = 0; a <= 65; a += 3){ frame = [a, a+9]; const sp = spec(); sp.rows.forEach(r => upd(r.met, scalesFor(sp.rows)([r]))); }
-    frame = [0, 9]; render(); return true;
+    for(let a = 0; a <= 75-L; a += 3){ frame = [a, a+L-1]; const sp = spec(); sp.rows.forEach(r => upd(r.met, scalesFor(sp.rows)([r]))); }
+    frame = [0, L-1]; render(); return true;
   }
   // ventana cualquiera [época, época]: la de la reproducción o un intervalo elegido sobre la serie; null = estado normal
   const setFrame = w => { if(!w){ endFrames(); return; } if(!frame || frame[0] !== w[0] || frame[1] !== w[1]){ frame = w; render(); } };

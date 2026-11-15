@@ -57,10 +57,24 @@ const bus = d3.dispatch("hover", "pin", "select", "axes", "frame");
 const S = {
   y:"d_pvt", roi:"front", met:"var",
   hovered:null, pair:[], selected:null, group:"all", vuln:new Set(), elec:null, win:null, cmp:"none", showD:true,   // la matriz siempre muestra NS, SD y Δ (6 mapas)
+  // vista temporal: duración de la ventana en épocas de 4 s (WINLENS) y modo serie (bloques de tiempo sin solapamiento)
+  winLen:15, series:false,
   // origen del eje x de la dispersión: ventana de tiempo > electrodo > región
   xKey(){ return this.win ? "wx" : (this.elec ? "ex" : ROI[this.roi][this.met]); },
 };
 const winTxt = w => `${w[0]*4}–${(w[1]+1)*4} s`;
+// Duraciones de ventana que se pueden elegir, en épocas de 4 s: 8 (32 s), 15 (60 s) y 25 (100 s). Las épocas duran
+// 4 s, así que «30 s» no existe exacto: la opción corta es 32 s. σθ es una desviación estándar entre épocas y con
+// 8 valores es demasiado ruidosa (error relativo ≈ 1/√(2(n−1)) ≈ 27 %), así que con σθ el mínimo es 60 s (15 épocas).
+const WINLENS = [8, 15, 25], WIN_MIN_VAR = 15;
+const winLenOk = (n, met) => met !== "var" || n >= WIN_MIN_VAR;
+// Modo serie: el registro (75 épocas) se parte en bloques consecutivos sin solapamiento del largo elegido; con 32 s
+// los bloques serían 9 y no caben alineados, así que la serie usa bloques de 60 s. 15 épocas → 5 bloques de 60 s;
+// 25 → 3 bloques de 100 s.
+const seriesLen = () => Math.max(S.winLen, WIN_MIN_VAR);
+const seriesBlocks = () => { const L = seriesLen(); return d3.range(Math.floor(75/L)).map(k => [k*L, k*L+L-1]); };
+// ventana de largo S.winLen centrada en el segundo t (dentro de las 75 épocas)
+const winCentered = t => { const L = S.winLen, a = Math.max(0, Math.min(75-L, Math.round(t/4-L/2))); return [a, a+L-1]; };
 // valores por persona del electrodo elegido en un mapa, o de la ventana de tiempo elegida en la serie
 function computeX(){
   P.forEach(d => { d.ex = null; d.wx = null; });
@@ -303,20 +317,22 @@ const RIM = .94, dpos = e => { const [x, y] = COORDS[e], r = Math.hypot(x, y), k
 const pOf = (t, met) => met === "var" ? t.sigVar : t.sigMean;
 const qOf = (t, met) => met === "var" ? t.qVar : t.qMean;
 const sigCount = met => ({p: ELEC.filter(e => pOf(TOPO[e], met) < .05).length, q: ELEC.filter(e => qOf(TOPO[e], met) < .05).length});
-// σθ móvil: desviación estándar de la θ regional en una ventana deslizante de ROLL_W épocas (10 × 4 s = 40 s; la
-// potencia espectral del EEG en reposo alcanza su confiabilidad máxima hacia los 40 s: Gudmundsson et al., 2007).
+// σθ móvil: desviación estándar de la θ regional en una ventana deslizante del largo elegido (S.winLen épocas; 60 s
+// por defecto). Antes era fija en 40 s citando a Gudmundsson et al. (2007), pero esa cifra no se pudo verificar en
+// el artículo: ahora la ventana la elige quien analiza y la ⓘ explica el compromiso (más corta = más ruido).
 // Mismo divisor que σθ en el pipeline (np.std, n). Ojo: σθ de la dispersión promedia las DE de cada electrodo de la
 // región; aquí se usa la serie ya promediada por región (subject_epochs.json), así que la escala es menor: sirve
 // para ver la forma en el tiempo, no para comparar cifras con la dispersión.
-const ROLL_W = 10;
+const rollW = () => S.winLen;
 const sdPop = a => { const m = d3.mean(a); return Math.sqrt(d3.mean(a, v => (v-m)**2)); };
 function rollSD(arr){
   const out = [];
-  for(let i = 0; i+ROLL_W <= 75; i++){ const v = arr.slice(i, i+ROLL_W).filter(x => x != null); out.push(v.length >= ROLL_W*.8 ? sdPop(v) : null); }
+  const w = rollW();
+  for(let i = 0; i+w <= 75; i++){ const v = arr.slice(i, i+w).filter(x => x != null); out.push(v.length >= w*.8 ? sdPop(v) : null); }
   return out;
 }
 // eje del tiempo (segundos) de cada punto: centro de la época, o centro de la ventana móvil
-const seriesX = met => met === "var" ? d3.range(75-ROLL_W+1).map(i => i*4+ROLL_W*2) : d3.range(75).map(i => i*4+2);
+const seriesX = met => met === "var" ? d3.range(75-rollW()+1).map(i => i*4+rollW()*2) : d3.range(75).map(i => i*4+2);
 // serie por época de una persona: la de la región o, con un electrodo elegido (clic en un mapa o en una fila del mapa
 // de calor), la de ese electrodo (data/electrode_epochs.json); null en las épocas rechazadas
 function rawSeries(id, pref, cond){

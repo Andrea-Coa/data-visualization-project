@@ -55,14 +55,44 @@ const themeNow = () => document.documentElement.dataset.theme === "light" ? "lig
 function drawAll(){ scatter.render(); topo.render(); dyn.render(); indiv.render(); side.render(); updateStatus(); }
 function setY(v){ S.y = v; $("ysel").value = v; scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 function setRoi(v){ S.roi = v; S.elec = null; segRoi.set(v); computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
-function setMet(v){ S.met = v; segMet.set(v); computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
+// σθ necesita al menos 60 s (WIN_MIN_VAR épocas): al pasar a σθ con la ventana de 32 s, sube a 60 s
+function setMet(v){
+  S.met = v;
+  if(!winLenOk(S.winLen, v)){   // la ventana abierta también se alarga, con el mismo centro
+    S.winLen = WIN_MIN_VAR;
+    if(S.win){ S.win = winCentered((S.win[0]+S.win[1]+1)*2); topo.setFrame(S.win); bus.call("frame", null, S.win); }
+  }
+  syncWinUI(); segMet.set(v); computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 // electrodo elegido en un mapa: manda en el eje x de la dispersión (clic de nuevo = volver a la región)
 function setElec(e){ S.elec = S.elec === e ? null : e; if(S.elec) S.win = null; computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 // ventana de tiempo elegida en la serie: el eje x usa el cambio theta de cada persona dentro de la ventana
 // el intervalo elegido lo siguen también los mapas, el mapa de calor y el grafo (como en la reproducción)
-function setWin(w){ S.win = w; if(w) S.elec = null; computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.setFrame(w); if(!w) topo.render(); bus.call("axes"); bus.call("frame", null, w); }
+// ---------- vista temporal: ventana, duración y serie ----------
+// Elegir una ventana cierra la serie (son dos modos excluyentes: una ventana o bloques).
+function syncWinUI(){
+  d3.selectAll("#wlen button").attr("aria-pressed", function(){ return +this.dataset.n === S.winLen; })
+    .property("disabled", function(){ return !winLenOk(+this.dataset.n, S.met); });
+  const b = $("seriesbtn"); if(b){ b.setAttribute("aria-pressed", S.series); b.title = S.series ? "Close the series" : "Show the full series: Δ maps in non-overlapping blocks aligned with the Time View"; }
+  if(dyn.ui) dyn.ui();
+}
+// nueva duración: si hay una ventana elegida, se mantiene su centro con el largo nuevo
+function setWinLen(n){
+  if(!winLenOk(n, S.met) || n === S.winLen) return;
+  if(dyn.stopKeep) dyn.stopKeep();
+  const w = S.win; S.winLen = n; syncWinUI();
+  if(w) setWin(winCentered((w[0]+w[1]+1)*2)); else { topo.render(); bus.call("axes"); }
+}
+function setSeries(on){
+  if(on === S.series) return;
+  dyn.stop(); S.series = on;
+  if(on && S.win){ S.win = null; computeX(); scatter.render(); topo.endFrames(); bus.call("frame", null, null); }
+  syncWinUI(); topo.render(); bus.call("axes");
+}
+// «Back to the full recording»: sin ventana, sin serie, sin reproducción
+function backToFull(){ dyn.stop(); S.series = false; syncWinUI(); setWin(null); }
+function setWin(w){ if(w && S.series){ S.series = false; syncWinUI(); } S.win = w; if(w) S.elec = null; computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.setFrame(w); if(!w) topo.render(); bus.call("axes"); bus.call("frame", null, w); }
 function resetAll(){
-  scatter.clearBrushVisual(); S.pair = []; S.elec = null; S.win = null; S.cmp = "none"; computeX();
+  scatter.clearBrushVisual(); S.pair = []; S.elec = null; S.win = null; S.cmp = "none"; S.series = false; syncWinUI(); computeX();
   setSelected(null); bus.call("pin", null, S.pair); scatter.render(); topo.endFrames(); topo.render(); bus.call("axes"); bus.call("frame", null, null);
 }
 // comparación de dos grupos: las cuatro vistas se dibujan con los dos colores; anula el lazo
@@ -111,6 +141,9 @@ loadData().then(D => {
     side.render();
   }));
   d3.select("#cmpsel").on("change", function(){ setCmp(this.value); });
+  d3.selectAll("#wlen button").on("click", function(){ setWinLen(+this.dataset.n); });
+  d3.select("#seriesbtn").on("click", () => setSeries(!S.series));
+  syncWinUI();
   d3.select("#resetbtn").on("click", resetAll);
   d3.select("#xchip").on("click", () => setWin(null));
   // selector de electrodo: "None" = la región del header; los electrodos agrupados por región

@@ -520,3 +520,19 @@ body[data-focus="compare"] .bar .fld:not(:has(#cmpsel)){opacity:.35}
 .sheet-body details[open] summary{border-bottom-left-radius:0;border-bottom-right-radius:0}
 .sheet-body details .tscroll{border-top:0;border-radius:0 0 10px 10px}
 .ab-credits{margin-top:22px!important;font-size:11.5px;color:var(--muted)}
+
+/* ---------- vista temporal: selector de duración, botón «Series», rótulo de estado y límites de bloques ---------- */
+.wlen{display:inline-flex;align-items:center;gap:2px;margin-left:auto;font-family:var(--sans);font-size:11px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.wlen i{font-style:normal;margin-right:4px}
+.wlen button{font:inherit;color:var(--ink2);background:transparent;border:1px solid var(--rule2);border-radius:3px;padding:1px 6px;cursor:pointer}
+.wlen button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--panel)}
+.wlen button:disabled{opacity:.35;cursor:not-allowed}
+.wlen + .vx{margin-left:6px}
+.vtog{flex:none;margin-left:auto;font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink2);background:transparent;border:1px solid var(--rule2);border-radius:3px;padding:1px 7px;cursor:pointer}
+.vtog[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--panel)}
+.vtog + .vplay{margin-left:4px}
+.vplay:disabled{opacity:.25;cursor:not-allowed}
+.tstatus{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.tstatus .tlink{fill:var(--ink);text-decoration:underline;cursor:pointer}
+.tstatus .tlink:focus{outline:none;fill:var(--sd)}
+.blk-edge{stroke:var(--ink2);stroke-width:1;stroke-dasharray:3 3;opacity:.55}
