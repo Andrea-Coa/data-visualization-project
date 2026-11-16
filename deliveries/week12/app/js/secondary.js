@@ -98,7 +98,7 @@ const side = (() => {
       // proporcional al mapa; con un radio fijo de 3 px tapaban estos mapas chicos
       const mr = Math.max(1.2, Math.min(3, R*.026));   // algo menor que en los mapas grandes: estas cabezas son chicas
       E.forEach((e, i) => { if(!COORDS[e]) return; const sig = !sel && g.p[i] < .05, fdr = sig && g.q[i] < .05;
-        svg.append("circle").attr("cx", cx+dpos(e)[0]*R).attr("cy", cy-dpos(e)[1]*R).attr("r", fdr ? mr : (sig ? mr*.55 : .9))
+        svg.append("circle").attr("cx", cx+dpos(e)[0]*R).attr("cy", cy-dpos(e)[1]*R).attr("r", fdr ? mr : (sig ? Math.max(1.8, mr*.8) : .9))
           .attr("fill", fdr ? "none" : (sig ? C.mark : C.edot)).attr("stroke", fdr ? C.mark : "none")
           .attr("stroke-width", fdr ? 1.2 : 0); });   // mismo estilo que los mapas principales (aro = FDR, punto = p sin corregir)
       svg.append("text").attr("class", "mdim").attr("x", cx).attr("y", cy+R+12).attr("text-anchor", "middle").text(`${fsr(-mx)} to ${fsr(mx)}`);

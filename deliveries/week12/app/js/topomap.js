@@ -384,7 +384,7 @@ const topo = (() => {
     const isQ = d => inCl(d) || (mm === "fdr" && p05(d) && qOf(d.t, row.met) < .05), isP = d => isQ(d) || (mm === "p" && p05(d));
     const mr = Math.max(1.6, Math.min(3.4, R*.03));   // radio según el tamaño del mapa (en mapas chicos, celular o serie, no tapan la cabeza)
     g.append("g").selectAll("circle").data(pts).join("circle").attr("cx", d => d.px).attr("cy", d => d.py)
-      .attr("r", d => isQ(d) ? mr : (isP(d) ? mr*.55 : 1.1))
+      .attr("r", d => isQ(d) ? mr : (isP(d) ? Math.max(1.8, mr*.8) : 1.1))
       .attr("fill", d => isQ(d) ? "none" : (isP(d) ? C.mark : C.edot))
       .attr("stroke", d => isQ(d) ? C.mark : "none")
       .attr("stroke-width", d => isQ(d) ? 1.2 : 0).style("pointer-events", "none");
@@ -449,12 +449,17 @@ const topo = (() => {
       setTitle("t-topo", `θ topomaps: ${sp.mode === "pair" ? "two people" : "two groups"}`,
         `mean Δ${METN[S.met]}: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`, notes(...base, "Both rows share the same scales.", test, sp.mode === "cmp" && !sp.circular ? marksNote(sp.rows) : ""));
       if(sp.mode === "cmp" && !sp.circular) legend();
+      // sin prueba (dos personas, o grupos definidos por Δθ): se dice en la leyenda, en lugar de dejarla vacía
+      else d3.select("#k-topo").append("span").attr("class", "k notest")
+        .attr("title", sp.mode === "pair" ? "One σθ value per person and night: there is no variability across people to test against. Epochs within a recording are not independent, so they cannot be used instead." : "These groups are defined by Δθ itself, so testing their Δθ would be circular.")
+        .text(sp.mode === "pair" ? "no test for single people" : "no test: groups defined by Δθ");
       return;
     }
     if(sp.mode === "group"){
       setTitle("t-topo", sp.n === 1 && S.selected ? `θ topomaps: ${S.selected[0]}` : "θ topomaps: your selection", nb(`n = ${sp.n}`),
         notes(...base, `Δσθ &gt; 0 at ${up(sp.rows[0].T, "var")} of 61 electrodes.`,
           "No per-electrode test: a selection is usually picked by its Δθ, so the test would be circular."));
+      d3.select("#k-topo").append("span").attr("class", "k notest").attr("title", "A selection is usually picked by its Δθ, so testing its Δθ would be circular.").text("no test for a selection");
       return;
     }
     const v = sigCount("var"), m = sigCount("mean");

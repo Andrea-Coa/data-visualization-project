@@ -553,3 +553,4 @@ body[data-focus="compare"] .bar .fld:not(:has(#cmpsel)){opacity:.35}
 .k i.wdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#FFFFFF;border:1px solid #1B1B1B;margin-right:4px;vertical-align:0}
 .k.cl-test{margin-left:6px;color:var(--ink2)}
 .k i.bdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#1B1B1B;margin-right:4px;vertical-align:0}
+.k.notest{color:var(--muted);font-style:italic}
