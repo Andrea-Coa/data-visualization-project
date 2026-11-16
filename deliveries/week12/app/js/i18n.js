@@ -28,7 +28,7 @@
     "Δ PVT, lapses (count)":"Δ PVT, lapsos (número)", "Δ PVT, SD of reaction time (ms)":"Δ PVT, DE del tiempo de reacción (ms)",
     "Δ KSS, sleepiness (points)":"Δ KSS, somnolencia (puntos)", "Δ SSS, sleepiness (points)":"Δ SSS, somnolencia (puntos)", "Δ PANAS+ (points)":"Δ PANAS+ (puntos)", "Δ PANAS− (points)":"Δ PANAS− (puntos)",
     "Relative θ = #–# Hz power divided by #–# Hz power (unitless); {S}θ is its standard deviation across the # #-s epochs and {S}θ its mean.":"θ relativa = potencia de #–# Hz dividida por la de #–# Hz (sin unidades); σθ es su desviación estándar entre las # épocas de # s y μθ su media.",
-    "θ maps · # of # electrodes with q < #":"Mapas θ · # de # electrodos con q < #", "Normal":"Normal", "Deprivation":"Privación",
+    "θ maps · q < #: {S}θ #, {S}θ # of # electrodes":"Mapas θ · q < #: {S}θ #, {S}θ # de # electrodos", "Normal":"Normal", "Deprivation":"Privación",
     "SD across epochs":"DE entre épocas", "Δ SD across epochs":"Δ DE entre épocas", "fraction of #–# Hz":"fracción de #–# Hz", "Δ fraction of #–# Hz":"Δ fracción de #–# Hz",
     "Moving {S}θ, #-s windows · frontal":"{S}θ móvil, ventanas de # s · frontal", "Moving {S}θ, #-s windows · centrotemporal":"{S}θ móvil, ventanas de # s · centrotemporal",
     "Moving {S}θ, #-s windows · electrode {E}":"{S}θ móvil, ventanas de # s · electrodo {E}", "Moving {S}θ, #-s windows · frontal, #–# s":"{S}θ móvil, ventanas de # s · frontal, #–# s",
@@ -52,7 +52,7 @@
     "#–# s · #-epoch window":"#–# s · ventana de # épocas", "Play the five minutes: the maps evolve and the dot follows in the Time View":"Reproducir los cinco minutos: los mapas evolucionan y la bolita lo sigue en la Vista de tiempo", "Pause":"Pausar", "Resume":"Reanudar", "Previous epoch (# s)":"Época anterior (# s)", "Next epoch (# s)":"Época siguiente (# s)", "Stop and return to the normal view":"Detener y volver a la vista normal",
     "Play the five minutes with a sliding #-s window: every view follows":"Reproducir los cinco minutos con una ventana deslizante de # s: todas las vistas lo siguen",
     // vista temporal: ventana, duración y serie (noviembre 2026)
-    "Window":"Ventana", "Window length":"Duración de la ventana", "# s":"# s", "Series":"Serie",
+    "Window":"Ventana", "Cluster channels":"Canales del clúster", "in a cluster":"en un clúster", "cluster test p < #":"prueba de clústeres p < #", "cluster test p #":"prueba de clústeres p #", "cluster test p ≤ #":"prueba de clústeres p ≤ #", "cluster test n.s.":"prueba de clústeres n.s.", "q < #":"q < #", "uncorrected":"sin corregir", "Marks on the Δ maps":"Marcas en los mapas Δ", "Window length":"Duración de la ventana", "# s":"# s", "Series":"Serie",
     "#-s window (# epochs; {S}θ only)":"Ventana de # s (# épocas; solo {S}θ)", "#-s window (# epochs)":"Ventana de # s (# épocas)",
     "Show the full series: Δ maps in non-overlapping blocks aligned with the Time View":"Ver la serie completa: mapas Δ en bloques sin solapamiento alineados con la Vista de tiempo",
     "Close the series":"Cerrar la serie", "Close the series to play":"Cierra la serie para reproducir", "Back to the full recording":"Volver al registro completo",
@@ -185,7 +185,10 @@
     const cur = n.nodeValue;
     if(wrote.get(n) === cur) return;
     orig.set(n, cur);
-    if(window.LANG === "es"){ const t = tr(cur); if(t !== cur){ wrote.set(n, t); n.nodeValue = t; } }
+    // idioma y luego banda (bandText en core.js); lo marcado data-theta-only conserva theta
+    let t = window.LANG === "es" ? tr(cur) : cur;
+    if(typeof bandText === "function" && !(n.parentNode.closest && n.parentNode.closest("[data-theta-only]"))) t = bandText(t);
+    if(t !== cur){ wrote.set(n, t); n.nodeValue = t; }
   }
   const ATTRS = ["title", "aria-label"];
   function doAttrs(el){
@@ -194,7 +197,9 @@
       const m = origAttr.get(el) || {}, last = m["w"+a];
       if(last === v) return;
       m[a] = v; origAttr.set(el, m);
-      if(window.LANG === "es"){ const t = tr(v); if(t !== v){ m["w"+a] = t; el.setAttribute(a, t); } }
+      let t = window.LANG === "es" ? tr(v) : v;
+      if(typeof bandText === "function" && !(el.closest && el.closest("[data-theta-only]"))) t = bandText(t);
+      if(t !== v){ m["w"+a] = t; el.setAttribute(a, t); }
     });
   }
   function walk(root){
@@ -230,7 +235,7 @@
   function apply(redraw){
     document.documentElement.lang = window.LANG;
     mo.disconnect();
-    if(window.LANG === "es") walk(document.body); else restoreEN();
+    restoreEN(); walk(document.body);   // vuelve al texto original y aplica idioma y banda
     swapAbout();
     watch();
     const b = $("langbtn"); if(b) b.innerHTML = window.LANG === "es" ? 'EN · <b>ES</b>' : '<b>EN</b> · ES';
@@ -250,5 +255,5 @@
     clearInterval(boot); rebuild(); rebuild0(); apply(window.LANG === "es");
   }, 150);
   btn.innerHTML = window.LANG === "es" ? 'EN · <b>ES</b>' : '<b>EN</b> · ES';
-  window.i18n = {tr, set};
+  window.i18n = {tr, set, refresh:() => apply(false)};
 })();

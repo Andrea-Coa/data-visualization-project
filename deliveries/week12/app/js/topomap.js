@@ -15,7 +15,7 @@ const topo = (() => {
   const winCache = new Map();
   // test = prueba t pareada por electrodo dentro de la ventana (misma regla que sin reproducción: n ≥ 3 y grupos no circulares)
   function winTopo(ids, [a, b], test = false){
-    const key = ids.join(",")+"|"+a+"|"+b+"|"+(test ? 1 : 0); if(winCache.has(key)) return winCache.get(key);
+    const key = S.band+"|"+ids.join(",")+"|"+a+"|"+b+"|"+(test ? 1 : 0); if(winCache.has(key)) return winCache.get(key);   // la banda cambia ELEP
     const out = {};
     ELEC.forEach(e => {
       const i = ELEP.idx[e]; if(i == null) return;
@@ -80,10 +80,11 @@ const topo = (() => {
     const G = viewGroups();
     if(G){
       const ts = G.map(gr => groupTopo(gr.ids, !gr.circular));
-      return {mode:"cmp", G, circular:G[0].circular, rows:G.map((gr, i) => ({label:`${gr.name} (${ts[i].n || gr.ids.length})`, met:S.met, T:ts[i].T, color:gr.color}))};
+      return {mode:"cmp", G, circular:G[0].circular, rows:G.map((gr, i) => ({label:`${gr.name} (${ts[i].n || gr.ids.length})`, met:S.met, T:ts[i].T, color:gr.color, ids:gr.ids, test:!gr.circular}))};
     }
     const g = groupTopo(S.selected, !S.selected);
-    return {mode:g.mode, n:g.n, rows:[{label:"σθ", met:"var", T:g.T}, {label:"μθ", met:"mean", T:g.T}]};
+    const ids = (S.selected || EEG_IDS).filter(id => SUBTOPO[id]);
+    return {mode:g.mode, n:g.n, rows:[{label:"σθ", met:"var", T:g.T, ids, test:!S.selected}, {label:"μθ", met:"mean", T:g.T, ids, test:!S.selected}]};
   }
   function scalesFor(rows){
     const seqDom = rs => d3.extent(rs.flatMap(r => ELEC.flatMap(e => r.T[e] ? [val(r.T[e], "NS", r.met), val(r.T[e], "SD", r.met)] : [])).filter(v => v != null));
@@ -319,6 +320,7 @@ const topo = (() => {
       t.append("tspan").text(a); t.append("tspan").attr("class", "m").text(b);
     });
     const shared = sp.mode === "pair" || sp.mode === "cmp" ? sc(sp.rows) : null;
+    if(sp.mode !== "pair") sp.rows.forEach(r => { r.cl = clustersFor(r); });   // resultado global de la leyenda y la ⓘ
     MAPS = []; curSpec = sp;
     sp.rows.forEach((row, ri) => {
       const y = y0+topH+ri*(s+rowGap), dom = shared || sc([row]);
@@ -357,7 +359,9 @@ const topo = (() => {
     const g = svg.append("g");
     g.append("image").attr("x", cx-R).attr("y", cy-R).attr("width", 2*R).attr("height", 2*R).attr("preserveAspectRatio", "none").attr("clip-path", `url(#${cid})`).attr("href", f.href);
     const proj = d3.geoTransform({point(px, py){ this.stream.point(cx-R+px*2*R/GN, cy-R+py*2*R/GN); }});
-    const dom = d3.extent(f.grid);
+    // contornos: durante la reproducción, umbrales fijos (los de la escala de color fija), para que las líneas no
+    // salten de cuadro en cuadro; fuera de ella, los del propio mapa
+    const fx = frame && lock && lock[row.met], dom = fx ? (cond === "D" ? [-fx.div, fx.div] : fx.seq) : d3.extent(f.grid);
     g.append("g").attr("clip-path", `url(#${cid})`).selectAll("path").data(d3.contours().size([GN, GN]).thresholds(d3.ticks(dom[0], dom[1], 7))(Array.from(f.grid)))
       .join("path").attr("class", "contour").attr("d", d3.geoPath(proj));
     g.append("circle").attr("class", "head").attr("cx", cx).attr("cy", cy).attr("r", R);
@@ -366,16 +370,24 @@ const topo = (() => {
     g.append("path").attr("class", "head").attr("d", `M ${cx+R} ${cy-10} C ${cx+R+7} ${cy-9} ${cx+R+7} ${cy+9} ${cx+R} ${cy+10}`);
     // marcas en Δ donde hay prueba por electrodo: los 68 o cada grupo de una comparación definida fuera de Δθ
     // (sexo, orden, PSQI). Sin prueba: dos personas, selecciones (se eligen por su Δθ) y vulnerables vs resto (circular)
-    const marks = cond === "D" && mode !== "pair";
+    // una sola capa de marcas, la elegida en la leyenda (S.marks): cluster = contorno de la zona significativa;
+    // fdr = punto en los electrodos con q < 0.05; p = anillo en los de p < 0.05 sin corregir (exploratorio)
+    const mm = cond === "D" && mode !== "pair" ? S.marks : "none";
     const pts = ELEC.filter(e => row.T[e]).map(e => ({e, t:row.T[e], px:cx+dpos(e)[0]*R, py:cy-dpos(e)[1]*R}));
     // null < .05 es verdadero en JS: sin prueba (n < 3) no hay marca
-    const isP = d => marks && pOf(d.t, row.met) != null && pOf(d.t, row.met) < .05, isQ = d => isP(d) && qOf(d.t, row.met) < .05;
-    const mr = Math.max(2.8, Math.min(4, R*.032));   // radio de la marca según el tamaño del mapa; anillo y punto iguales
+    const p05 = d => pOf(d.t, row.met) != null && pOf(d.t, row.met) < .05;
+    // Convención de Cui et al. (2026, mismo dataset y métrica, el estudio que BATIMIX reexamina; Fig. 3B): aro fino sin
+    // relleno en los electrodos que sobreviven a FDR (o en los canales del cluster), punto pequeño relleno en los de
+    // p < 0.05 sin corregir; el resto, puntos de sensor; color = diferencia en unidades; isolíneas finas. Aro y punto
+    // van en el color de tinta del tema (negro en el claro, como en la figura de Cui).
+    const inCl = d => mm === "cluster" && row.cl && row.cl.at[d.e] != null;
+    const isQ = d => inCl(d) || (mm === "fdr" && p05(d) && qOf(d.t, row.met) < .05), isP = d => isQ(d) || (mm === "p" && p05(d));
+    const mr = Math.max(1.6, Math.min(3.4, R*.03));   // radio según el tamaño del mapa (en mapas chicos, celular o serie, no tapan la cabeza)
     g.append("g").selectAll("circle").data(pts).join("circle").attr("cx", d => d.px).attr("cy", d => d.py)
-      .attr("r", d => isP(d) ? mr : 1.1)
-      .attr("fill", d => isQ(d) ? C.mark : (isP(d) ? "none" : C.edot))
-      .attr("stroke", d => isQ(d) ? "rgba(255,255,255,.75)" : (isP(d) ? C.mark : "none"))
-      .attr("stroke-width", d => isQ(d) ? .8 : 1.2).style("pointer-events", "none");
+      .attr("r", d => isQ(d) ? mr : (isP(d) ? mr*.55 : 1.1))
+      .attr("fill", d => isQ(d) ? "none" : (isP(d) ? C.mark : C.edot))
+      .attr("stroke", d => isQ(d) ? C.mark : "none")
+      .attr("stroke-width", d => isQ(d) ? 1.2 : 0).style("pointer-events", "none");
     g.append("g").selectAll("circle").data(pts).join("circle").attr("class", "ehit").attr("cx", d => d.px).attr("cy", d => d.py).attr("r", Math.max(5, R*.09))
       .on("pointerenter", (e, d) => { drawLink(d.e); showTip(e, (tip || tipFor)(d.e)); }).on("pointermove", e => moveTip(e))
       .on("pointerleave", () => { drawLink(null); hideTip(); })
@@ -427,7 +439,7 @@ const topo = (() => {
     // conteos de p y q de un conjunto de mapas ya probado
     const cnt = (T, met) => ({p: ELEC.filter(e => T[e] && pOf(T[e], met) != null && pOf(T[e], met) < .05).length,
       q: ELEC.filter(e => T[e] && qOf(T[e], met) != null && qOf(T[e], met) < .05).length});
-    const legend = () => { if(S.showD) k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`); };
+    const legend = () => marksKey(sp.rows);
     if(sp.mode === "pair" || sp.mode === "cmp"){
       const [r0, r1] = sp.rows, m0 = meanD(r0.T, S.met), m1 = meanD(r1.T, S.met);
       const n0 = sp.mode === "pair" ? sp.names[0] : sp.G[0].name, n1 = sp.mode === "pair" ? sp.names[1] : sp.G[1].name;
@@ -435,7 +447,7 @@ const topo = (() => {
         : sp.circular ? "No per-electrode test: these groups are defined by Δθ itself, so testing their Δθ would be circular."
         : `Paired t-test per electrode within each group, FDR per group. Ring: p &lt; 0.05; dot: q &lt; 0.05 (${n0}: ${cnt(r0.T, S.met).p} and ${cnt(r0.T, S.met).q}; ${n1}: ${cnt(r1.T, S.met).p} and ${cnt(r1.T, S.met).q}). Marks show where each group changes, not where the groups differ.`;
       setTitle("t-topo", `θ topomaps: ${sp.mode === "pair" ? "two people" : "two groups"}`,
-        `mean Δ${METN[S.met]}: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`, notes(...base, "Both rows share the same scales.", test));
+        `mean Δ${METN[S.met]}: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`, notes(...base, "Both rows share the same scales.", test, sp.mode === "cmp" && !sp.circular ? marksNote(sp.rows) : ""));
       if(sp.mode === "cmp" && !sp.circular) legend();
       return;
     }
@@ -446,11 +458,64 @@ const topo = (() => {
       return;
     }
     const v = sigCount("var"), m = sigCount("mean");
-    setTitle("t-topo", `θ maps · ${v.q + m.q} of 61 electrodes with q &lt; 0.05`, "",
-      notes(...base, `Paired t-test per electrode (n = 68). Ring: p &lt; 0.05 (σθ ${v.p}, μθ ${m.p}); dot: FDR q &lt; 0.05 (${v.q + m.q}).`));
-    // las marcas de p y FDR solo se dibujan sobre los mapas Δ
-    if(S.showD) k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);
+    // una cifra por métrica: sumarlas daba «113 of 61» cuando las dos tienen electrodos significativos
+    setTitle("t-topo", `θ maps · q &lt; 0.05: σθ ${v.q}, μθ ${m.q} of 61 electrodes`, "",
+      notes(...base, `Paired t-test per electrode (n = 68): p &lt; 0.05 at σθ ${v.p} and μθ ${m.p} electrodes; FDR q &lt; 0.05 at ${v.q} and ${m.q}.`, marksNote(sp.rows)));
+    // las marcas solo se dibujan sobre los mapas Δ: una capa a la vez, elegida en la leyenda
+    marksKey(sp.rows);
   }
+  // ---------------------------------------------------------------- marcas: cluster, FDR, p o ninguna
+  // Prueba por clusters de una fila (sus personas, su métrica, la ventana actual); se guarda por banda, métrica,
+  // personas y ventana. Durante la reproducción usa 200 permutaciones (p con menos resolución) para no frenarla.
+  const clCache = new Map();
+  function clustersFor(row){
+    if(!row.test || !row.ids || row.ids.length < 3) return null;
+    const perms = frame && lock ? 200 : CLUSTER.perms;
+    const key = [S.band, row.met, frame ? frame.join("-") : "all", perms, row.ids.join(",")].join("|");
+    if(!clCache.has(key)){ if(clCache.size > 300) clCache.clear(); clCache.set(key, clusterTest(deltaMatrix(row.ids, row.met, frame), elecAdjacency(), {perms})); }
+    return toMarks(clCache.get(key), ELEC.length, 0);
+  }
+  // electrodos de los clusters significativos (p < 0.05) de un bloque: {e: signo}, más los clusters para la leyenda
+  function toMarks(res, m, block){
+    if(!res) return null;
+    const sig = res.clusters.filter(c => c.p < CLUSTER.alpha), at = {};
+    sig.forEach(c => c.nodes.forEach(k => { if(Math.floor(k/m) === block) at[ELEC[k % m]] = c.sign; }));
+    return {at, clusters:res.clusters, sig, perms:res.perms, n:res.n};
+  }
+  const MARKS = [["fdr", "FDR"], ["cluster", "Cluster channels"], ["p", "p < 0.05"], ["none", "None"]];
+  // la leyenda de la vista es el selector de marcas; debajo, la lectura de la marca elegida
+  function marksKey(rows, series){
+    const k = d3.select("#k-topo"); k.selectAll("*").remove();
+    if(!S.showD) return;
+    const seg = k.append("span").attr("class", "mk-seg").attr("role", "group").attr("aria-label", "Marks on the Δ maps");
+    seg.selectAll("button").data(MARKS).join("button").attr("type", "button").attr("aria-pressed", d => d[0] === S.marks).text(d => d[1])
+      .attr("title", d => ({cluster:"Channels inside the clusters of the cluster-based permutation test (descriptive: the test says the maps differ, not where; Sassenhagen and Draschkow, 2019)",
+        fdr:"Electrodes that survive Benjamini–Hochberg FDR across the 61 electrodes (supports per-electrode statements)", p:"Electrodes with p < 0.05 before any correction (exploratory: about 3 of 61 reach it by chance)",
+        none:"Only the color map"})[d[0]])
+      .on("click", (ev, d) => { S.marks = d[0]; try{ localStorage.setItem("batimix-marks", d[0]); }catch(e){} render(); });
+    if(S.marks === "fdr") k.append("span").attr("class", "k").html(`<i class="ring"></i>FDR q &lt; 0.05`);
+    else if(S.marks === "cluster") k.append("span").attr("class", "k").html(`<i class="ring"></i>in a cluster`);
+    else if(S.marks === "p") k.append("span").attr("class", "k").html(`<i class="bdot"></i>uncorrected`);
+    // resultado global de la prueba de clusters, con cualquier marca: dice si los mapas difieren entre noches
+    const tested = (rows || []).filter(r => r.cl);
+    if(tested.length){
+      const best = tested.map(r => r.cl.clusters.length ? d3.min(r.cl.clusters, c => c.p) : 1), worst = d3.max(best);
+      k.append("span").attr("class", "k cl-test").attr("title", "Cluster-based permutation test (Maris and Oostenveld, 2007): whether the Δ maps differ from zero anywhere; see ⓘ")
+        .text(worst < CLUSTER.alpha ? `cluster test ${(v => v.startsWith("<") ? `p ${v}` : `p ${tested.length > 1 ? "≤ " : ""}${v}`)(fp(worst))}` : `cluster test n.s.`);
+    }
+  }
+  // nota de la ⓘ sobre la marca elegida
+  function marksNote(rows){
+    const tested = (rows || []).filter(r => r.cl);
+    const res = tested.map(r => { const c = r.cl.clusters[0]; return `${r.label.replace(/ \(\d+\)$/, "")}: ${c && c.p < CLUSTER.alpha ? `p ${fp(c.p)}, largest cluster ${c.nodes.length} electrodes` : "no cluster with p &lt; 0.05"}`; }).join("; ");
+    const glob = tested.length ? `Cluster-based permutation test (Maris and Oostenveld, 2007; neighbors by Delaunay, ${CLUSTER.perms} sign-flip permutations, checked against MNE): ${res}. It shows that the Δ map differs from zero; it does not establish where (Sassenhagen and Draschkow, 2019): the color shows where the change is largest.` : "";
+    const mk = {cluster:"Marks: channels inside the clusters (descriptive, not a per-electrode test).",
+      fdr:"Marks: rings at the electrodes that survive Benjamini–Hochberg FDR across the 61 electrodes (q &lt; 0.05), as in Cui et al. (2026) on this dataset.",
+      p:"Marks: small dots at electrodes with p &lt; 0.05 before correction. Exploratory: with 61 tests about 3 reach it by chance.",
+      none:"Marks hidden: only the color map."}[S.marks];
+    return [mk, glob].filter(Boolean).join(" ");
+  }
+
   // rótulo de estado al pie de la vista, con un enlace para volver a los cinco minutos completos
   function status(svg, W, H, txt){
     const t = svg.append("text").attr("class", "tstatus").attr("x", W/2).attr("y", H-5).attr("text-anchor", "middle");
@@ -466,8 +531,8 @@ const topo = (() => {
       notes(`Only the ${n} epochs (${n*4} s) of this window: μθ is their mean and σθ their SD. This window σθ is a different and noisier measure than the five-minute σθ, which also contains the slow drift across the recording.`,
         tested ? `Paired t-test per electrode within this window, FDR across the 61 electrodes of this window only. Exploratory: not corrected across windows, and a window chosen after looking at the data favours large effects. For a corrected view across time, use Series.`
           : "No per-electrode test here (selection, two people or groups defined by Δθ).",
-        "Click another moment in the Time View to move the window; Back to the full recording (or Clear) returns to the five minutes."));
-    if(tested) k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);
+        "Click another moment in the Time View to move the window; Back to the full recording (or Clear) returns to the five minutes.", tested ? marksNote(sp.rows) : ""));
+    if(tested) marksKey(sp.rows);
   }
   // ---------------------------------------------------------------- serie completa (botón «Series»)
   // Bloques consecutivos sin solapamiento (seriesBlocks: 5 × 60 s o 3 × 100 s), solo mapas Δ, alineados con el eje
@@ -500,6 +565,16 @@ const topo = (() => {
       const q = bh(all.map(d => d[2])), qOf2 = new Map(all.map((d, i) => [d[0]+"|"+d[1], q[i]]));
       row.cells = raw.map((T, k) => { const out = {}; for(const e in T) out[e] = {...T[e], [Q]:test ? qOf2.get(k+"|"+e) : null}; return out; });
       row.tested = test;
+      // clusters sobre electrodos × bloques: vecinos en la cabeza y el mismo electrodo en bloques contiguos
+      if(test){
+        const key = ["series", S.band, row.met, blocks.length, row.ids.join(",")].join("|");
+        if(!clCache.has(key)){
+          const parts = blocks.map(w => deltaMatrix(row.ids, row.met, w));
+          clCache.set(key, clusterTest(row.ids.map((id, i) => parts.flatMap(P => P[i])), stAdjacency(blocks.length)));
+        }
+        const res = clCache.get(key);
+        row.clBlocks = blocks.map((w, k) => toMarks(res, ELEC.length, k)); row.cl = row.clBlocks[0];
+      }
     });
     const divOf = rows => d3.max(rows.flatMap(r => r.cells.flatMap(T => ELEC.map(e => T[e] ? Math.abs(val(T[e], "D", r.met)) : 0)))) || 1;
     const sharedDiv = sp.mode === "pair" || sp.mode === "cmp" ? divOf(sp.rows) : null;
@@ -529,7 +604,7 @@ const topo = (() => {
         cell.append("rect").attr("x", cx-s/2).attr("y", y).attr("width", s).attr("height", s).attr("fill", "transparent")
           .on("click", () => setWin([a, b]));
         cell.append("title").text(`${a*4}–${(b+1)*4} s · click to open this block as a window`);
-        drawMap(cell, defs, `s${ri}_${k}`, cx-s/2, y, s, {T:row.cells[k], met:row.met}, "D", divF, divF, sp.mode === "pair" ? "pair" : "series", tipCell(k));
+        drawMap(cell, defs, `s${ri}_${k}`, cx-s/2, y, s, {T:row.cells[k], met:row.met, cl:row.clBlocks ? row.clBlocks[k] : null}, "D", divF, divF, sp.mode === "pair" ? "pair" : "series", tipCell(k));
       });
       if(!sharedDiv || ri === 0) legends.push({lab:sharedDiv ? `Δ${METN[S.met]}` : row.label, div});
     });
@@ -544,7 +619,8 @@ const topo = (() => {
     });
     linkG = svg.append("g").style("pointer-events", "none"); drawLink(null);
     const tested = sp.rows.some(r => r.tested);
-    status(svg, W, H, `Series · ${nBlk} blocks of ${len*4} s${tested ? " · FDR across blocks × electrodes" : ""}`);
+    const how = {cluster:" · cluster test over electrodes × blocks", fdr:" · FDR across blocks × electrodes", p:" · p < 0.05 uncorrected", none:""}[S.marks];
+    status(svg, W, H, `Series · ${nBlk} blocks of ${len*4} s${tested ? how : ""}`);
     seriesHeader(sp, nBlk, len, tested);
   }
   function seriesHeader(sp, nBlk, len, tested){
@@ -555,8 +631,9 @@ const topo = (() => {
       notes(`Δ maps (deprivation − normal) in ${nBlk} consecutive, non-overlapping blocks of ${len*4} s, aligned with the Time View below. Hover a map to highlight its block; click it to open that block as a window.`,
         "σθ of a block is the SD within that block only (fast fluctuations). The five-minute σθ also includes the slow drift between blocks (for example, growing drowsiness), so comparing the two tells which part the deprivation effect comes from.",
         tested ? `Paired t-test per electrode and block, Benjamini–Hochberg FDR across all ${nBlk} × 61 tests of each row (stricter than one map, so fewer marks than in the five-minute map are expected). ${counts}.` : "No per-electrode test (selection, two people or groups defined by Δθ).",
-        "Limits: five minutes with eyes open and no vigilance marker, so a drift over time can be drowsiness, fatigue or time on task. A cluster-based permutation test over electrodes × time (Maris and Oostenveld, 2007) would be the stricter alternative."));
-    if(tested) k.html(`<span class="k"><i class="ring"></i>p &lt; 0.05</span><span class="k"><i class="dot" style="background:var(--ink)"></i>FDR</span>`);
+        tested ? "Cluster test over electrodes × blocks: neighbors are adjacent electrodes in the same block and the same electrode in consecutive blocks. " + marksNote(sp.rows) : "",
+        "Limits: five minutes with eyes open and no vigilance marker, so a drift over time can be drowsiness, fatigue or time on task."));
+    if(tested) marksKey(sp.rows, true);
   }
   bus.on("select.topo", e => { if(!(e && e.live)) render(); });
   bus.on("pin.topo", () => render());

@@ -39,7 +39,7 @@ td{border-bottom:1px solid var(--rule);padding:4px 8px}a{color:var(--ns)}
 @media print{main{padding:12px}section.fig{break-inside:avoid}.btns{display:none}}`;
 
   const READ = {
-    topo:"Each circle is the head seen from above (nose up) with 61 interpolated electrodes. Columns: after normal sleep (NS), after deprivation (SD) and their difference Δ = SD − NS. NS and SD share the sequential scale of their row; Δ uses a diverging scale centered at zero: warm = increases after deprivation, cool = decreases. Ring = uncorrected p < 0.05; filled = survives FDR correction (paired t-test within the 68 people, or within each group of a comparison by sex, session order or PSQI; not for selections or vulnerable vs rest, which are defined by Δθ itself). With two people or two groups, the rows become those people or groups, with shared scales.",
+    topo:"Each circle is the head seen from above (nose up) with 61 interpolated electrodes. Columns: after normal sleep (NS), after deprivation (SD) and their difference Δ = SD − NS. NS and SD share the sequential scale of their row; Δ uses a diverging scale centered at zero: warm = increases after deprivation, cool = decreases. Marks (one layer, chosen in the view's legend): by default rings at the electrodes that survive FDR (as in Cui et al., 2026, on this dataset); or the channels inside the clusters of a cluster-based permutation test (descriptive); or small dots at uncorrected p < 0.05 (exploratory); or none. Tests are run within the 68 people or each group of a comparison by sex, session order or PSQI; not for selections, two single people or vulnerable vs rest (defined by Δθ itself). With two people or two groups, the rows become those people or groups, with shared scales.",
     scatter:"Each point is a person: on x, the theta change (SD − NS) in the chosen region, electrode or time window; on y, the change in the behavioral marker (up = worse). Dotted lines are the medians and the amber area is the vulnerable quadrant (above both medians). ρ is the Spearman correlation with its 95% CI.",
     dyn:"Follows the chosen metric. With μθ: relative theta power in each of the 75 4-s epochs of the 5-minute recording. With σθ: moving σθ, the standard deviation of regional theta in windows of the chosen length (32, 60 or 100 s; 60 s by default, and at least 60 s for σθ) sliding by one epoch; it shows when instability appears within the recording, but its scale is smaller than the scatter σθ because it starts from the region-averaged series. In both cases: mean of the active group ± standard error, after normal sleep (NS) and after deprivation (SD). The dotted line is the linear trend. With a group comparison, the change Δ = SD − NS of each group is shown. An amber box marks the chosen time window. By default the topomaps show the full five minutes; clicking the Time View shows one window of the chosen length on the maps (exploratory: its per-electrode test is not corrected across windows), and Series shows Δ maps in consecutive non-overlapping blocks aligned with this time axis, with FDR across all blocks × electrodes.",
     heat:"Each column is a person and each row an electrode, grouped into frontal, centrotemporal and posterior (front to back). The color is the change Δ = SD − NS: warm = increases after deprivation, cool = decreases, neutral = no change. Columns form two groups defined by behavior only (vulnerable: worse than the marker median; resilient: the rest), or the two groups of the comparison, ordered by their mean change in the chosen region. Next to each block, C(e) is the group consistency (share that increases minus share that decreases); the mean of everyone is shown alongside. A shared signature appears as a block of the same color; if a few people dominate the effect, one or two very intense columns stand out.",
@@ -50,10 +50,14 @@ td{border-bottom:1px solid var(--rule);padding:4px 8px}a{color:var(--ns)}
 
   function state(){
     const c = COMPARES.find(c => c.k === S.cmp), rows = [
+      ["Band", `${BANDS[S.band].Name}, ${BANDS[S.band].lo}–${BANDS[S.band].hi} Hz`, S.band === "theta" ? "main hypothesis" : "exploratory: the main hypothesis is theta σ"],
       ["EEG region", ROI[S.roi].name, S.elec ? "replaced by one electrode" : ""],
       ["Theta metric", S.met === "var" ? "σθ, variability across epochs" : "μθ, mean", ""],
       ["Y-axis marker", MK[S.y].name, ""],
       ["X-axis", xName(), ""],
+      ["Marks on the Δ maps", {cluster:"channels inside the clusters (descriptive)", fdr:"FDR, q < 0.05", p:"p < 0.05, uncorrected (exploratory)", none:"none"}[S.marks], ""],
+      ["Topomaps", S.series ? `series of ${seriesBlocks().length} blocks of ${seriesLen()*4} s (Δ only)` : (S.win ? `window ${winTxt(S.win)}: a moment, not the full recording` : "full five minutes"),
+        S.win ? "exploratory: the per-electrode test is not corrected across windows" : (S.series ? "FDR across blocks × electrodes" : "")],
       ["Comparison", c ? c.name : "No comparison", ""],
       ["Active people", S.selected ? `${S.selected.length} (your selection)` : `${EEG.length} (all with paired EEG)`, ""],
       ["People A and B", S.pair.length ? S.pair.map((d, i) => `${"AB"[i]} ${d.id}`).join(", ") : "none", ""],
@@ -102,7 +106,8 @@ ${tbl}
 </main></body></html>`;
   }
   function download(){
-    const html = build(), blob = new Blob([html], {type:"text/html;charset=utf-8"}), url = URL.createObjectURL(blob);
+    // los textos fijos del reporte están escritos para theta: con otra banda se re-etiquetan como en la app (bandText)
+    const html = bandText(build()), blob = new Blob([html], {type:"text/html;charset=utf-8"}), url = URL.createObjectURL(blob);
     const d = new Date(), pad = n => String(n).padStart(2, "0");
     const a = document.createElement("a"); a.href = url; a.download = `BATIMIX_report_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.html`;
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);

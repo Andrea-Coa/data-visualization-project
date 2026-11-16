@@ -314,6 +314,8 @@ body{background:var(--page)}
 .ctrls select{max-width:190px}
 .sec-hd{padding:5px 10px}
 @media (max-width:1499px){ .dset{display:none} .ctrls{gap:8px} .ctrls select{max-width:160px} .tag{font-size:10.5px} }
+/* con el selector de banda (noviembre 2026) el header necesita ~80 px más: botones y menús más compactos hasta 1499 px */
+@media (min-width:1101px) and (max-width:1499px){ .bar{gap:10px} .ctrls{gap:6px} .seg button{padding:3px 7px} .ctrls select{max-width:132px} .bar .btn{padding-left:8px;padding-right:8px} }
 .tag{white-space:normal;max-width:235px;line-height:1.2;margin-top:2px}
 @media (max-width:1100px){
   .ctrls{align-items:flex-end}
@@ -536,3 +538,18 @@ body[data-focus="compare"] .bar .fld:not(:has(#cmpsel)){opacity:.35}
 .tstatus .tlink{fill:var(--ink);text-decoration:underline;cursor:pointer}
 .tstatus .tlink:focus{outline:none;fill:var(--sd)}
 .blk-edge{stroke:var(--ink2);stroke-width:1;stroke-dasharray:3 3;opacity:.55}
+
+/* ---------- bandas: distintivo «θ only» en las vistas calculadas solo para theta (visible con otra banda) ---------- */
+.tonly{display:none;margin-left:6px;font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:0;text-transform:none;padding:0 5px;border:1px solid currentColor;border-radius:3px;opacity:.8}
+:root[data-band]:not([data-band="theta"]) .tonly{display:inline-block}
+#bandseg[aria-busy="true"]{opacity:.5;cursor:progress}
+
+/* ---------- selector de marcas de los mapas Δ (cluster, FDR, p, ninguna) en la leyenda de la Topography View ---------- */
+.mk-seg{display:inline-flex;gap:0;margin-right:8px;border:1px solid var(--rule2);border-radius:4px;overflow:hidden}
+.mk-seg button{font:inherit;font-size:11px;color:var(--ink2);background:transparent;border:0;border-left:1px solid var(--rule2);padding:1px 7px;cursor:pointer}
+.mk-seg button:first-child{border-left:0}
+.mk-seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.k i.cl{display:inline-block;width:14px;height:9px;border:1.8px solid var(--ink);border-radius:5px;margin-right:4px;vertical-align:-1px}
+.k i.wdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#FFFFFF;border:1px solid #1B1B1B;margin-right:4px;vertical-align:0}
+.k.cl-test{margin-left:6px;color:var(--ink2)}
+.k i.bdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#1B1B1B;margin-right:4px;vertical-align:0}

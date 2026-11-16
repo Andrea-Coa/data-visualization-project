@@ -29,6 +29,9 @@ const COLLECT = `(() => {
   R.rollVar = ["NS", "SD"].map(c => epochStats(activeIds(), "f", c, "var"));
   R.winLen = S.winLen;   // largo de la ventana móvil (épocas): lo elige quien analiza; 15 por defecto
   R.about = document.querySelector("[data-k='covLong']").textContent;
+  // prueba por clusters de la app (μθ, los 68: tiene un cluster parcial) para compararla con MNE en Python
+  R.cluster = (() => { const X = deltaMatrix(EEG_IDS, "mean", null), r = clusterTest(X, elecAdjacency());
+    return {X, adj:elecAdjacency(), thr:r.thr, perms:r.perms, clusters:r.clusters.map(c => ({nodes:c.nodes, p:c.p}))}; })();
   R.report = report.build();
   // simula pasar el cursor por el primer electrodo del primer mapa y guarda el tooltip
   const hit = document.querySelector("#topo .ehit"), hd = d3.select(hit).datum();
@@ -45,8 +48,18 @@ frame.addEventListener("load", () => {
       if(Date.now()-t0 < 30000) return setTimeout(wait, 100);
       out.textContent = JSON.stringify({error:"la app no terminó de cargar en 30 s"}); return;
     }
-    try { out.textContent = JSON.stringify(W.eval(COLLECT)); }
-    catch(e){ out.textContent = JSON.stringify({error:String(e)}); }
+    let R;
+    try { R = W.eval(COLLECT); } catch(e){ out.textContent = JSON.stringify({error:String(e)}); return; }
+    // segunda banda (fase 4 de PLAN.md): alfa, cargada de data/bands/alpha/; se compara en Python con sus JSON
+    W.eval("setBand('alpha')").then(() => setTimeout(() => {
+      try {
+        R.alpha = W.eval(`({band:S.band, topo:ELEC.map(e => ({e, pv:TOPO[e].sigVar, qv:TOPO[e].qVar, pm:TOPO[e].sigMean, qm:TOPO[e].qMean})),
+          title:(() => { const n = document.getElementById("t-topo").cloneNode(true); n.querySelectorAll(".info").forEach(x => x.remove()); return n.textContent.replace(/\\s+/g, " ").trim(); })(),
+          metseg:document.getElementById("metseg").textContent.replace(/\\s+/g, " ").trim(),
+          front:EEG.map(d => [d.id, d.d_front_var])})`);
+      } catch(e){ R.alpha = {error:String(e)}; }
+      out.textContent = JSON.stringify(R);
+    }, 500)).catch(e => { R.alpha = {error:String(e)}; out.textContent = JSON.stringify(R); });
   })();
 });
 </script>

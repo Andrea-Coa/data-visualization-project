@@ -43,18 +43,20 @@ const side = (() => {
     const lines = ["NS", "SD"].map(c => ({c, col:c === "NS" ? C.ns : C.sd, y:spec(c), ap:apOf(c)}));
     // clic en la banda θ: el espectro pasa a 4–8 Hz (eje y ajustado a ese tramo); con zoom la banda cubre el gráfico
     // y otro clic vuelve a 1–40 Hz
-    const dom = aperZoom ? [4, 8] : [1, 40], vis = i => fr[i] >= dom[0] && fr[i] <= dom[1], fv = fr.filter((f, i) => vis(i));
+    // la franja marca la banda elegida (BANDS en core.js); el resto de esta vista es solo theta (data-theta-only)
+    const BB = BANDS[S.band], blo = BB.lo, bhi = BB.hi;
+    const dom = aperZoom ? [blo, bhi] : [1, 40], vis = i => fr[i] >= dom[0] && fr[i] <= dom[1], fv = fr.filter((f, i) => vis(i));
     const m = {l:aperZoom ? 50 : 44, r:12, t:6, b:22}, sx = d3.scaleLinear().domain(dom).range([m.l, W-m.r]);   // con zoom, marcas con un decimal: más margen
     const sy = d3.scaleLinear().domain(d3.extent(lines.flatMap(l => l.y.filter((v, i) => vis(i)).concat(fv.map(f => l.ap.of-l.ap.ex*Math.log10(f)))))).nice().range([h1-m.b, m.t]);
-    const zoomTip = aperZoom ? "Show 1–40 Hz" : "Zoom into θ (4–8 Hz)";
-    svg.append("rect").attr("class", "tband").attr("x", sx(4)).attr("width", sx(8)-sx(4)).attr("y", m.t).attr("height", h1-m.b-m.t).attr("fill", C.ink).attr("opacity", .06)
+    const zoomTip = aperZoom ? "Show 1–40 Hz" : `Zoom into ${BB.sym} (${blo}–${bhi} Hz)`;
+    svg.append("rect").attr("class", "tband").attr("x", sx(blo)).attr("width", sx(bhi)-sx(blo)).attr("y", m.t).attr("height", h1-m.b-m.t).attr("fill", C.ink).attr("opacity", .06)
       .attr("tabindex", 0).attr("role", "button").attr("aria-label", zoomTip).attr("aria-pressed", aperZoom)
       .on("click", () => { aperZoom = !aperZoom; renderAper(); })
       .on("keydown", ev => { if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); aperZoom = !aperZoom; renderAper(); document.querySelector("#aper .tband").focus(); } })
       .append("title").text(zoomTip);
     // rótulo θ sobre la banda; con zoom no hace falta (el eje ya va de 4 a 8 Hz y todo el fondo es la banda)
-    if(!aperZoom) svg.append("text").attr("class", "mdim").attr("x", (sx(4)+sx(8))/2).attr("y", m.t+10).attr("text-anchor", "middle").style("pointer-events", "none").text("θ");
-    svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h1-m.b})`).call(d3.axisBottom(sx).tickValues(aperZoom ? [4, 5, 6, 7, 8] : [1, 10, 20, 30, 40]).tickFormat(d => d).tickSizeOuter(0));
+    if(!aperZoom) svg.append("text").attr("class", "mdim").attr("x", (sx(blo)+sx(bhi))/2).attr("y", m.t+10).attr("text-anchor", "middle").style("pointer-events", "none").text(BB.sym);
+    svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h1-m.b})`).call(d3.axisBottom(sx).tickValues(aperZoom ? d3.ticks(blo, bhi, 5) : [1, 10, 20, 30, 40]).tickFormat(d => d).tickSizeOuter(0));
     svg.append("text").attr("class", "mdim").attr("x", m.l-6).attr("y", h1-m.b+14).attr("text-anchor", "end").text("Hz");
     svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(sy).ticks(aperZoom ? 2 : 3).tickSizeOuter(0)).call(a => a.select(".domain").remove());
     svg.append("text").attr("class", "atitle").attr("transform", "rotate(-90)").attr("x", -(m.t+h1-m.b)/2).attr("y", 8).attr("text-anchor", "middle").style("font-size", "10px").text("log₁₀ power");
@@ -92,9 +94,13 @@ const side = (() => {
       svg.append("circle").attr("class", "head").attr("cx", cx).attr("cy", cy).attr("r", R);
       svg.append("path").attr("class", "head").attr("d", `M ${cx-5} ${cy-R+1} L ${cx} ${cy-R-6} L ${cx+5} ${cy-R+1}`);
       const g = APER.group[k];
-      E.forEach((e, i) => { if(!COORDS[e]) return; const sig = !sel && g.p[i] < .05;
-        svg.append("circle").attr("cx", cx+dpos(e)[0]*R).attr("cy", cy-dpos(e)[1]*R).attr("r", sig ? 3 : .9)
-          .attr("fill", sig && g.q[i] < .05 ? C.mark : (sig ? "none" : C.edot)).attr("stroke", sig ? C.mark : "none").attr("stroke-width", 1.2); });
+      // mismas marcas que los mapas principales (topomap.js): aro = FDR, punto pequeño = p < 0.05 sin corregir, y radio
+      // proporcional al mapa; con un radio fijo de 3 px tapaban estos mapas chicos
+      const mr = Math.max(1.2, Math.min(3, R*.026));   // algo menor que en los mapas grandes: estas cabezas son chicas
+      E.forEach((e, i) => { if(!COORDS[e]) return; const sig = !sel && g.p[i] < .05, fdr = sig && g.q[i] < .05;
+        svg.append("circle").attr("cx", cx+dpos(e)[0]*R).attr("cy", cy-dpos(e)[1]*R).attr("r", fdr ? mr : (sig ? mr*.55 : .9))
+          .attr("fill", fdr ? "none" : (sig ? C.mark : C.edot)).attr("stroke", fdr ? C.mark : "none")
+          .attr("stroke-width", fdr ? 1.2 : 0); });   // mismo estilo que los mapas principales (aro = FDR, punto = p sin corregir)
       svg.append("text").attr("class", "mdim").attr("x", cx).attr("y", cy+R+12).attr("text-anchor", "middle").text(`${fsr(-mx)} to ${fsr(mx)}`);
     });
     // ---- 3. Δσθ (θ relativa) frente a Δσθ periódica, por persona, en la región del header
@@ -240,7 +246,7 @@ const side = (() => {
     svg.append("text").attr("class", "ab").attr("x", m2.l+4).attr("y", y0+m2.t+12).style("font-size", "11px").text(`ρ = ${f2(sm.rho_clean_vs_all)} · n = ${sm.n_clean} · dashed: identity`);
     const bt = QUAL.meta.d_blinks_test;
     setTitle("t-eye", `Blinks do not drive σθ: ρ = ${f2(sm.rho_clean_vs_all)} without them`, nb(`${ROI[k].name}; n = ${sm.n_clean}`),
-      notes(`Blinks detected on Fp1/Fp2 of the raw EEG; rate ${f2(QUAL.meta.blinks_per_min.NS.median)} → ${f2(QUAL.meta.blinks_per_min.SD.median)}/min (p = ${fp(bt.p)}). Δblinks vs Δσθ: ρ = ${f2(sm.rho_dblinks_vs_dsigma)}.`,
+      notes(`Blinks detected on Fp1/Fp2 of the raw EEG; rate ${L.format(".1f")(medA)} → ${L.format(".1f")(medB)}/min (median of the ${bl.length} people with both nights, as in the chart) (p = ${fp(bt.p)}). Δblinks vs Δσθ: ρ = ${f2(sm.rho_dblinks_vs_dsigma)}.`,
         `Bottom: Δσθ from 1-s windows, all (x) vs. without those within 0.25 s of a blink (y). On the identity line: blinks left after ICA do not change σθ.`));
   }
 

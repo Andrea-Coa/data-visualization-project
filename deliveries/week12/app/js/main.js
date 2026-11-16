@@ -37,6 +37,48 @@ function prepare(D){
     `${EEG.length} have EEG in both conditions; of these, PVT ${cov("d_pvt")}, KSS ${cov("d_kss")}, SSS ${cov("d_sss")} and PANAS ${cov("d_panasP")}.`);
 }
 
+// ---------- bandas (fase 4 de PLAN.md) ----------
+// Cada banda vive en data/bands/<banda>/ (theta en data/, ya cargada). Se trae la primera vez que se elige y queda en
+// memoria. Cambiar de banda reasigna los globales que dependen de ella (TOPO, SUBTOPO, SUBEP, ELEP y los campos EEG de
+// P) y redibuja. Abierta con doble clic (file://) el navegador bloquea fetch: data.js solo trae theta, así que las
+// demás bandas requieren servidor local o GitHub Pages; si fallan, se avisa y se queda en theta.
+const BANDDATA = {}, EEG_FIELDS = ["d_front_var", "d_ct_var", "d_front_pow", "d_ct_pow"];
+let segBand = null;
+function keepTheta(){
+  BANDDATA.theta = {topo:TOPO, subTopo:SUBTOPO, subEpochs:SUBEP, elecEpochs:ELEP,
+    eeg:Object.fromEntries(P.map(d => [d.id, Object.fromEntries(EEG_FIELDS.map(k => [k, d[k]]))]))};
+}
+function useBand(b){
+  const X = BANDDATA[b];
+  TOPO = X.topo; SUBTOPO = X.subTopo; SUBEP = X.subEpochs; ELEP = X.elecEpochs;
+  if(ELEP && !ELEP.idx) ELEP.idx = Object.fromEntries(ELEP.electrodes.map((e, i) => [e, i]));
+  P.forEach(d => { const v = X.eeg[d.id] || {}; EEG_FIELDS.forEach(k => { d[k] = v[k] ?? null; }); });
+  if(ELEC.some(e => TOPO[e] && TOPO[e].qVar == null)){   // q de FDR (61 pruebas) por banda × métrica, como theta
+    const qv = bh(ELEC.map(e => TOPO[e].sigVar)), qm = bh(ELEC.map(e => TOPO[e].sigMean));
+    ELEC.forEach((e, i) => { TOPO[e].qVar = qv[i]; TOPO[e].qMean = qm[i]; });
+  }
+}
+function loadBand(b){
+  if(BANDDATA[b]) return Promise.resolve();
+  const base = window.BATIMIX_BASE || "";
+  return Promise.all(BAND_FILES.map(f => d3.json(`${base}data/bands/${b}/${f}.json`))).then(([t, st, se, ee, pe]) => {
+    BANDDATA[b] = {topo:t, subTopo:st, subEpochs:se, elecEpochs:ee, eeg:pe};
+  });
+}
+function setBand(b){
+  if(!BANDS[b] || b === S.band) return Promise.resolve();
+  const bt = $("bandseg"); if(bt) bt.setAttribute("aria-busy", "true");
+  return loadBand(b).then(() => {
+    if(typeof dyn !== "undefined" && dyn.stop) dyn.stop();
+    S.band = b; useBand(b); segBand.set(b); document.documentElement.dataset.band = b;
+    try{ const u = new URL(location.href); if(b === "theta") u.searchParams.delete("band"); else u.searchParams.set("band", b); history.replaceState(null, "", u); }catch(e){}
+    computeX(); scatter.clearBrushVisual(); drawAll(); bus.call("axes");
+    if(window.i18n && i18n.refresh) i18n.refresh();   // vuelve a etiquetar los textos fijos (σθ → σα…)
+  }).catch(() => {
+    alert(`The ${BANDS[b].name} band could not be loaded. Bands other than theta need the app served over HTTP (python -m http.server, or GitHub Pages); opened with a double click only theta is available.`);
+  }).finally(() => { if(bt) bt.removeAttribute("aria-busy"); });
+}
+
 // ---------- controles del header ----------
 let segRoi, segMet;
 // tema oscuro (instrumento) o claro (clásico): cambia los tokens de color y fuente, relee la paleta y redibuja todo
@@ -122,6 +164,9 @@ loadData().then(D => {
   d3.select("#ysel").selectAll("option").data(Object.entries(MK)).join("option").attr("value", d => d[0]).text(d => d[1].name);
   $("ysel").value = S.y;
   segRoi = setupSeg("roiseg", setRoi); segMet = setupSeg("metseg", setMet);
+  keepTheta(); segBand = setupSeg("bandseg", setBand);
+  try{ const mk = localStorage.getItem("batimix-marks2"); if(["cluster", "fdr", "p", "none"].includes(mk)) S.marks = mk; }catch(e){}   // la marca elegida se recuerda (clave nueva: el valor por defecto cambió a FDR)
+  { const qb = new URLSearchParams(location.search).get("band"); if(qb && qb !== "theta" && BANDS[qb]) setTimeout(() => setBand(qb), 0); }
   d3.select("#ysel").on("change", function(){ setY(this.value); });
   // intercambia de lado las dos columnas; los anchos viajan con ellas, así que no hace falta redibujar
   d3.select("#swapbtn").on("click", function(){
@@ -174,6 +219,12 @@ loadData().then(D => {
   document.querySelectorAll(".vx").forEach(b => b.addEventListener("click", e => {
     e.stopPropagation(); const box = b.closest(".panel, .sec"); setMax(box.classList.contains("is-max") ? null : box); }));
   $("maxbg").addEventListener("click", () => setMax(null));
+  // Espacio y ← → controlan la reproducción de los mapas (fase 5 de PLAN.md), salvo al escribir o con un control enfocado
+  addEventListener("keydown", e => {
+    if(![" ", "ArrowLeft", "ArrowRight"].includes(e.key) || e.defaultPrevented || document.querySelector("dialog[open]")) return;
+    const t = e.target; if(t && t.closest && t.closest("input, select, textarea, button, [contenteditable], [role=button], .sbox")) return;
+    if(dyn.key(e.key)) e.preventDefault();
+  });
   addEventListener("keydown", e => {
     if(e.key !== "Escape" || e.defaultPrevented || document.querySelector("dialog[open]")) return;
     if(document.querySelector(".is-max")){ setMax(null); return; }

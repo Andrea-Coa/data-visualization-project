@@ -121,7 +121,7 @@ def test_reference_signal():
 
     def relative_theta(sig, per_epoch=False):   # mismas llamadas que process_recording en 02_eeg_pipeline.ipynb (celda 5)
         ep = mne.EpochsArray(sig[:, None, :], info, verbose=False)
-        psds, freqs = ep.compute_psd(method="welch", fmin=1.0, fmax=40.0, verbose=False).get_data(return_freqs=True)
+        psds, freqs = ep.compute_psd(method="welch", n_fft=2000, n_per_seg=2000, n_overlap=0, window="hamming", fmin=1.0, fmax=40.0, verbose=False).get_data(return_freqs=True)
         mask = (freqs >= 4.0) & (freqs <= 8.0)
         rel = (psds[:, :, mask].sum(axis=2) / psds.sum(axis=2)).ravel()
         return (rel if per_epoch else rel.mean()), freqs, mask
@@ -150,9 +150,9 @@ def test_consistency(R):
     n_about = int(m_about.group(1)) if m_about else None
     check("n de la dispersión", n_title == key["n"] == n_report and (n_about is None or n_about == n_title),
           f"título {n_title}, cálculo {key['n']}, filas con dato en el Reporte {n_report}, Acerca de {n_about}")
-    q_title = int(re.search(r"(\d+) of 61 electrodes with q", R["titles"]["topo"]).group(1))
+    mt = re.search(r"q < 0\.05: σθ (\d+), μθ (\d+) of 61 electrodes", R["titles"]["topo"]); q_title = int(mt.group(1)) + int(mt.group(2))
     q_true = sum(int((multipletests([r[k] for r in R["topo"]], method="fdr_bh")[1] < .05).sum()) for k in ("pv", "pm"))
-    check("electrodos con q < 0.05", q_title == q_true and f"{q_title} of 61 electrodes with q" in html.unescape(rep),
+    check("electrodos con q < 0.05", q_title == q_true and mt.group(0) in html.unescape(rep),
           f"título {q_title}, statsmodels {q_true}, mismo texto en el Reporte")
     n_dyn = int(re.search(r"n = (\d+)", R["titles"]["dyn"]).group(1)); n_leg = max(int(x) for x in re.findall(r"n = (\d+)", R["legendDyn"]))   # la leyenda da un n por serie (NS y SD); se compara el mayor
     n_state = int(re.search(r"Active people</span><b>(\d+)", rep).group(1)); n_long = int(re.search(r"(\d+) have EEG", R["about"]).group(1))
@@ -260,6 +260,49 @@ def take_screenshots(binary, base, profile, out):
             print(f"  {'listo' if f.exists() else 'NO SE GENERÓ'}: {f.name}")
 
 
+def test_bands(R):
+    """Fase 4 de PLAN.md: con la banda alfa elegida, la app muestra los datos de data/bands/alpha/ y su FDR."""
+    print("\n10. Otra banda (alfa, data/bands/alpha/)")
+    A = R.get("alpha") or {}
+    if "error" in A or not A:
+        check("la app carga la banda alfa", False, A.get("error", "sin datos")); return
+    band = APP / "data" / "bands" / "alpha"
+    T = json.loads((band / "topo.json").read_text(encoding="utf-8")); S = json.loads((band / "topo_by_subject.json").read_text(encoding="utf-8"))
+    E = json.loads((band / "participants_eeg.json").read_text(encoding="utf-8"))
+    worst_p = 0.0
+    for e, t in T.items():
+        ids = [i for i in S if e in S[i]]
+        for m, k in (("var", "Var"), ("mean", "Mean")):
+            p = stats.ttest_rel([S[i][e]["SD"][m] for i in ids], [S[i][e]["NS"][m] for i in ids]).pvalue
+            worst_p = max(worst_p, abs(p - t["sig" + k]))
+    check("p de alfa (topo.json) contra scipy ttest_rel", worst_p < 1e-4, f"diferencia máx. {worst_p:.1e}")
+    q_ok = all(np.allclose([r[q] for r in A["topo"]], multipletests([r[p] for r in A["topo"]], method="fdr_bh")[1]) for p, q in (("pv", "qv"), ("pm", "qm")))
+    nq = [int((multipletests([r[p] for r in A["topo"]], method="fdr_bh")[1] < .05).sum()) for p in ("pv", "pm")]
+    mt = re.search(r"q < 0\.05: σα (\d+), μα (\d+) of 61 electrodes", A["title"])
+    check("FDR y título de alfa en la app", A["band"] == "alpha" and q_ok and mt and [int(mt.group(1)), int(mt.group(2))] == nq and A["metseg"] == "σα μα",
+          f"banda {A['band']}, q como statsmodels {q_ok}, título «{A['title'][:60]}», statsmodels {nq}, métrica «{A['metseg']}»")
+    gap = max(abs(v - E[i]["d_front_var"]) for i, v in A["front"] if v is not None)
+    check("Δσα frontal por persona igual a participants_eeg.json", gap < 1e-12, f"{len(A['front'])} personas, diferencia máx. {gap:.1e}")
+
+
+def test_clusters(R):
+    """Prueba por clusters de la app (core.js, clusterTest) contra mne.stats.permutation_cluster_1samp_test, con la
+    misma matriz de Δ por persona, la misma vecindad (Delaunay) y el mismo umbral."""
+    print("\n11. Prueba por clusters (app contra MNE)")
+    import mne, scipy.sparse as sp
+    mne.set_log_level("ERROR")
+    C = R["cluster"]; X = np.array([[np.nan if v is None else v for v in r] for r in C["X"]], float); X = X[~np.isnan(X).any(1)]
+    m = len(C["adj"]); A = sp.lil_matrix((m, m))
+    for i, nb in enumerate(C["adj"]):
+        for j in nb: A[i, j] = 1
+    _, cl, pv, _ = mne.stats.permutation_cluster_1samp_test(X, threshold=C["thr"], adjacency=A.tocsr(), n_permutations=5000, tail=0, out_type="indices", seed=1)
+    ref = {tuple(sorted(c[0].tolist())): p for c, p in zip(cl, pv)}; app = {tuple(c["nodes"]): c["p"] for c in C["clusters"]}
+    worst = max(abs(app[k] - ref[k]) for k in app) if set(app) == set(ref) else float("nan")
+    check("mismos clusters que MNE (μθ, 68 personas)", set(app) == set(ref), f"app {len(app)}, MNE {len(ref)}; tamaños {sorted(len(k) for k in app)}")
+    # p de Monte Carlo: con 1000 y 5000 permutaciones el error típico es < 0.016 para p ≈ 0.5
+    check("p de cada cluster (Monte Carlo)", worst <= .03, f"diferencia máx. {worst:.3f} (app {C['perms']} permutaciones, MNE 5000)")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", type=Path, default=None, help="carpeta para las capturas (por defecto, una temporal)")
@@ -280,6 +323,8 @@ def main():
         test_quality()
         test_cui_variant()
         test_electrode_epochs()
+        test_clusters(R)
+        test_bands(R)
         take_screenshots(a.chrome, base, profile, out)
     srv.shutdown()
     bad = [n for n, ok, _ in RESULTS if not ok]

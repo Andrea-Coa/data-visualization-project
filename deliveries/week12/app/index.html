@@ -16,7 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css">
+<!-- ?v=…: versión de los archivos para que el navegador no use una copia vieja en caché; súbela al cambiar CSS o JS -->
+<link rel="stylesheet" href="css/styles.css?v=20261116b">
 </head>
 <body>
 <div class="boot" id="boot" role="status">Loading 68 recordings</div>
@@ -36,6 +37,12 @@
     <div class="fld"><i>Region</i><div class="seg" id="roiseg" role="group" aria-label="EEG region">
       <button data-v="front" aria-pressed="true">Frontal</button>
       <button data-v="ct" aria-pressed="false">Centrotemporal</button>
+    </div></div>
+    <div class="fld"><i>Band</i><div class="seg" id="bandseg" role="group" aria-label="Frequency band" data-theta-only>
+      <button data-v="delta" aria-pressed="false" title="Delta, 1–4 Hz (exploratory)">δ</button>
+      <button data-v="theta" aria-pressed="true" title="Theta, 4–8 Hz (main hypothesis)">θ</button>
+      <button data-v="alpha" aria-pressed="false" title="Alpha, 8–13 Hz (exploratory)">α</button>
+      <button data-v="beta" aria-pressed="false" title="Beta, 13–30 Hz (exploratory; sensitive to muscle)">β</button>
     </div></div>
     <div class="fld"><i>Metric</i><div class="seg" id="metseg" role="group" aria-label="Theta metric">
       <button data-v="var" aria-pressed="true">σθ</button>
@@ -85,16 +92,16 @@
   <aside class="col col-s" id="side" aria-label="Secondary views">
     <div class="side-head"><span class="side-title vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 14 4v4c0 3.6-2.6 5.7-6 6.5C4.6 13.7 2 11.6 2 8V4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m5.3 8 1.9 1.9L10.8 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Validation Panel</span></span><button class="btn btn-icon" id="sidebtn" type="button" aria-expanded="true" aria-controls="side-body" title="Collapse secondary views">›</button></div>
     <div class="side-body" id="side-body">
-      <section class="sec" data-open="true" aria-labelledby="b-aper">
-        <div class="sec-hd"><button class="sec-btn" id="b-aper" type="button" aria-expanded="true" aria-labelledby="l-aper"></button><div class="sec-lbl"><b id="l-aper">Oscillatory &amp; aperiodic components</b></div></div>
+      <section data-theta-only class="sec" data-open="true" aria-labelledby="b-aper">
+        <div class="sec-hd"><button class="sec-btn" id="b-aper" type="button" aria-expanded="true" aria-labelledby="l-aper"></button><div class="sec-lbl"><b id="l-aper">Oscillatory &amp; aperiodic components</b><span class="tonly" title="This view is computed for theta only">θ only</span></div></div>
         <div class="sec-body"><div class="ph"><h2 id="t-aper"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="aper"></div></div>
       </section>
-      <section class="sec" data-open="false" aria-labelledby="b-eye">
-        <div class="sec-hd"><button class="sec-btn" id="b-eye" type="button" aria-expanded="false" aria-labelledby="l-eye"></button><div class="sec-lbl"><b id="l-eye">Blink effects on θ variability</b></div></div>
+      <section data-theta-only class="sec" data-open="false" aria-labelledby="b-eye">
+        <div class="sec-hd"><button class="sec-btn" id="b-eye" type="button" aria-expanded="false" aria-labelledby="l-eye"></button><div class="sec-lbl"><b id="l-eye">Blink effects on θ variability</b><span class="tonly" title="This view is computed for theta only">θ only</span></div></div>
         <div class="sec-body"><div class="ph"><h2 id="t-eye"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="eye"></div></div>
       </section>
-      <section class="sec" data-open="false" aria-labelledby="b-conn">
-        <div class="sec-hd"><button class="sec-btn" id="b-conn" type="button" aria-expanded="false" aria-labelledby="l-conn"></button><div class="sec-lbl"><b id="l-conn">θ synchrony between regions</b></div></div>
+      <section data-theta-only class="sec" data-open="false" aria-labelledby="b-conn">
+        <div class="sec-hd"><button class="sec-btn" id="b-conn" type="button" aria-expanded="false" aria-labelledby="l-conn"></button><div class="sec-lbl"><b id="l-conn">θ synchrony between regions</b><span class="tonly" title="This view is computed for theta only">θ only</span></div></div>
         <div class="sec-body"><div class="ph"><h2 id="t-conn"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="conn"></div></div>
       </section>
       <section class="sec" data-open="false" aria-labelledby="b-graph">
@@ -111,10 +118,10 @@
     <p class="lead">Does the night-to-night change in resting theta show who deteriorates after sleep deprivation? Cui et al. (2026) reported that a rise in theta variability tracks PVT slowing (ρ ≈ 0.55, n = 28) on this dataset. BATIMIX re-examines it person by person. Exploratory screening, not diagnosis.</p>
     <h3>Key findings</h3>
     <ul class="kf">
-      <li><b>Heterogeneous:</b> Δσθ frontal rises in 40 people and falls in 28; group t = 1.12, p = 0.27.</li>
-      <li><b>Diffuse:</b> 0 of 61 electrodes survive FDR (σθ and μθ).</li>
-      <li><b>Not linked to vigilance:</b> Δσθ frontal vs ΔPVT median RT ρ = −0.04 [−0.40, 0.32], n = 30; with Cui's exact pipeline, ρ = −0.06.</li>
-      <li><b>Mostly oscillatory, not 1/f:</b> Δσθ tracks periodic theta (ρ = 0.82; 1/f variability explains R² = 0.14); the aperiodic offset change seen without ICA (p = 0.034) disappears with ICA.</li>
+      <li><b>Theta becomes more unstable:</b> Δσθ frontal rises in 50 people and falls in 18; group t = 5.88, p &lt; 0.001, d<sub>z</sub> = 0.71.</li>
+      <li><b>Widespread:</b> 61 of 61 electrodes survive FDR for σθ, 45 of 61 for μθ.</li>
+      <li><b>Weakly linked to vigilance:</b> Δσθ centrotemporal vs ΔPVT median RT ρ = +0.37 [+0.01, +0.64], n = 30 (frontal +0.16); with Cui's exact pipeline, ρ = +0.33 (p = 0.08).</li>
+      <li><b>Mostly oscillatory:</b> Δσθ tracks periodic theta (ρ = 0.78; 1/f variability explains R² = 0.06); the aperiodic offset also rises after deprivation (d<sub>z</sub> = 0.48, p &lt; 0.001), as Bai et al. (2024) reported.</li>
       <li><b>Not blinks:</b> removing blink windows leaves Δσθ unchanged (ρ = 0.95).</li>
     </ul>
     <h3>Data</h3>
@@ -123,10 +130,10 @@
     <ul class="kf">
       <li><b>Preprocessing</b> (<code>tools/eeg_ica.py</code>): 50 Hz notch, 1–40 Hz; bad channels interpolated; FCz re-inserted, average reference; extended Infomax ICA (30 components), ocular (Fp1/Fp2 correlation or ICLabel) and muscle (ICLabel p &gt; 0.85) components removed (5.1 per recording); 75 × 4-s epochs, &gt; 200 µV rejected (71 kept on average).</li>
       <li><b>Metric:</b> relative θ = 4–8 / 1–40 Hz (Welch) per epoch and electrode; σθ = SD across epochs, μθ = mean; Δ = deprivation − normal. Frontal (16) and centrotemporal (28) ROIs as in Cui et al.</li>
-      <li><b>Statistics:</b> paired t per electrode with Benjamini–Hochberg FDR (61 tests), d<sub>z</sub> and 95% CI; Spearman ρ with 95% CI. Maps: v4 interpolation (EEGLAB, FieldTrip) on the real electrode positions.</li>
+      <li><b>Statistics:</b> paired t per electrode with Benjamini–Hochberg FDR (61 tests); cluster-based permutation test (Maris and Oostenveld, 2007) as a global test of each Δ map; d<sub>z</sub> and 95% CI; Spearman ρ with 95% CI. Maps: v4 interpolation (EEGLAB, FieldTrip) on the real electrode positions.</li>
     </ul>
     <h3 id="h-robust">Robustness</h3>
-    <p>Multiverse of 896 analyses (2 pipelines, with and without ICA × 4 regions × 2 metrics × 2 change forms × 7 markers × 2 correlations × 2 outlier rules), with joint inference by 2000 permutations (Simonsohn et al., 2020): no joint statistic exceeds chance (σθ only: median r = +0.089, p = 0.11). The only consistent hint is mood (PANAS+). All results: <a href="../data/multiverse_specs.csv">multiverse_specs.csv</a>.</p>
+    <p>Multiverse of 896 analyses (2 pipelines, with and without ICA × 4 regions × 2 metrics × 2 change forms × 7 markers × 2 correlations × 2 outlier rules), with joint inference by 2000 permutations (Simonsohn et al., 2020): no joint statistic exceeds chance (σθ only: median r = +0.030, p = 0.34). The most consistent marker is PVT median RT (median r = +0.21 over its 128 analyses). All results: <a href="../data/multiverse_specs.csv">multiverse_specs.csv</a>.</p>
     <h3>Limitations</h3>
     <p>PVT for only 30 people (power ≈ 0.35 for ρ = 0.3); public PVT summary columns, whereas Cui et al. likely recomputed median RT from trials; ICA components selected by rule, without visual review; no task EEG or event markers (no ERP).</p>
     <h3>How to read it</h3>
@@ -154,19 +161,19 @@
 </dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<script src="js/core.js"></script>
-<script src="js/scatter.js"></script>
-<script src="js/topomap.js"></script>
-<script src="js/dynamics.js"></script>
-<script src="js/individuals.js"></script>
-<script src="js/secondary.js"></script>
-<script src="js/graph.js"></script>
-<script src="js/report.js"></script>
-<script src="js/main.js"></script>
-<script src="js/share.js"></script>
-<script src="js/tour.js"></script>
-<script src="js/about.js"></script>
-<script src="js/i18n.js"></script>
-<script src="js/embed.js"></script>
+<script src="js/core.js?v=20261116b"></script>
+<script src="js/scatter.js?v=20261116b"></script>
+<script src="js/topomap.js?v=20261116b"></script>
+<script src="js/dynamics.js?v=20261116b"></script>
+<script src="js/individuals.js?v=20261116b"></script>
+<script src="js/secondary.js?v=20261116b"></script>
+<script src="js/graph.js?v=20261116b"></script>
+<script src="js/report.js?v=20261116b"></script>
+<script src="js/main.js?v=20261116b"></script>
+<script src="js/share.js?v=20261116b"></script>
+<script src="js/tour.js?v=20261116b"></script>
+<script src="js/about.js?v=20261116b"></script>
+<script src="js/i18n.js?v=20261116b"></script>
+<script src="js/embed.js?v=20261116b"></script>
 </body>
 </html>

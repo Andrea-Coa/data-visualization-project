@@ -29,6 +29,26 @@ const dyn = (() => {
   const nearest = t => Math.max(0, Math.min(XS.length-1, Math.round((t-XS[0])/4)));
   const spanTxt = i => isVar() ? `${XS[i]-rollW()*2}–${XS[i]+rollW()*2} s` : `${XS[i]-2}–${XS[i]+2} s`;
 
+  // Dominio del eje y por banda × métrica × región o electrodo × modo (NS y SD, o Δ con comparación) × largo de la
+  // ventana móvil (con σ cambia lo que se mide). Se calcula una vez sobre todas las personas y sobre cada grupo de las
+  // comparaciones no circulares (sexo, orden, PSQI), media ± EE con 8 % de margen, y se guarda. «Vulnerables vs
+  // resto» no entra (sus grupos dependen del marcador del eje y del scatter). Una selección que se sale del dominio se
+  // recorta en el área del gráfico y la ⓘ lo avisa.
+  const yCache = new Map();
+  let clipped = false;
+  function fixedY(met, delta, pref){
+    const key = [S.band, met, S.elec && ELEP ? `e:${S.elec}` : `r:${S.roi}`, delta ? "D" : "C", met === "var" ? S.winLen : 0].join("|");
+    if(yCache.has(key)) return yCache.get(key);
+    const sets = [EEG_IDS, ...COMPARES.filter(c => c.g && !c.circular).flatMap(c => c.g.map(([, f]) => EEG.filter(f).map(d => d.id)))];
+    let lo = Infinity, hi = -Infinity;
+    sets.forEach(ids => {
+      const ss = delta ? [epochDiffStats(ids, pref, met)] : [epochStats(ids, pref, "NS", met), epochStats(ids, pref, "SD", met)];
+      ss.forEach(s => s.mean.forEach((v, i) => { if(v == null) return; lo = Math.min(lo, v-s.sem[i]); hi = Math.max(hi, v+s.sem[i]); }));
+    });
+    if(delta){ lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
+    const pad = (hi-lo)*.08 || 1e-3, dom = [lo-pad, hi+pad];
+    yCache.set(key, dom); return dom;
+  }
   function render(){
     stopPlay({keep:true});
     d3.select(el).selectAll("*").remove();
@@ -46,8 +66,10 @@ const dyn = (() => {
     XS = (G ? cur.D[0] : cur.SD).xs;
     const series = G ? cur.D : [cur.NS, cur.SD];
     const vals = series.flatMap(s => s.mean.flatMap((v, i) => v == null ? [] : [v-s.sem[i], v+s.sem[i]])).concat(G ? [0] : []);
-    const [lo, hi] = d3.extent(vals), pad = (hi-lo)*.08;
-    dx = d3.scaleLinear().domain([0, 300]).range([m.l, W-m.r]); dy = d3.scaleLinear().domain([lo-pad, hi+pad]).range([H-m.b, m.t]);
+    // eje y fijo (fase 6 de PLAN.md): no cambia al seleccionar, comparar ni reproducir; solo con lo que se mide
+    const ydom = fixedY(met, !!G, pref);
+    clipped = vals.some(v => v < ydom[0] || v > ydom[1]);
+    dx = d3.scaleLinear().domain([0, 300]).range([m.l, W-m.r]); dy = d3.scaleLinear().domain(ydom).range([H-m.b, m.t]);
     g.append("g").attr("class", "gridl").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(dy).ticks(4).tickSize(-(W-m.l-m.r)).tickFormat(""));
     g.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(dy).ticks(4).tickSize(3).tickPadding(3).tickSizeOuter(0).tickFormat(L.format(isVar() ? ".3~f" : ".2~f"))).call(a => a.select(".domain").remove());
     g.append("g").attr("class", "axis").attr("transform", `translate(0,${H-m.b})`).call(d3.axisBottom(dx).tickValues(d3.range(0, 301, W < 500 ? 60 : 30)).tickSize(4).tickPadding(3).tickSizeOuter(0).tickFormat(d => d === 300 ? "300 s" : d));
@@ -162,7 +184,9 @@ const dyn = (() => {
   }
   function tick(){ pt += 300*50/DUR; if(pt >= 300){ show(300); pause(); return; } show(pt); }
   function play(){
-    if(!svg || reduce || S.series) return;   // con movimiento reducido o en modo serie no se anima
+    if(!svg || S.series) return;   // en modo serie no se anima
+    // con movimiento reducido no hay reproducción automática: ▶ abre la ventana en 0 s, en pausa, y se avanza con ← →
+    if(reduce){ if(mode === "idle"){ begin(); pt = 0; mode = "paused"; ui(); show(0); } return; }
     if(mode === "playing"){ pause(); return; }
     if(mode === "idle"){ begin(); pt = 0; } else if(pt >= 300) pt = 0;
     mode = "playing"; ui(); show(pt);
@@ -193,7 +217,8 @@ const dyn = (() => {
     const src = S.elec && ELEP ? ` · electrode ${S.elec}` : ` · ${ROI[S.roi].name}`;
     const upOf = s => idx.filter(i => s.mean[i] != null && s.mean[i] > 0).length;
     // el título no se ve en la vista (solo su ⓘ en la cabecera): lo usa la figura del reporte
-    const key = "Shaded band: ± SE; dashed line: linear trend. Legend box: drag to move it, click to minimize it.";
+    const key = "Shaded band: ± SE; dashed line: linear trend. Legend box: drag to move it, click to minimize it. The y-axis is fixed: it only changes with the band, the metric, the region or electrode, the window length and whether a comparison is shown." +
+      (clipped ? " Part of this series falls outside the fixed y-axis and is cut at the edge of the chart." : "");
     if(G){
       const u = cur.D.map(upOf);
       setTitle("t-dyn", `${isVar() ? "Δ moving σθ" : "Δθ per epoch"}${src}: two groups${post}`, nb(`n = ${cur.D[0].n} and ${cur.D[1].n}`),
@@ -229,5 +254,12 @@ const dyn = (() => {
     if(k == null) return; const [a, b] = seriesBlocks()[k];
     blk.insert("rect", ":first-child").attr("x", dx(a*4)).attr("width", dx((b+1)*4)-dx(a*4)).attr("y", m.t).attr("height", H-m.t-m.b).attr("fill", C.ink).attr("opacity", .08);
   }
-  return {render, play, stop:() => stopPlay(), stopKeep:() => stopPlay({keep:true}), ui, plotX, hiBlock, withFullBox:fn => leg.withFull(fn), rebuild(){}};
+  // teclado (main.js): Espacio reproduce o pausa; ← → mueven la ventana una época (4 s) en pausa
+  function key(k){
+    if(k === " "){ play(); return true; }
+    if(mode === "playing" && (k === "ArrowLeft" || k === "ArrowRight")) pause();
+    if(mode === "paused"){ step(k === "ArrowLeft" ? -1 : 1); return true; }
+    return false;
+  }
+  return {render, play, key, stop:() => stopPlay(), stopKeep:() => stopPlay({keep:true}), ui, plotX, hiBlock, withFullBox:fn => leg.withFull(fn), rebuild(){}};
 })();

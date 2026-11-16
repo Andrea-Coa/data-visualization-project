@@ -1,6 +1,9 @@
 /* BATIMIX · core: datos, estado compartido, bus de eventos, paleta, formato y estadística.
    Todas las vistas leen de aquí; ninguna vista habla directamente con otra (todo pasa por el bus).
-   Semana 12: sin animaciones; los cambios de estado se dibujan en el acto. */
+   Semana 12: sin animaciones de transición; los cambios de estado se dibujan en el acto. Excepción (noviembre 2026):
+   la reproducción de los mapas en el tiempo (▶ en la Topography View), siempre iniciada por quien usa la app,
+   opcional y con alternativa estática (ventana elegida con clic y la serie de bloques); con prefers-reduced-motion
+   no se anima: se avanza con ← →. */
 
 // ---------- datos (los asigna main.js tras cargar data/*.json) ----------
 let P = [], TOPO = {}, COORDS = {}, COORDS3 = null, APER = null, CONN = null, QUAL = null, ELEP = null, SUBEP = {}, EEG = [], EEG_IDS = [], ELEC = [], SUBTOPO = {}, MULTI = null;
@@ -43,6 +46,25 @@ const ROI = {
   ct:   {name:"centrotemporal",  var:"d_ct_var",    mean:"d_ct_pow",    pref:"c"},
 };
 const METN = {var:"σθ", mean:"μθ"};
+// ---------- bandas (fase 4 de PLAN.md) ----------
+// Potencia relativa (banda / 1–40 Hz) por época y electrodo, igual que theta. Bordes en tools/eeg_ica.py (sin bins
+// contados dos veces): delta [1, 4), theta [4, 8] (regla del notebook 02), alfa (8, 13), beta [13, 30). Theta σ es la
+// hipótesis confirmatoria; las demás bandas son exploratorias (FDR dentro de cada banda × métrica, 61 pruebas).
+const BANDS = {
+  delta:{sym:"δ", name:"delta", Name:"Delta", lo:1, hi:4},
+  theta:{sym:"θ", name:"theta", Name:"Theta", lo:4, hi:8},
+  alpha:{sym:"α", name:"alpha", Name:"Alpha", lo:8, hi:13},
+  beta: {sym:"β", name:"beta",  Name:"Beta",  lo:13, hi:30}};
+const BAND_FILES = ["topo", "topo_by_subject", "subject_epochs", "electrode_epochs", "participants_eeg"];
+// Los textos de la app están escritos para theta («σθ», «theta», «4–8 Hz»); con otra banda, bandText los cambia al
+// vuelo (en i18n.js, sobre cada texto que llega a la página, después de traducir). Lo que solo existe para theta
+// (multiverso, parpadeos, sincronía, la dispersión periódica, los hallazgos del About) lleva data-theta-only y no cambia.
+function bandText(t){
+  if(S.band === "theta" || !t || !/θ|[Tt]heta|4–8/.test(t)) return t;
+  const B = BANDS[S.band];
+  return t.replace(/θ/g, B.sym).replace(/\btheta\b/g, B.name).replace(/\bTheta\b/g, B.Name).replace(/\bTHETA\b/g, B.Name.toUpperCase())
+    .replace(/4–8 Hz/g, `${B.lo}–${B.hi} Hz`).replace(/4–8 \//g, `${B.lo}–${B.hi} /`).replace(/4–8\/1–40/g, `${B.lo}–${B.hi}/1–40`);
+}
 // los 61 electrodos en tres regiones (las dos primeras son las regiones del header); el mapa de calor y el selector
 // de electrodo los ordenan igual: por región y, dentro de ella, de adelante hacia atrás y de izquierda a derecha
 const EL_FRONTAL = ["Fp1", "Fp2", "Fpz", "AF3", "AF4", "AF7", "AF8", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "Fz"];
@@ -59,6 +81,8 @@ const S = {
   hovered:null, pair:[], selected:null, group:"all", vuln:new Set(), elec:null, win:null, cmp:"none", showD:true,   // la matriz siempre muestra NS, SD y Δ (6 mapas)
   // vista temporal: duración de la ventana en épocas de 4 s (WINLENS) y modo serie (bloques de tiempo sin solapamiento)
   winLen:15, series:false,
+  marks:"fdr",   // marcas de los mapas Δ: fdr (por defecto), cluster (canales del cluster, descriptivo), p (sin corregir) o none
+  band:"theta",   // banda elegida (BANDS); theta es la hipótesis confirmatoria, las demás son exploratorias
   // origen del eje x de la dispersión: ventana de tiempo > electrodo > región
   xKey(){ return this.win ? "wx" : (this.elec ? "ex" : ROI[this.roi][this.met]); },
 };
@@ -310,6 +334,81 @@ function tTest1(d){
   const m = d3.mean(d), sd = d3.deviation(d); if(!sd) return null;
   const t = m/(sd/Math.sqrt(n)), df = n-1;
   return {t, p:betaInc(df/(df+t*t), df/2, .5), n};
+}
+// ---------- prueba de permutación por clusters (Maris y Oostenveld, 2007) ----------
+// Para Δ = SD − NS por persona (diseño pareado): t de una muestra por nodo (electrodo, o electrodo × bloque en la
+// serie); los nodos vecinos con |t| sobre el umbral de p < 0.05 bilateral y el mismo signo forman un cluster, cuya
+// masa es la suma de sus t. La nula se arma invirtiendo al azar el signo del Δ de cada persona (equivale a
+// intercambiar NS y SD dentro de la persona) y guardando la mayor |masa| de cada permutación; p del cluster =
+// proporción de permutaciones (contando la observada) con una masa máxima ≥ la suya. Controla el error a nivel de
+// cluster: dice que la zona cambió, no que cada electrodo de ella cambió. Validada contra
+// mne.stats.permutation_cluster_1samp_test (tools/check_app.py, prueba 11).
+const CLUSTER = {perms:1000, seed:97, alpha:.05};
+// t crítico bilateral para gl = df: bisección sobre la p de betaInc
+function tCrit(df, alpha = .05){
+  let lo = 0, hi = 50;
+  for(let k = 0; k < 80; k++){ const mid = (lo+hi)/2, p = betaInc(df/(df+mid*mid), df/2, .5); if(p > alpha) lo = mid; else hi = mid; }
+  return (lo+hi)/2;
+}
+// vecinos entre electrodos: triangulación de Delaunay de las posiciones 2D (como mne.channels.find_ch_adjacency)
+let ADJ = null;
+function elecAdjacency(){
+  if(ADJ) return ADJ;
+  const pts = ELEC.map(e => COORDS[e]), D = d3.Delaunay.from(pts), nb = ELEC.map(() => new Set());
+  for(let t = 0; t < D.triangles.length; t += 3){
+    const [a, b, c] = [D.triangles[t], D.triangles[t+1], D.triangles[t+2]];
+    nb[a].add(b).add(c); nb[b].add(a).add(c); nb[c].add(a).add(b);
+  }
+  return (ADJ = nb.map(s => [...s]));
+}
+// vecinos de los nodos electrodo × bloque: vecinos espaciales en el mismo bloque y el mismo electrodo en bloques contiguos
+function stAdjacency(nBlocks){
+  const A = elecAdjacency(), m = A.length, out = [];
+  for(let b = 0; b < nBlocks; b++) for(let i = 0; i < m; i++){
+    const n = A[i].map(j => b*m+j); if(b > 0) n.push((b-1)*m+i); if(b < nBlocks-1) n.push((b+1)*m+i); out.push(n);
+  }
+  return out;
+}
+function mulberry32(a){ return () => { a |= 0; a = a+0x6D2B79F5|0; let t = Math.imul(a^a>>>15, 1|a); t = t+Math.imul(t^t>>>7, 61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+// X: filas = personas, columnas = nodos (Δ por persona); adj: vecinos de cada nodo. Devuelve los clusters con su p.
+function clusterTest(X, adj, opts = {}){
+  const rows = X.filter(r => r.every(v => v != null && isFinite(v))), n = rows.length, m = adj.length;
+  if(n < 3) return null;
+  const nPerm = opts.perms || CLUSTER.perms, thr = tCrit(n-1, CLUSTER.alpha);
+  const sq = new Float64Array(m); rows.forEach(r => r.forEach((v, j) => { sq[j] += v*v; }));
+  const tOf = sums => Array.from(sums, (s, j) => { const mean = s/n, v = (sq[j]-s*s/n)/(n-1); return v > 0 ? mean/Math.sqrt(v/n) : 0; });
+  const clustersOf = t => {
+    const seen = new Uint8Array(m), out = [];
+    for(let i = 0; i < m; i++){
+      if(seen[i] || Math.abs(t[i]) <= thr) continue;
+      const sign = Math.sign(t[i]), stack = [i], nodes = []; seen[i] = 1;
+      while(stack.length){ const k = stack.pop(); nodes.push(k); for(const j of adj[k]) if(!seen[j] && Math.abs(t[j]) > thr && Math.sign(t[j]) === sign){ seen[j] = 1; stack.push(j); } }
+      out.push({nodes:nodes.sort((a, b) => a-b), mass:nodes.reduce((s, k) => s+t[k], 0), sign});
+    }
+    return out;
+  };
+  const sums0 = new Float64Array(m); rows.forEach(r => r.forEach((v, j) => { sums0[j] += v; }));
+  const t0 = tOf(sums0), obs = clustersOf(t0);
+  const rnd = mulberry32(opts.seed || CLUSTER.seed), maxes = [];
+  for(let q = 0; q < nPerm; q++){
+    const sums = new Float64Array(m);
+    for(let i = 0; i < n; i++){ const s = rnd() < .5 ? -1 : 1, r = rows[i]; for(let j = 0; j < m; j++) sums[j] += s*r[j]; }
+    const cs = clustersOf(tOf(sums)); maxes.push(cs.length ? Math.max(...cs.map(c => Math.abs(c.mass))) : 0);
+  }
+  obs.forEach(c => { c.p = (1 + maxes.filter(v => v >= Math.abs(c.mass)).length)/(nPerm+1); });
+  return {n, thr, t:t0, clusters:obs.sort((a, b) => a.p-b.p), perms:nPerm};
+}
+// Δ por persona y electrodo (filas = personas, columnas = ELEC) de los cinco minutos o de una ventana [época, época]
+function deltaMatrix(ids, met, w){
+  return ids.map(id => {
+    if(!w){ const T = SUBTOPO[id]; return ELEC.map(e => T && T[e] ? (met === "var" ? T[e].dVar : T[e].dMean) : null); }
+    const p = ELEP && ELEP.persons[id]; if(!p || !p.NS || !p.SD) return ELEC.map(() => null);
+    return ELEC.map(e => {
+      const i = ELEP.idx[e]; if(i == null) return null;
+      const f = c => { const a = p[c][i].slice(w[0], w[1]+1).filter(v => v != null).map(v => v/ELEP.scale); return a.length >= 3 ? (met === "var" ? sdPop(a) : d3.mean(a)) : null; };
+      const a = f("NS"), b = f("SD"); return a == null || b == null ? null : b-a;
+    });
+  });
 }
 // posición dibujada de un electrodo: TP9 y TP10 quedan fuera del círculo de la cabeza (radio 1.2) y se traen
 // justo dentro del borde; la interpolación usa las posiciones reales
