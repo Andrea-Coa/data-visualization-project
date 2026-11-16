@@ -59,6 +59,7 @@ Fecha de verificación: 27 de octubre de 2026; grupo E (preprocesamiento del EEG
 | F3 | Tagliazucchi & Laufs (2014) | 10.1016/j.neuron.2014.03.020 | Verificado | Deriva de la vigilia durante el reposo |
 | F4 | Maris & Oostenveld (2007) | 10.1016/j.jneumeth.2007.03.024 | Verificado | Permutación por clusters (electrodos × tiempo) |
 | F5 | Leonardi & Van De Ville (2015) | 10.1016/j.neuroimage.2014.09.007 | Verificado | Fluctuaciones espurias con ventanas cortas |
+| F6 | Sassenhagen & Draschkow (2019) | 10.1111/psyp.13335 | Verificado con salvedad | La prueba de clusters no localiza el efecto |
 
 ---
 
@@ -396,7 +397,7 @@ Añadido el 15 de noviembre de 2026, al rediseñar cómo los topomapas muestran 
 - **Abierto:** registro de PubMed (resumen) y documentación de FieldTrip y MNE.
 - **Estado:** [Verificado con salvedad: resumen y documentación de las implementaciones]
 - **Qué dice:** Propone una prueba por permutación con estadístico de cluster para el problema de comparaciones múltiples en pares (sensor, tiempo).
-- **Cómo lo usamos en BATIMIX:** Es la alternativa más estricta que citamos en la ⓘ de la serie y queda como trabajo pendiente en el README. Hoy la serie usa t pareada por electrodo y bloque con FDR sobre todos los bloques × electrodos.
+- **Cómo lo usamos en BATIMIX:** Desde el 15 de noviembre de 2026 se informa como prueba global de cada mapa Δ (electrodos) y de la serie (electrodos × bloques), en la leyenda y la ⓘ; las marcas por defecto son de FDR (ver F6): implementada desde cero en `app/js/core.js` (`clusterTest`) y verificada contra `mne.stats.permutation_cluster_1samp_test` (mismos clusters, p dentro del error de Monte Carlo; `tools/check_app.py`, prueba 11). FDR y p sin corregir quedan como opciones del selector de marcas.
 
 ### F5. Leonardi & Van De Ville (2015)
 - **Cita (APA):** Leonardi, N., & Van De Ville, D. (2015). On spurious and real fluctuations of dynamic functional connectivity during rest. *NeuroImage, 104*, 430–436. https://doi.org/10.1016/j.neuroimage.2014.09.007
@@ -404,6 +405,29 @@ Añadido el 15 de noviembre de 2026, al rediseñar cómo los topomapas muestran 
 - **Estado:** [Verificado con salvedad: resumen y diapositivas de los autores]
 - **Qué dice:** Con ventanas deslizantes más cortas que la longitud de onda más larga de la señal aparecen fluctuaciones espurias, aun en señales con una relación fija.
 - **Cómo lo usamos en BATIMIX:** Argumento para no ofrecer ventanas demasiado cortas: el mínimo es 32 s con μθ y 60 s con σθ, y la ⓘ explica que las ventanas cortas son más ruidosas. Es un resultado de conectividad en fMRI; aquí se usa como analogía, no como regla.
+
+### F6. Sassenhagen & Draschkow (2019)
+- **Cita (APA):** Sassenhagen, J., & Draschkow, D. (2019). Cluster-based permutation tests of MEG/EEG data do not establish significance of effect latency or location. *Psychophysiology, 56*(6), e13335. https://doi.org/10.1111/psyp.13335
+- **Abierto:** registro de Crossref, resumen y el FAQ de FieldTrip que lo resume («How NOT to interpret results from a cluster-based permutation test»).
+- **Estado:** [Verificado con salvedad: resumen y FAQ de FieldTrip; no se leyó el texto completo]
+- **Qué dice:** La prueba de clusters controla el error al rechazar la hipótesis nula («las condiciones difieren»), pero no establece dónde ni cuándo está el efecto: no se debe decir «hay un cluster significativo en la región X». Se puede describir dónde la diferencia fue más marcada, como observación. El FAQ de FieldTrip agrega que la extensión de un cluster depende del umbral, la relación señal/ruido y la cobertura de sensores.
+- **Cómo lo usamos en BATIMIX:** La prueba de clusters se muestra como resultado global («cluster test p < 0.001») y no como marca de electrodos significativos; las marcas por defecto son de FDR, que sí permite afirmaciones por electrodo, con el marcador por defecto de MNE (círculo blanco con borde oscuro). La opción «Cluster channels» queda rotulada como descriptiva.
+
+### F7. Cómo marcan los electrodos significativos los laboratorios de EEG de sueño (revisión del 16 de noviembre de 2026)
+
+Se revisaron solo artículos de grupos especialistas en EEG de sueño y privación de sueño, leyendo la leyenda original de cada figura (texto completo en PMC o PDF del autor):
+
+| Artículo | Grupo | Color del mapa | Significativos tras corrección | Otras marcas |
+|---|---|---|---|---|
+| Huber, Ghilardi, Massimini y Tononi (2004), *Nature* 430:78–81 | Tononi (Wisconsin) | SWA | puntos blancos (cluster) | todos los electrodos en amarillo |
+| Hung, Sarasso et al. (2013), *Sleep* 36(1):59–72, PMC3524543 | Tononi | valores t | puntos negros y blancos (SnPM, cluster) | blancos y grises también marcan regiones de interés |
+| Castelnovo et al. (2016), *Sleep* 39(10):1815–1825, PMC5020364 | hd-EEG de sueño (Wisconsin) | valores t | puntos blancos (SnPM, cluster) | puntos negros = p < 0.05 sin corregir; grises = tendencia (p ≤ 0.08) |
+| Siclari, Bernardi, Cataldi y Tononi (2018), *J Neurosci* 38(43):9175–9185, PMC6199409 | Tononi | valores t | marcados en blanco (cluster por permutación) | — |
+| Snipes, Krugliakova, Meier y Huber (2022), *J Neurosci* 42(45):8569–8586, PMC9665934 | Huber (Zúrich) | valores t | puntos blancos (FDR) | puntos negros = todos los canales |
+| Verweij et al. (2014), *BMC Neurosci* 15:88, PMC4108786 | Van Someren y Van der Werf (Ámsterdam) | valores t sin corregir | puntos negros gruesos (cluster) | — |
+| Cui et al. (2026), *Front Neurosci*, doi 10.3389/fnins.2026.1910878, Fig. 3B | **mismo dataset (ds004902) y métrica (variabilidad de theta)** | cambio medio (diferencia en unidades) | **aros negros finos** (FDR dentro de cada familia) | isolíneas negras finas; puntos en los demás sensores |
+
+**Conclusión:** en los grupos especialistas, el punto **blanco** marca los electrodos significativos tras la corrección (4 de 6; Hung et al. usan blanco y negro; Verweij et al., negro), y Castelnovo et al. usan puntos negros para la p sin corregir. Cui et al. (2026), sobre este mismo dataset, usan **aros negros finos** para FDR sobre mapas de la diferencia en unidades. **Decisión (16 nov 2026, elegida por el equipo): la convención de Cui et al.**, porque BATIMIX reexamina ese estudio con sus mismos datos y así las figuras se comparan lado a lado: aro fino = FDR (o canales del cluster), punto pequeño relleno = p < 0.05 sin corregir (opcional), puntos de sensor en el resto, color = diferencia en unidades, isolíneas finas. *Frontiers in Neuroscience* no es una revista de especialistas en sueño; la alternativa de los laboratorios de referencia (puntos blancos) queda documentada aquí.
 
 ---
 
@@ -977,5 +1001,13 @@ Entradas: tabla E (68 sujetos × Δ EEG para cada ROI × {media, variabilidad}) 
   journal = {NeuroImage},
   volume  = {104}, pages = {430--436}, year = {2015},
   doi     = {10.1016/j.neuroimage.2014.09.007}
+}
+
+@article{sassenhagen2019cluster,
+  author  = {Sassenhagen, Jona and Draschkow, Dejan},
+  title   = {Cluster-based permutation tests of {MEG/EEG} data do not establish significance of effect latency or location},
+  journal = {Psychophysiology},
+  volume  = {56}, number = {6}, pages = {e13335}, year = {2019},
+  doi     = {10.1111/psyp.13335}
 }
 ```

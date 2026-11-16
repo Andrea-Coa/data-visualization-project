@@ -60,6 +60,8 @@ OpenNeuro ds004902 (Xiang, Fan, Bai, Lv and Lei, 2024, *Scientific Data*), CC0. 
 
 Remove each item once it is done.
 
-- [ ] Retake the dashboard screenshots (`deliveries/week12/assets/dashboard-*.png`, `mobile-390.png` and `deliveries/week12/paper/dashboard-1365x768.png`) so they show the new mole logo and the significance marks in subgroups and in the playback, the Window selector and the Series of Δ maps.
-- [ ] Series of Δ maps: replace the FDR across blocks × electrodes with a cluster-based permutation test over electrodes × time (Maris and Oostenveld, 2007), the stricter standard in EEG.
 - [ ] Translate the new ⓘ texts of the Window and Series modes in `js/i18n.js` (the short labels and buttons are already in Spanish).
+- [ ] Rewrite `deliveries/week12/paper/FinalPaper_draft.html` with the corrected results (session correction of 15 November 2026: `deliveries/week12/research/correccion_sesiones.md`); it only carries a correction notice for now.
+- [ ] Crossover analysis by session order (phase B of the team's plan): separate the deprivation effect from the visit effect (Grizzle, 1965; Hills and Armitage, 1979). The `visit` column (1 or 2) is already in `deliveries/week12/data/processed_ica/*.csv`.
+- [ ] Add the references of the band literature review (`research/bandas_literatura.md`, cited in the team's plan but not in this repository) before citing band results.
+- [ ] Re-analyze the similarity graph between people after the session correction (finding 6 of `RefinedDraftReport.md`).
