@@ -51,7 +51,7 @@ def notebook_defs():
             exec(cells[i], ns)
     finally:
         os.chdir(cwd)
-    return ns
+    return eeg_ica.fix_sessions(ns)   # ses-1 = NS y ses-2 = SD (ver eeg_ica.session_to_condition)
 
 
 def fit_many(freqs, spectra):
@@ -86,9 +86,9 @@ def process(rec, cond, cache):
     ea, _, _ = eeg_ica.clean_epochs(raw, ns, drop_fcz=False)  # mismas épocas que la app (rechazo > 200 µV)
     ep = ea.copy().drop_channels(["FCz"]); ch = ep.ch_names
     # --- aperiódico (61 electrodos, como la app)
-    ps, fr = ep.compute_psd(method="welch", fmin=1.0, fmax=40.0, verbose=False).get_data(return_freqs=True)
+    ps, fr = ep.compute_psd(**eeg_ica.welch(ep.info["sfreq"]), fmin=1.0, fmax=40.0, verbose=False).get_data(return_freqs=True)
     elec = fit_many(fr, ps.mean(axis=0))
-    ps1, f1 = ep.compute_psd(method="welch", fmin=1.0, fmax=40.0, n_fft=500, n_per_seg=500, n_overlap=250, verbose=False).get_data(return_freqs=True)
+    ps1, f1 = ep.compute_psd(**eeg_ica.welch(ep.info["sfreq"], 1.0, 0.5), fmin=1.0, fmax=40.0, verbose=False).get_data(return_freqs=True)
     th1 = (f1 >= 4) & (f1 <= 8); rel1 = ps1[:, :, th1].sum(axis=2) / ps1.sum(axis=2)
     roi = {}
     for name, members in (("front", ns["FRONTAL_ROI"]), ("ct", ns["CENTROTEMPORAL_ROI"])):
@@ -196,7 +196,7 @@ def main():
     ap.add_argument("--procs", type=int, default=6)
     ap.add_argument("--cache", type=Path, default=None, help="carpeta para los resultados por grabación (por defecto, temporal)")
     a = ap.parse_args()
-    if not (REPO / "ds004902").exists():
+    if not (eeg_ica.DS).exists():
         raise SystemExit(f"Falta el dataset en {REPO / 'ds004902'}: ver deliveries/week06/README.md")
     tmp = None
     if a.cache is None:
@@ -205,7 +205,7 @@ def main():
     import pandas as pd
     ns = notebook_defs()
     cond = ns["session_to_condition"](pd.read_csv(ns["PARTICIPANTS_TSV"], sep="\t"))
-    jobs = [(r, cond.get((r["participant_id"], r["session"]))) for r in ns["find_recordings"](REPO / "ds004902") if r["task"] == "eyesopen"]
+    jobs = [(r, cond.get((r["participant_id"], r["session"]))) for r in ns["find_recordings"](eeg_ica.DS) if r["task"] == "eyesopen"]
     jobs = [j for j in jobs if j[1]]
     with ProcessPoolExecutor(a.procs) as ex:
         futs = {ex.submit(process, r, c, str(a.cache)): (r["participant_id"], c) for r, c in jobs}

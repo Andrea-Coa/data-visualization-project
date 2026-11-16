@@ -28,6 +28,9 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+import sys  # noqa: E402
+sys.path.insert(0, str(HERE))
+import eeg_ica  # noqa: E402  (asignación correcta de sesiones: eeg_ica.fix_sessions)
 REPO = HERE.parents[3]
 NB = REPO / "deliveries" / "week06" / "code" / "02_eeg_pipeline.ipynb"
 DATA = HERE.parent / "data"
@@ -46,7 +49,7 @@ def notebook_defs():
             exec(cells[i], ns)
     finally:
         os.chdir(cwd)
-    return ns
+    return eeg_ica.fix_sessions(ns)   # ses-1 = NS y ses-2 = SD (ver eeg_ica.session_to_condition)
 
 
 def process(rec, cond):
@@ -91,7 +94,7 @@ def process(rec, cond):
         out[f"epochs_{name}"] = len(ep)
         if len(ep) < 2:                     # sin ICA, una grabación pierde todas sus épocas por parpadeos
             continue
-        psd, f = ep.compute_psd(method="welch", fmin=1.0, fmax=30.0, verbose=False).get_data(return_freqs=True)
+        psd, f = ep.compute_psd(**eeg_ica.welch(ep.info["sfreq"]), fmin=1.0, fmax=30.0, verbose=False).get_data(return_freqs=True)
         th = psd[:, :, (f >= 4) & (f <= 8)].sum(axis=2)
         dens = {"1_30": psd.sum(axis=2), "4_30": psd[:, :, f >= 4].sum(axis=2)}
         for dn, den in dens.items():
@@ -114,14 +117,14 @@ def main():
     ap.add_argument("--procs", type=int, default=6)
     ap.add_argument("--cache", default=None, help="pickle with per-recording results (reused if it exists)")
     a = ap.parse_args()
-    if not (REPO / "ds004902").exists():
+    if not (eeg_ica.DS).exists():
         raise SystemExit(f"Dataset missing at {REPO / 'ds004902'}: see deliveries/week06/README.md")
     ns = notebook_defs()
     if a.cache and Path(a.cache).exists():
         R = pickle.loads(Path(a.cache).read_bytes())
     else:
         cond_map = ns["session_to_condition"](pd.read_csv(ns["PARTICIPANTS_TSV"], sep="\t"))
-        jobs = [(r, cond_map.get((r["participant_id"], r["session"]))) for r in ns["find_recordings"](REPO / "ds004902") if r["task"] == "eyesopen"]
+        jobs = [(r, cond_map.get((r["participant_id"], r["session"]))) for r in ns["find_recordings"](eeg_ica.DS) if r["task"] == "eyesopen"]
         jobs = [j for j in jobs if j[1]]
         R = {}
         with ProcessPoolExecutor(a.procs) as ex:

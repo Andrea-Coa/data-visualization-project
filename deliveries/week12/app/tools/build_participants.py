@@ -39,16 +39,30 @@ def num(s):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--proc", type=Path, default=E.PROC_ICA)
+    ap.add_argument("--proc", type=Path, default=None)
+    ap.add_argument("--band", default="theta", choices=["delta", "theta", "alpha", "beta"],
+                    help="theta: participants.json, subject_epochs.json and electrode_epochs.json in data/ (as always); other bands: "
+                         "participants_eeg.json (only the EEG fields per person), subject_epochs.json and electrode_epochs.json in data/bands/<band>/")
     a = ap.parse_args()
+    if a.proc is None:
+        a.proc = E.PROC_ICA if a.band == "theta" else E.PROC_BANDS / a.band
+    out = DATA if a.band == "theta" else DATA / "bands" / a.band
+    out.mkdir(parents=True, exist_ok=True)
     with (a.proc / "merged_summary.csv").open(encoding="utf-8") as fh:
         ms = {r["participant_id"]: r for r in csv.DictReader(fh)}
     P = json.loads((DATA / "participants.json").read_text(encoding="utf-8"))
-    for d in P:
-        r = ms.get(d["id"], {})
-        for k, col in FIELDS.items():
-            d[k] = num(r.get(col))
-    (DATA / "participants.json").write_text(json.dumps(P, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    if a.band == "theta":
+        for d in P:
+            r = ms.get(d["id"], {})
+            for k, col in FIELDS.items():
+                d[k] = num(r.get(col))
+        (DATA / "participants.json").write_text(json.dumps(P, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    else:
+        # solo los campos EEG de la banda; la app los copia sobre participants.json al elegir la banda
+        eeg = {d["id"]: {k: num(ms.get(d["id"], {}).get(col)) for k, col in FIELDS.items()} for d in P}
+        (out / "participants_eeg.json").write_text(json.dumps(eeg, separators=(",", ":")), encoding="utf-8")
+        for d in P:
+            d.update(eeg[d["id"]])
     ep = {}
     with (a.proc / "eeg_theta_epochs_roi.csv").open(encoding="utf-8") as fh:
         for r in csv.DictReader(fh):
@@ -60,7 +74,7 @@ def main():
             if i < 75:
                 arr[i] = round(float(r["theta_power"]), 4)
     S = {d["id"]: ep.get(d["id"], {}) for d in P}
-    (DATA / "subject_epochs.json").write_text(json.dumps(S, separators=(",", ":")), encoding="utf-8")
+    (out / "subject_epochs.json").write_text(json.dumps(S, separators=(",", ":")), encoding="utf-8")
     # serie por época de cada electrodo (vista temporal con un electrodo elegido): enteros = θ relativa × 10 000
     npz = a.proc / "eeg_theta_epochs_electrode.npz"
     if npz.exists():
@@ -76,8 +90,11 @@ def main():
                 if k in Z.files:
                     A = Z[k].T   # (electrodos, épocas)
                     pers.setdefault(d["id"], {})[c] = [[None if not np.isfinite(v) else int(round(float(v) * 10000)) for v in row] for row in A]
-        (DATA / "electrode_epochs.json").write_text(json.dumps({"scale": 10000, "electrodes": chans, "persons": pers}, separators=(",", ":")), encoding="utf-8")
+        (out / "electrode_epochs.json").write_text(json.dumps({"scale": 10000, "electrodes": chans, "persons": pers}, separators=(",", ":")), encoding="utf-8")
         print(f"electrode_epochs.json: {len(pers)} people × {len(chans)} electrodes × 75 epochs")
+    if a.band != "theta":
+        print(f"{a.band}: {sum(d['d_front_var'] is not None for d in P)} people with EEG in both conditions; files in {out}")
+        return
     M = json.loads((DATA / "multiverse.json").read_text(encoding="utf-8")) if (DATA / "multiverse.json").exists() else None
     at = {s: i for i, s in enumerate(M["subjects"])} if M else {}
     cols = ["id", "gender", "age", "order", "psqi", *FIELDS, "d_pvt", "d_kss", "d_sss", "d_panasP", "d_panasN", "d_pvt_lapses", "d_pvt_sdrt"]

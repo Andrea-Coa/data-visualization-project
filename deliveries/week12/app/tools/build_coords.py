@@ -21,6 +21,7 @@ mneRingDist:   (opcional, requiere scipy) distancia mediana entre electrodos tal
 Uso:  python3 tools/build_coords.py   (desde deliveries/week12/app/)
 """
 import csv
+import os
 import json
 import math
 from pathlib import Path
@@ -28,7 +29,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[3]   # tools, app, week12, deliveries, raíz
 REL = Path("sub-01") / "ses-1" / "eeg" / "sub-01_ses-1_electrodes.tsv"
-CANDIDATES = [REPO_ROOT / "ds004902" / REL, REPO_ROOT / "deliveries" / "week04" / "data" / "sample" / REL]
+CANDIDATES = [Path(os.environ.get("BATIMIX_DS") or (REPO_ROOT / "ds004902")) / REL, REPO_ROOT / "deliveries" / "week04" / "data" / "sample" / REL]
 OUT_DIR = HERE.parent / "data"
 EDGE_DEG = 100   # ángulo desde Cz que coincide con el borde dibujado de la cabeza
 

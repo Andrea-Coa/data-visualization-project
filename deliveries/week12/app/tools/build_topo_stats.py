@@ -28,8 +28,16 @@ from scipy import stats
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[3]   # tools, app, week12, deliveries, raíz
 # pipeline principal (promedio + ICA, tools/build_eeg_ica.py); el de la Semana 6 queda en deliveries/week06/data/processed
-CSV_PATH = REPO_ROOT / "deliveries" / "week12" / "data" / "processed_ica" / "eeg_theta_per_electrode.csv"
-OUT_PATH = HERE.parent / "data" / "topo.json"
+# --band delta|theta|alpha|beta (fase 3 de PLAN.md): theta lee processed_ica/ y escribe en data/ como siempre; las
+# demás bandas leen processed_ica/bands/<banda>/ (mismas columnas «theta_*») y escriben en data/bands/<banda>/
+import sys
+BAND = sys.argv[sys.argv.index("--band") + 1] if "--band" in sys.argv else "theta"
+assert BAND in ("delta", "theta", "alpha", "beta"), f"unknown band {BAND}"
+PROC = REPO_ROOT / "deliveries" / "week12" / "data" / "processed_ica" / ("" if BAND == "theta" else f"bands/{BAND}")
+OUT_DIR = HERE.parent / "data" / ("" if BAND == "theta" else f"bands/{BAND}")
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+CSV_PATH = PROC / "eeg_theta_per_electrode.csv"
+OUT_PATH = OUT_DIR / "topo.json"
 TASK = "eyesopen"
 METRICS = {"mean": ("theta_mean", "Mean"), "var": ("theta_std", "Var")}
 

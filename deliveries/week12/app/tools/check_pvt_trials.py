@@ -1,10 +1,11 @@
 """Diagnostic: are the trial-level PVT files of ds004902 consistent with the dataset summary columns?
 
-Result on 2 November 2026: NO. The trial files do not reproduce the summaries in participants.tsv (median RT within
-1 ms in 11 of 66 sessions; lapses equal in 17 of 66) and, with the SessionOrder mapping used for the EEG, only 11
-of 29 people are slower after deprivation (mean change −1.7 ms), which is implausible after 24–30 h awake. The
-trial files are therefore NOT used by the app; the app uses the summary columns (PVT_item1–3) as the official
-source. Writes nothing; prints the checks.
+Result on 15 November 2026, with ses-1 = NS and ses-2 = SD: still NO, but much closer. The trial files reproduce the
+summaries in participants.tsv only partly (median RT within 1 ms in 24 of 67 sessions; lapses equal in 24 of 67), and
+27 of 29 people are slower after deprivation (mean change +40.8 ms), as expected after 24–30 h awake. (On 2 November,
+with the wrong SessionOrder mapping, only 11 of 66 sessions matched and only 11 of 29 people were slower: that
+implausible result came from the mapping.) The trial files are still NOT used by the app; the app uses the summary
+columns (PVT_item1–3) as the official source. Writes nothing; prints the checks.
 
 
 Source: ds004902 sub-*/ses-*/beh/*_task-pvt_beh.tsv (one 5-min PVT per session, recorded separately from the EEG:
@@ -14,18 +15,19 @@ Cleaning, documented in the output:
     response, trail);
   - RT < 100 ms = false start (anticipation), excluded (Basner and Dinges, 2011);
   - lapse = RT >= 500 ms; very long RTs (misses) are kept as lapses.
-Session -> condition (NS/SD) from SessionOrder in participants.tsv. The script checks its per-session median RT and
+Session -> condition: ses-1 = NS, ses-2 = SD (corrected on 15 November 2026; it used SessionOrder before). The script checks its per-session median RT and
 lapse count against the dataset summary columns (PVT_item2 = median RT, PVT_item1 = lapses) and prints the agreement.
 
 Usage (from deliveries/week12/app/):  python3 tools/build_pvt.py   (standard library only; needs <root>/ds004902)
 """
 import csv
+import os
 import statistics
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[3]
-DS = REPO / "ds004902"
+DS = Path(os.environ.get("BATIMIX_DS") or (REPO / "ds004902"))   # misma ruta que tools/eeg_ica.py
 PARTICIPANTS = REPO / "deliveries" / "week04" / "data" / "participants.tsv"
 FALSE_START, LAPSE = 100.0, 500.0
 
@@ -47,8 +49,9 @@ def main():
         p = parts.get(pid)
         if not p or "->" not in (p.get("SessionOrder") or ""):
             continue
-        first, second = p["SessionOrder"].split("->")
-        cond = first if ses == "ses-1" else second
+        # ses-1 = NS y ses-2 = SD (README de ds004902; Xiang et al., 2024). Antes salía de SessionOrder, que es el
+        # orden de las visitas, no la condición: ver tools/eeg_ica.session_to_condition y research/correccion_sesiones.md
+        cond = "NS" if ses == "ses-1" else "SD"
         rows = list(csv.reader(f.open(encoding="utf-8"), delimiter="\t"))
         if rows and rows[0][-1].strip() != "response_time":
             odd_headers.append(f"{pid}/{ses}: {' | '.join(rows[0])}")
@@ -72,7 +75,7 @@ def main():
     both = [p for p, v in out.items() if {"NS", "SD"} <= set(v)]
     slower = sum(statistics.median(out[p]["SD"]) > statistics.median(out[p]["NS"]) for p in both)
     dmed = statistics.mean(statistics.median(out[p]["SD"]) - statistics.median(out[p]["NS"]) for p in both)
-    print(f"With the SessionOrder mapping: slower in SD for {slower} of {len(both)} people (mean change {dmed:+.1f} ms).")
+    print(f"With ses-1 = NS and ses-2 = SD: slower in SD for {slower} of {len(both)} people (mean change {dmed:+.1f} ms).")
     print("Conclusion: the trial files are not consistent with the summaries; do not use them without clarification from the authors.")
 
 

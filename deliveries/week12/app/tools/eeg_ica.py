@@ -27,9 +27,34 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[3]
 NB = REPO / "deliveries" / "week06" / "code" / "02_eeg_pipeline.ipynb"
-CACHE = REPO / "ds004902" / "derivatives" / "batimix-ica"
+# Ruta del dataset: variable de entorno BATIMIX_DS o <raíz del repo>/ds004902 (por defecto). No se mueve el dataset.
+DS = Path(os.environ.get("BATIMIX_DS") or (REPO / "ds004902")).expanduser().resolve()
+CACHE = DS / "derivatives" / "batimix-ica"
+# Welch fijo en todos los scripts, definido en SEGUNDOS: segmento de 4 s (0.25 Hz), Hamming, sin solapamiento.
+# Con 500 Hz es el valor por defecto de MNE 1.8 (n_fft = 2000 muestras), pero dos grabaciones de ds004902 están a
+# 5000 Hz (sub-39 y sub-43, ses-2; sub-44 ses-2 también, pero no se puede leer): con el valor por defecto
+# (n_fft = 2048 muestras = 0.41 s) su espectro tenía 2.44 Hz de resolución y solo 16 frecuencias entre 1 y 40 Hz.
+# Hallado el 15 nov 2026 al fijar Welch (fase 2 de PLAN.md); ahora todas las grabaciones usan 0.25 Hz.
+def welch(sfreq, seconds=4.0, overlap=0.0):
+    n = int(round(seconds * sfreq))
+    return dict(method="welch", n_fft=n, n_per_seg=n, n_overlap=int(round(overlap * n)), window="hamming")
+# Otras bandas (fase 3 de PLAN.md), potencia relativa = banda / 1–40 Hz, como theta. Theta NO está aquí: sigue saliendo
+# de BAND_THETA del notebook 02 con su regla cerrada [4, 8], para no cambiar ni un valor de theta. Las demás se
+# definen sin contar dos veces ningún bin de 0.25 Hz: delta [1, 4), alfa (8, 13), beta [13, 30). El resto [30, 40]
+# (gamma baja, sensible a músculo) no se ofrece en la app; solo se usa para el chequeo de composición: las cinco
+# partes suman exactamente 1.
+BANDS = {"delta": (1.0, 4.0, "[)"), "alpha": (8.0, 13.0, "()"), "beta": (13.0, 30.0, "[)")}
+REST = (30.0, 40.0, "[]")
+
+
+def band_mask(freqs, lo, hi, edges):
+    """Máscara de frecuencias de una banda con bordes '[)', '()', '[]' o '(]'."""
+    a = freqs >= lo if edges[0] == "[" else freqs > lo
+    b = freqs < hi if edges[1] == ")" else freqs <= hi
+    return a & b
 PROC_ICA = REPO / "deliveries" / "week12" / "data" / "processed_ica"     # main pipeline (ICA)
 PROC_W6 = REPO / "deliveries" / "week06" / "data" / "processed"          # Week 6 pipeline (no ICA), robustness
+PROC_BANDS = PROC_ICA / "bands"   # delta, alfa y beta: misma estructura de archivos que processed_ica, una carpeta por banda
 N_COMP, EOG_Z, ICL_P, REJECT_UV, SEED, BAD_FRAC = 30, 3.0, 0.85, 200.0, 97, 0.5
 RULE = "v3, 30 components: ocular = MNE adaptive z > 3 on Fp1/Fp2 or ICLabel eye p > 0.85; muscle = ICLabel p > 0.85"
 PIPELINE = {"band": [1.0, 40.0], "notch": 50.0, "reference": "average (FCz re-inserted)",
@@ -49,6 +74,40 @@ def notebook_defs():
                 exec(cells[i], ns)
     finally:
         os.chdir(cwd)
+    return fix_sessions(ns)
+
+
+# ---------------------------------------------------------------- sesión → condición (corrección del 15 nov 2026)
+# En ds004902 la carpeta de sesión indica la CONDICIÓN, no el orden temporal: ses-1 es siempre sueño normal (NS) y
+# ses-2 siempre privación (SD). Lo dicen el README del dataset (líneas 3–4: «Session 1 (NS) and Session 2 (SD) is not
+# the time order, the time order is counterbalanced across participants and is listed in metadata») y el artículo
+# del dataset (Xiang et al., 2024, Sci Data 11:427: «session 1 is NS and session 2 is SD»). El orden temporal está
+# solo en SessionOrder de participants.tsv. El notebook 02 de la Semana 6 (celda 3, session_to_condition) asignaba
+# ses-1 a la primera condición de SessionOrder: para las personas SD->NS, NS y SD del EEG quedaban intercambiados.
+# No se edita el notebook (entrega anterior): notebook_defs() de cada script reemplaza su función por esta.
+# Evidencia y efecto de la corrección: deliveries/week12/research/correccion_sesiones.md
+def session_to_condition(participants_df):
+    """(participant_id, 'ses-1' | 'ses-2') -> 'NS' | 'SD'. La condición sale de la carpeta, nunca de SessionOrder."""
+    return {(pid, ses): cond for pid in participants_df["participant_id"] for ses, cond in (("ses-1", "NS"), ("ses-2", "SD"))}
+
+
+def visit_of(participants_df):
+    """(participant_id, 'NS' | 'SD') -> 1 o 2: en qué visita (primera o segunda) se grabó cada condición, desde
+    SessionOrder. Sirve para separar el efecto de la privación del efecto de visita (diseño cruzado AB/BA)."""
+    out = {}
+    for _, row in participants_df.iterrows():
+        order = str(row.get("SessionOrder") or "")
+        if "->" in order:
+            first, second = order.split("->")
+            out[(row["participant_id"], first.strip())] = 1
+            out[(row["participant_id"], second.strip())] = 2
+    return out
+
+
+def fix_sessions(ns):
+    """Reemplaza en el espacio de nombres del notebook 02 la asignación errónea de sesiones por la correcta."""
+    ns["session_to_condition"] = session_to_condition
+    ns["visit_of"] = visit_of
     return ns
 
 

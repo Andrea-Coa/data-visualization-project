@@ -34,7 +34,7 @@ NB = REPO / "deliveries" / "week06" / "code" / "02_eeg_pipeline.ipynb"
 PROC = eeg_ica.PROC_ICA
 DATA = HERE.parent / "data"
 MIN_CLEAN = 30   # epochs with enough clean windows needed to compute a clean σθ
-WIN, STEP, PAD, MIN_WIN = 500, 250, 0.25, 3   # 1-s windows, 50 % overlap, margin around blinks (s), clean windows per epoch
+WIN_S, PAD, MIN_WIN = 1.0, 0.25, 3   # 1-s windows with 50 % overlap (in samples from each recording's sfreq: two are at 5000 Hz), margin around blinks (s), clean windows per epoch
 
 
 def notebook_defs():
@@ -45,7 +45,7 @@ def notebook_defs():
             exec(cells[i], ns)
     finally:
         os.chdir(cwd)
-    return ns
+    return eeg_ica.fix_sessions(ns)   # ses-1 = NS y ses-2 = SD (ver eeg_ica.session_to_condition)
 
 
 def process(rec, cond):
@@ -64,14 +64,14 @@ def process(rec, cond):
     # mismo preprocesamiento y épocas que la app: pipeline principal con ICA (tools/eeg_ica.py)
     raw, _ = eeg_ica.clean_raw(rec, ns)
     ep, kept, _ = eeg_ica.clean_epochs(raw, ns)
-    psds, freqs = ep.compute_psd(method="welch", fmin=1.0, fmax=40.0, verbose=False).get_data(return_freqs=True)
+    psds, freqs = ep.compute_psd(**eeg_ica.welch(ep.info["sfreq"]), fmin=1.0, fmax=40.0, verbose=False).get_data(return_freqs=True)
     th = (freqs >= 4.0) & (freqs <= 8.0)
     rel = psds[:, :, th].sum(axis=2) / psds.sum(axis=2)                       # (épocas, canales)
     n_ep = len(ep)
     per_pos = np.bincount(np.clip((t_blink // ns["EPOCH_DURATION_S"]).astype(int), 0, None), minlength=76)
     per_epoch = per_pos[kept]                                                  # parpadeos de cada época conservada
     # ventanas de 1 s dentro de cada época; una ventana es "sucia" si toca un parpadeo (± PAD s)
-    X = ep.get_data(); sf = ep.info["sfreq"]; L = X.shape[2]; starts = list(range(0, L-WIN+1, STEP))
+    X = ep.get_data(); sf = ep.info["sfreq"]; L = X.shape[2]; WIN = int(round(WIN_S * sf)); STEP = WIN // 2; starts = list(range(0, L-WIN+1, STEP))
     win = np.hamming(WIN); fr = np.fft.rfftfreq(WIN, 1/sf); band = (fr >= 1) & (fr <= 40); thb = (fr >= 4) & (fr <= 8)
     rel_all = np.full((n_ep, X.shape[1]), np.nan); rel_cl = np.full((n_ep, X.shape[1]), np.nan); n_clean_win = 0
     for e in range(n_ep):
@@ -101,7 +101,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--procs", type=int, default=6)
     a = ap.parse_args()
-    if not (REPO / "ds004902").exists():
+    if not (eeg_ica.DS).exists():
         raise SystemExit(f"Dataset missing at {REPO / 'ds004902'}: see deliveries/week06/README.md")
     # 1. calidad
     q = {}
@@ -117,7 +117,7 @@ def main():
     # 2. parpadeos
     ns = notebook_defs()
     cond_map = ns["session_to_condition"](pd.read_csv(ns["PARTICIPANTS_TSV"], sep="\t"))
-    jobs = [(r, cond_map.get((r["participant_id"], r["session"]))) for r in ns["find_recordings"](REPO / "ds004902") if r["task"] == "eyesopen"]
+    jobs = [(r, cond_map.get((r["participant_id"], r["session"]))) for r in ns["find_recordings"](eeg_ica.DS) if r["task"] == "eyesopen"]
     jobs = [j for j in jobs if j[1]]
     B = {}
     with ProcessPoolExecutor(a.procs) as ex:

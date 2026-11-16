@@ -44,6 +44,15 @@ APP = HERE.parent
 W6 = APP.parent.parent / "week06" / "data" / "processed"
 ICA = APP.parent / "data" / "processed_ica"
 PIPES = {"ica": ICA, "w6": W6}
+# El pipeline de la Semana 6 (sin ICA) asignaba ses-1 a la primera condición de SessionOrder: para las personas
+# SD->NS sus etiquetas NS y SD están intercambiadas (ver tools/eeg_ica.session_to_condition). No se regenera esa
+# entrega: se corrige al leerla, intercambiando NS y SD de esas personas. processed_ica ya sale corregido.
+PARTICIPANTS_TSV = APP.parent.parent / "week04" / "data" / "participants.tsv"
+def sd_first():
+    with open(PARTICIPANTS_TSV, newline="", encoding="utf-8") as fh:
+        return {r["participant_id"] for r in csv.DictReader(fh, delimiter="\t") if r.get("SessionOrder", "").replace(" ", "") == "SD->NS"}
+SWAP = {"NS": "SD", "SD": "NS"}
+SDF = sd_first()
 
 FRONTAL = ["Fp1", "Fp2", "Fpz", "AF3", "AF4", "AF7", "AF8", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "Fz"]
 CENTROTEMPORAL = ["FC1", "FC2", "FC3", "FC4", "FC5", "FC6", "FT7", "FT8", "C1", "C2", "C3", "C4", "C5", "C6", "Cz", "T7", "T8",
@@ -85,7 +94,8 @@ def load_eeg(folder):
         for r in csv.DictReader(fh):
             if r["task"] != "eyesopen":
                 continue
-            out.setdefault(r["participant_id"], {}).setdefault(r["condition"], {})[r["electrode"]] = (fnum(r["theta_mean"]), fnum(r["theta_std"]))
+            cond = SWAP.get(r["condition"], r["condition"]) if folder == W6 and r["participant_id"] in SDF else r["condition"]
+            out.setdefault(r["participant_id"], {}).setdefault(cond, {})[r["electrode"]] = (fnum(r["theta_mean"]), fnum(r["theta_std"]))
     return out
 
 
@@ -170,7 +180,9 @@ def main():
     for pipe, folder in PIPES.items():
         with open(folder / "merged_summary.csv", newline="", encoding="utf-8") as fh:
             ms = {r["participant_id"]: fnum(r["delta_frontal_theta_variability"]) for r in csv.DictReader(fh)}
-        ref = np.array([ms.get(s) if ms.get(s) is not None else np.nan for s in subjects])
+        # merged_summary.csv de la Semana 6 conserva el signo antiguo: en SD->NS su Δ está invertido
+        flip = lambda s: -1.0 if pipe == "w6" and s in SDF else 1.0
+        ref = np.array([ms.get(s) * flip(s) if ms.get(s) is not None else np.nan for s in subjects])
         gap = max(gap, float(np.nanmax(np.abs(ref - X[(pipe, "front", "var", "abs")]))))
 
     specs = [dict(pipe=pp, roi=r, met=m, delta=d, marker=k, corr=c, out=o)
