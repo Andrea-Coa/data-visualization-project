@@ -37,7 +37,9 @@ const indiv = (() => {
     if(G) groups = G.map(g => ({name:g.name, color:g.color, ids:g.ids.filter(id => D.has(id))}));
     // la selección no reagrupa: se marca con un contorno en paintHeat, así las columnas no se mueven
     else { const w = mk.worse || 1, med = d3.median(withY, id => byId.get(id)[yk]), worse = id => w*(byId.get(id)[yk]-med) > 0;
-      groups = [{name:"Vulnerable", color:C.vuln, ids:withY.filter(worse)}, {name:"Resilient", color:C.rest, ids:withY.filter(id => !worse(id))}]; }
+      groups = [{name:"More impaired", color:C.g1, ids:withY.filter(worse)}, {name:"Less impaired", color:C.rest, ids:withY.filter(id => !worse(id))}]; }
+    // (18 nov 2026) antes «Vulnerable/Resilient» en ámbar: se confundía con el cuadrante vulnerable de la Vulnerability View,
+    // que también exige Δθ alto; estos grupos son solo conducta (peor o mejor que la mediana del marcador)
     groups = groups.filter(g => g.ids.length).map(g => {
       const ids = g.ids.slice().sort((a, b) => rowMean(b)-rowMean(a));
       const cons = E.map((e, i) => { const v = ids.map(id => D.get(id)[i]).filter(x => x != null); return v.length ? (v.filter(x => x > 0).length-v.filter(x => x < 0).length)/v.length : 0; });

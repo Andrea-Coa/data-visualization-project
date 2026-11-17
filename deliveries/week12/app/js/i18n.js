@@ -133,13 +133,13 @@
   };
   // group names (also lower case) and how they read in Spanish
   const GL = {"Women":"Mujeres", "Men":"Hombres", "women":"mujeres", "men":"hombres", "Normal sleep first":"Sueño normal primero", "normal sleep first":"sueño normal primero",
-    "Deprivation first":"Privación primero", "deprivation first":"privación primero", "Vulnerable":"Vulnerables", "vulnerable":"vulnerables", "Resilient":"Resilientes", "resilient":"resilientes",
+    "Deprivation first":"Privación primero", "deprivation first":"privación primero", "Vulnerable":"Vulnerables", "vulnerable":"vulnerables", "Resilient":"Resilientes", "resilient":"resilientes", "More impaired":"Más deterioro", "more impaired":"más deterioro", "Less impaired":"Menos deterioro", "less impaired":"menos deterioro", "MORE IMPAIRED":"MÁS DETERIORO", "LESS IMPAIRED":"MENOS DETERIORO",
     "Rest":"Resto", "rest":"resto", "Your selection":"Tu selección", "your selection":"tu selección"};
   const elecRe = () => (typeof ELEC !== "undefined" && ELEC.length ? ELEC.slice().sort((a, b) => b.length-a.length).join("|") : "Fp1");
   let RE = null;
-  const rebuild = () => { RE = new RegExp(`(sub-\\d+)|(\\b(?:${elecRe()})\\b)|(\\b[Pp][Ss][Qq][Ii] [>≤] \\d+|\\b(?:Normal sleep first|normal sleep first|Deprivation first|deprivation first|Women|women|Men|men|Vulnerable|vulnerable|Resilient|resilient|Rest|rest|Your selection|your selection)\\b)|([σμ])(?=θ)|([−+-]?\\d+(?:[.,]\\d+)?)`, "g"); };
+  const rebuild = () => { RE = new RegExp(`(sub-\\d+)|(\\b(?:${elecRe()})\\b)|(\\b[Pp][Ss][Qq][Ii] [>≤] \\d+|\\b(?:Normal sleep first|normal sleep first|Deprivation first|deprivation first|Women|women|Men|men|More impaired|more impaired|Less impaired|less impaired|Vulnerable|vulnerable|Resilient|resilient|Rest|rest|Your selection|your selection)\\b)|([σμ])(?=θ)|([−+-]?\\d+(?:[.,]\\d+)?)`, "g"); };
 
-  const GRE = /\b[Pp][Ss][Qq][Ii] [>≤] #|\b(?:Normal sleep first|normal sleep first|Deprivation first|deprivation first|Women|women|Men|men|Vulnerable|vulnerable|Resilient|resilient|Rest|rest|Your selection|your selection)\b/g;
+  const GRE = /\b[Pp][Ss][Qq][Ii] [>≤] #|\b(?:Normal sleep first|normal sleep first|Deprivation first|deprivation first|Women|women|Men|men|More impaired|more impaired|Less impaired|less impaired|Vulnerable|vulnerable|Resilient|resilient|Rest|rest|Your selection|your selection)\b/g;
   const DD = {};
   Object.keys(D).forEach(k => { const kk = k.replace(GRE, "{G}"); if(kk !== "{G}") DD[kk] = D[k]; });   // a lone group name is translated by GL, not by the dictionary
   let RE0 = null;
