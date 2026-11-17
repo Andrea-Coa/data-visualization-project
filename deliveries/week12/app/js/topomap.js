@@ -640,10 +640,12 @@ const topo = (() => {
     const divOf = rows => d3.max(rows.flatMap(r => r.cells.flatMap(T => ELEC.map(e => T[e] ? Math.abs(val(T[e], "D", r.met)) : 0)))) || 1;
     const sharedDiv = sp.mode === "pair" || sp.mode === "cmp" ? divOf(sp.rows) : null;
     // alineación con el eje de la Vista de tiempo (si no está, se usa todo el ancho con el mismo margen)
-    const px = dyn.plotX ? dyn.plotX() : null, er = el.getBoundingClientRect(), kk = W/(er.width || W);
+    // ampliada (⤢) la Vista de tiempo no está debajo: se usa todo el ancho y los mapas pueden crecer
+    const maxed = !!el.closest(".is-max");
+    const px = !maxed && dyn.plotX ? dyn.plotX() : null, er = el.getBoundingClientRect(), kk = W/(er.width || W);
     const x0 = px ? (px.left-er.left)*kk : 58, x1 = px ? (px.right-er.left)*kk : W-18, tx = t => x0+(x1-x0)*t/300;
     const nR = sp.rows.length, topH = 20, botH = 40, rowGap = 8;
-    const bw = tx(len*4)-tx(0), s = Math.floor(Math.max(40, Math.min(bw-6, (H-topH-botH-(nR-1)*rowGap)/nR, 170)));
+    const bw = tx(len*4)-tx(0), s = Math.floor(Math.max(40, Math.min(bw-6, (H-topH-botH-(nR-1)*rowGap)/nR, maxed ? 520 : 170)));
     const y0 = Math.max(0, (H-botH-topH-nR*s-(nR-1)*rowGap)/2);
     const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
       .attr("role", "img").attr("aria-label", `Series of Δ topomaps: ${nBlk} blocks of ${len*4} s; rows ${sp.rows.map(r => r.label).join(" and ")}`);

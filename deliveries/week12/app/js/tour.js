@@ -6,8 +6,16 @@
 const tour = (() => {
   const q = s => document.querySelector(s);
   const fld = id => () => $(id).closest(".fld") || $(id);
-  const openSide = () => { if(q(".board").classList.contains("side-off")) $("sidebtn").click(); };
-  const openSec = id => () => { openSide(); const b = $(id); if(b && b.closest(".sec").dataset.open !== "true") b.click(); };
+  // validación (17 nov 2026): cada verificación se abre en su propia ventana flotante; el paso la abre (o la trae al frente)
+  const openSide = () => {};
+  // la guía recuerda qué ventanas de validación abrió ella y las cierra al pasar a un paso que no las usa y al terminar;
+  // las que abrió quien usa la app quedan como estaban
+  const tourWins = new Set();
+  const isWinOpen = id => { const s = $(id) && $(id).closest(".sec"); return !!s && s.dataset.open === "true"; };
+  const openSec = id => Object.assign(() => { if(typeof openVal !== "function") return; if(!isWinOpen(id)) tourWins.add(id); openVal(id); }, {win:id});
+  const closeTourWins = keep => { if(typeof closeVal !== "function") return;
+    [...tourWins].forEach(id => { if(id !== keep){ if(isWinOpen(id)) closeVal(id); tourWins.delete(id); } }); };
+  const secOf = id => () => ($(id) && $(id).closest(".sec")) || $("vlist");
   const CH = {
     en:{start:"Welcome", views:"The views", ctrl:"Controls", valid:"Validation", tips:"Tips"},
     es:{start:"Bienvenida", views:"Las vistas", ctrl:"Controles", valid:"Validación", tips:"Consejos"},
@@ -30,8 +38,8 @@ const tour = (() => {
       es:["2 · Vista de vulnerabilidad", "Cada punto es una persona. En horizontal, el cambio en la variabilidad frontal de theta (Δσθ); en vertical, el cambio en el marcador de conducta elegido en la cabecera. La esquina ámbar reúne a quienes superan la mediana en ambos: el cuadrante vulnerable. El recuadro da la ρ de Spearman, su intervalo al 95 % y n."]},
     {c:"views", el:() => q(".p-scatter"), en:["Selecting people", "<b>Click</b> a dot (or a heatmap column) to add or remove a person. <b>Drag a lasso</b> around several dots to select a group. <b>Shift+click</b> pins up to two people as A and B: the topography rows then show those two people side by side. Selected people are ringed in every view. <b>Clear</b> or <b>Esc</b> empties the selection."],
       es:["Seleccionar personas", "<b>Haz clic</b> en un punto (o en una columna del mapa de calor) para sumar o quitar a una persona. <b>Arrastra un lazo</b> alrededor de varios puntos para elegir un grupo. <b>Mayús + clic</b> fija hasta dos personas como A y B: las filas de topografía muestran entonces a esas dos personas lado a lado. Las personas elegidas se marcan con un anillo en todas las vistas. <b>Limpiar</b> o <b>Esc</b> vacía la selección."]},
-    {c:"views", el:() => q(".p-heat"), en:["3 · Individual View", "One column per person, one row per electrode (front to back: Frontal, C-T, P). Color is Δ for the metric in the header. People are split by behavior only (Vulnerable vs Resilient), never by theta, so the comparison is not circular. The thin C(e) strip is the group's consistency: share of people whose Δ rises minus share whose Δ falls. If the vulnerable group shared a signature, its columns would look alike. Click a row to put that electrode on the scatter x-axis."],
-      es:["3 · Vista individual", "Una columna por persona y una fila por electrodo (de adelante hacia atrás: Frontal, C-T, P). El color es Δ de la métrica de la cabecera. Las personas se separan solo por conducta (Vulnerables frente a Resilientes), nunca por theta, así que la comparación no es circular. La franja C(e) es la consistencia del grupo: proporción de personas cuyo Δ sube menos la de las que baja. Si el grupo vulnerable compartiera una firma, sus columnas se parecerían. Haz clic en una fila para llevar ese electrodo al eje x del gráfico de dispersión."]},
+    {c:"views", el:() => q(".p-heat"), en:["3 · Individual View", "One column per person, one row per electrode (front to back: Frontal, C-T, P). Color is Δ for the metric in the header. People are split by behavior only (More impaired vs Less impaired: worse or better than the median change of the behavioral marker), never by theta, so the comparison is not circular. They are not the vulnerable quadrant of the scatter, which also needs a high Δθ. The thin C(e) strip is the group's consistency: share of people whose Δ rises minus share whose Δ falls. If the more impaired group shared a signature, its columns would look alike. Click a row to put that electrode on the scatter x-axis."],
+      es:["3 · Vista individual", "Una columna por persona y una fila por electrodo (de adelante hacia atrás: Frontal, C-T, P). El color es Δ de la métrica de la cabecera. Las personas se separan solo por conducta (Más deterioro frente a Menos deterioro: peor o mejor que la mediana del cambio en el marcador de conducta), nunca por theta, así que la comparación no es circular. No son el cuadrante vulnerable del gráfico de dispersión, que además exige un Δθ alto. La franja C(e) es la consistencia del grupo: proporción de personas cuyo Δ sube menos la de las que baja. Si el grupo con más deterioro compartiera una firma, sus columnas se parecerían. Haz clic en una fila para llevar ese electrodo al eje x del gráfico de dispersión."]},
     {c:"views", el:() => q(".p-dyn"), en:["4 · Time View", "Theta across the five minutes, NS against SD, mean ± standard error; dashed lines are linear trends. With σθ it shows moving σθ in windows of the chosen length (Window, 60 s by default); with μθ, theta per 4-s epoch. Click it to move the maps to that moment. Hover for exact values. Drag the legend box to move it, click it to minimize."],
       es:["4 · Vista de tiempo", "Theta a lo largo de los cinco minutos, NS frente a SD, media ± error estándar; las líneas discontinuas son tendencias lineales. Con σθ muestra σθ móvil en ventanas de la duración elegida (Ventana, 60 s por defecto); con μθ, theta por época de 4 s. Haz clic para llevar los mapas a ese momento. Pasa el cursor para ver valores exactos. Arrastra el cuadro de leyenda para moverlo; haz clic para minimizarlo."]},
     {c:"views", el:() => q(".p-dyn"), en:["Choose any interval", "Drag across the chart to pick your own interval. Not only the scatter: the maps, the heatmap and the similarity graph also show that interval. The chip in the header shows it; click the chip, or Clear, to go back."],
@@ -52,17 +60,19 @@ const tour = (() => {
       es:["Informe", "Descarga un informe imprimible del estado actual: cada vista como figura, con su lectura."]},
     {c:"ctrl", el:() => $("aboutbtn"), en:["About", "Dataset, key findings, method, robustness, limitations, a glossary and the scatter data table. The pipeline chip next to the dataset name opens the method section."],
       es:["Acerca de", "Datos, hallazgos clave, método, robustez, limitaciones, un glosario y la tabla de datos del gráfico. La etiqueta de pipeline junto al nombre del conjunto abre la sección de método."]},
-    {c:"ctrl", el:() => $("swapbtn"), en:["Layout and theme", "⇄ swaps the left and center columns. ◐ switches between the light and the dark theme."],
-      es:["Diseño y tema", "⇄ intercambia las columnas izquierda y central. ◐ alterna entre el tema claro y el oscuro."]},
+    {c:"ctrl", el:() => $("swapbtn"), en:["Layout and theme", "⇄ swaps the two side columns (controls and people). ◐ switches between the light and the dark theme."],
+      es:["Diseño y tema", "⇄ intercambia las dos columnas laterales (controles y personas). ◐ alterna entre el tema claro y el oscuro."]},
+    {c:"ctrl", el:() => q(".topbar .vtabs"), en:["Explorer and Classifier", "Two tabs at the top. <b>Explorer</b> is this view. <b>Classifier</b> shows which EEG features tell the night without sleep apart, with explainable models. Switching tabs keeps your selection."],
+      es:["Explorador y Clasificador", "Dos pestañas arriba. <b>Explorador</b> es esta vista. <b>Clasificador</b> muestra qué rasgos del EEG distinguen la noche sin dormir, con modelos explicables. Cambiar de pestaña conserva tu selección."]},
     {c:"ctrl", el:() => $("linkbtn"), en:["Share this exact view", "The link button copies a URL that stores region, metric, marker, electrode, comparison, time window and selection. Paste it in a slide or a message and it opens exactly what you were looking at."],
       es:["Comparte esta vista exacta", "El botón de enlace copia una URL que guarda región, métrica, marcador, electrodo, comparación, ventana de tiempo y selección. Pégala en una diapositiva o un mensaje y abrirá exactamente lo que estabas viendo."]},
-    {c:"valid", el:() => $("side"), before:openSide, en:["6 · Validation Panel", "Checks that try to break the finding. Click a bar to open a section; one stays open at a time. The › button collapses the panel and gives the space back to the other views."],
-      es:["6 · Panel de validación", "Comprobaciones que intentan romper el hallazgo. Haz clic en una barra para abrir una sección; solo una queda abierta a la vez. El botón › pliega el panel y devuelve el espacio a las otras vistas."]},
-    {c:"valid", el:() => $("side"), before:openSec("b-aper"), en:["Oscillation or 1/f?", "Is the effect a real rhythm or the spectral background? The top chart is the spectrum with its 1/f fit (click the gray θ band to zoom into 4–8 Hz). Below: maps of the change in exponent and offset, and the scatter of Δσθ against its periodic part."],
+    {c:"valid", el:() => $("vlist").closest(".valsum"), en:["6 · Validation", "Checks that try to break the finding, each with its key figure. Click a row to open its chart in a floating window: move it by its title, resize it from the corner, open several at once; × or Esc closes it."],
+      es:["6 · Validación", "Comprobaciones que intentan romper el hallazgo, cada una con su cifra clave. Haz clic en una fila para abrir su gráfico en una ventana flotante: muévela por su título, cámbiale el tamaño desde la esquina, abre varias a la vez; × o Esc la cierra."]},
+    {c:"valid", el:secOf("b-aper"), before:openSec("b-aper"), en:["Oscillation or 1/f?", "Is the effect a real rhythm or the spectral background? The top chart is the spectrum with its 1/f fit (click the gray θ band to zoom into 4–8 Hz). Below: maps of the change in exponent and offset, and the scatter of Δσθ against its periodic part."],
       es:["¿Oscilación o 1/f?", "¿El efecto es un ritmo real o el fondo espectral? El gráfico superior es el espectro con su ajuste 1/f (haz clic en la banda gris θ para ampliar 4–8 Hz). Debajo: mapas del cambio en exponente y desplazamiento, y la dispersión de Δσθ frente a su parte periódica."]},
-    {c:"valid", el:() => $("side"), before:openSec("b-eye"), en:["Blinks and synchrony", "<b>Blink effects</b>: whether eye blinks left after cleaning could explain Δσθ. <b>θ synchrony</b> (next bar): how theta phase locks between brain regions, with the effect and its 95% interval for each pair."],
-      es:["Parpadeos y sincronía", "<b>Efecto de parpadeos</b>: si los parpadeos que quedan tras la limpieza podrían explicar Δσθ. <b>Sincronía θ</b> (barra siguiente): cómo se acopla la fase de theta entre regiones del cerebro, con el efecto y su intervalo al 95 % para cada par."]},
-    {c:"valid", el:() => $("side"), before:openSec("b-graph"), en:["Similarity between people", "Each person is linked to the three whose pattern of change is most alike. <b>On scatter</b> places everyone where they are in the Vulnerability View, so you read the network against that chart; <b>Network</b> arranges them by similarity (drag nodes, scroll to zoom, <b>Group</b> pulls the groups apart). Hover a person to light up their neighbors everywhere. It follows the playback and any interval you choose. If the vulnerable people formed a cluster they would sit together; here they do not."],
+    {c:"valid", el:secOf("b-eye"), before:openSec("b-eye"), en:["Blinks and synchrony", "<b>Blink effects</b>: whether eye blinks left after cleaning could explain Δσθ. <b>θ synchrony</b> (next row of the table): how theta phase locks between brain regions, with the effect and its 95% interval for each pair."],
+      es:["Parpadeos y sincronía", "<b>Efecto de parpadeos</b>: si los parpadeos que quedan tras la limpieza podrían explicar Δσθ. <b>Sincronía θ</b> (fila siguiente de la tabla): cómo se acopla la fase de theta entre regiones del cerebro, con el efecto y su intervalo al 95 % para cada par."]},
+    {c:"valid", el:secOf("b-graph"), before:openSec("b-graph"), en:["Similarity between people", "Each person is linked to the three whose pattern of change is most alike. <b>On scatter</b> places everyone where they are in the Vulnerability View, so you read the network against that chart; <b>Network</b> arranges them by similarity (drag nodes, scroll to zoom, <b>Group</b> pulls the groups apart). Hover a person to light up their neighbors everywhere. It follows the playback and any interval you choose. If the vulnerable people formed a cluster they would sit together; here they do not."],
       es:["Similitud entre personas", "Cada persona se une a las tres cuyo patrón de cambio es más parecido. <b>Sobre el scatter</b> coloca a todos donde están en la Vista de vulnerabilidad, así que lees la red contra ese gráfico; <b>Red</b> los ordena por similitud (arrastra nodos, rueda para acercar, <b>Agrupar</b> separa los grupos). Pasa el cursor sobre una persona para iluminar a sus vecinos en todas partes. Sigue la reproducción y cualquier intervalo que elijas. Si las personas vulnerables formaran un grupo, estarían juntas; aquí no."]},
     {c:"tips", el:() => q(".p-topo .vx"), en:["Expand any view", "Every view has a ⤢ button to enlarge it to almost full screen. Click it again, the background or Esc to go back."],
       es:["Amplía cualquier vista", "Cada vista tiene un botón ⤢ para ampliarla casi a pantalla completa. Haz clic de nuevo, en el fondo o pulsa Esc para volver."]},
@@ -130,6 +140,10 @@ const tour = (() => {
     if(n < 0) n = 0;
     if(n >= STEPS.length){ stop(); return; }
     i = n; const s = STEPS[i], my = ++token;
+    closeTourWins(s.before && s.before.win);   // ventanas de pasos anteriores: fuera, para que no tapen este paso
+    // durante la guía solo se ve la ventana del paso actual; las que abrió quien usa la app se ocultan y vuelven al terminar
+    document.body.classList.add("touring");
+    document.querySelectorAll(".sidebox .sec").forEach(x => x.classList.toggle("tourcur", !!(s.before && s.before.win) && x.contains($(s.before.win))));
     if(s.before) s.before();
     const show = () => {
       if(!on || my !== token) return;
@@ -154,6 +168,8 @@ const tour = (() => {
   }
   function refresh(){ if(on) go(i); }
   function stop(){
+    closeTourWins(null);
+    document.body.classList.remove("touring"); document.querySelectorAll(".sidebox .sec.tourcur").forEach(x => x.classList.remove("tourcur"));
     on = false; token++; removeEventListener("keydown", key, true); removeEventListener("resize", refresh);
     card.classList.remove("show"); shade.classList.remove("on");
     const s = shade, c = card; setTimeout(() => { s.remove(); c.remove(); }, 260);

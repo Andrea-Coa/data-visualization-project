@@ -17,55 +17,30 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <!-- ?v=…: versión de los archivos para que el navegador no use una copia vieja en caché; súbela al cambiar CSS o JS -->
-<link rel="stylesheet" href="css/styles.css?v=20261116g">
+<link rel="stylesheet" href="css/styles.css?v=20261118y">
+<link rel="stylesheet" href="css/ml.css?v=20261118y">
 </head>
 <body>
 <div class="boot" id="boot" role="status">Loading 68 recordings</div>
 <div id="tooltip" role="status" aria-live="polite"></div>
 <div class="maxbg" id="maxbg" hidden></div>
 
-<header class="bar">
-  <div class="brand">
-    <img class="mark" src="assets/logo.png" alt="" width="64" height="30">
-    <div class="brand-t"><span class="logo">BATIMIX</span><span class="tag">A Visual Analytics System for Individual Vulnerability to Sleep Deprivation</span></div>
-  </div>
-  <div class="dset" aria-label="Dataset">
-    <span><i>Dataset</i><b>ds004902 · 68 people</b></span>
-    <span class="dset-p"><i>Pipeline</i><button class="pipe" id="pipebtn" type="button" aria-haspopup="dialog" title="What everything was computed from: theta band 4–8 Hz as a fraction of 1–40 Hz power (Welch); average reference; ICA (ocular and muscle components removed); 75 4-s epochs per recording, those above 200 µV rejected; eyes open. Click: full method in About.">avg. ref. · ICA · 75 × 4 s</button></span>
-  </div>
-  <div class="ctrls" role="region" aria-label="Controls">
-    <div class="fld"><i>Region</i><div class="seg" id="roiseg" role="group" aria-label="EEG region">
-      <button data-v="front" aria-pressed="true">Frontal</button>
-      <button data-v="ct" aria-pressed="false">Centrotemporal</button>
-    </div></div>
-    <div class="fld"><i>Band</i><div class="seg" id="bandseg" role="group" aria-label="Frequency band" data-theta-only>
-      <button data-v="delta" aria-pressed="false" title="Delta, 1–4 Hz (exploratory)">δ</button>
-      <button data-v="theta" aria-pressed="true" title="Theta, 4–8 Hz (main hypothesis)">θ</button>
-      <button data-v="alpha" aria-pressed="false" title="Alpha, 8–13 Hz (exploratory)">α</button>
-      <button data-v="beta" aria-pressed="false" title="Beta, 13–30 Hz (exploratory; sensitive to muscle)">β</button>
-    </div></div>
-    <div class="fld"><i>Metric</i><div class="seg" id="metseg" role="group" aria-label="Theta metric">
-      <button data-v="var" aria-pressed="true">σθ</button>
-      <button data-v="mean" aria-pressed="false">μθ</button>
-    </div></div>
-    <div class="fld"><i>Electrode</i><select id="elsel" aria-label="Electrode on the x-axis instead of the region"></select></div>
-    <button class="chip" id="xchip" hidden aria-label="Remove the time window from the x-axis"></button>
-    <div class="fld"><i>Compare</i><select id="cmpsel" aria-label="Compare two groups"></select></div>
-    <div class="fld"><i>Behavior (y)</i><select id="ysel" aria-label="Behavioral marker on the Y-axis"></select></div>
-    <button class="btn" id="resetbtn" disabled>Clear</button>
-    <button class="btn" id="reportbtn">Report</button>
-    <button class="btn" id="guidebtn" type="button" title="Step-by-step guide to the tool">Guide</button>
-    <button class="btn" id="aboutbtn" aria-haspopup="dialog">About</button>
-    <button class="btn btn-icon" id="swapbtn" type="button" aria-pressed="false" aria-label="Swap columns" title="Swap columns">⇄</button>
-    <button class="btn btn-icon" id="linkbtn" type="button" aria-label="Copy a link to this exact view" title="Copy a link to this exact view"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6.7 9.3a2.6 2.6 0 0 0 3.7 0l2.4-2.4a2.6 2.6 0 0 0-3.7-3.7l-.8.8M9.3 6.7a2.6 2.6 0 0 0-3.7 0L3.2 9.1a2.6 2.6 0 0 0 3.7 3.7l.8-.8"/></svg></button>
-    <button class="btn btn-icon" id="themebtn" aria-label="Switch to light theme" title="Light theme">◐</button>
-  </div>
-</header>
 
+
+<!-- barra superior (17 nov 2026): lo que nunca cambia (marca, pestañas Explorer | Classifier y acciones globales);
+     las pestañas se abren hacia la página, como en Unlearning Comparator -->
+<header class="topbar">
+  <div class="brand">
+      <img class="mark" src="assets/logo.png" alt="" width="64" height="30">
+      <div class="brand-t"><span class="brand-row"><span class="logo">BATIMIX</span></span><span class="tag">A Visual Analytics System for Individual Vulnerability to Sleep Deprivation</span></div>
+    </div>
+  <nav class="vtabs" role="tablist" aria-label="Views"><button type="button" role="tab" data-tab="explorer" aria-selected="true">Explorer</button><button type="button" role="tab" data-tab="classifier" aria-selected="false" title="Which EEG features tell the night without sleep apart: explainable classifiers">Classifier</button></nav>
+  <div class="gacts"><button class="btn" id="guidebtn" type="button" title="Step-by-step guide to the tool">Guide</button><button class="btn" id="aboutbtn" aria-haspopup="dialog">About</button><button class="btn btn-icon" id="swapbtn" type="button" aria-pressed="false" aria-label="Swap columns" title="Swap columns">⇄</button><button class="btn btn-icon" id="themebtn" aria-label="Switch to light theme" title="Light theme">◐</button></div>
+</header>
 <main class="board">
   <!-- izquierda: las personas (dispersión y mapa de calor); centro: los mapas, protagonistas, y la serie en el
        tiempo; derecha: vistas secundarias plegables (Chen et al.: vistas grandes al centro, paneles laterales angostos) -->
-  <div class="col col-l">
+  <div class="col col-l" data-tabpane="explorer">
   <section class="panel p-scatter" aria-labelledby="t-sc">
     <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><circle cx="4" cy="11" r="1.6"/><circle cx="8" cy="7" r="1.6"/><circle cx="12" cy="4" r="1.6"/><circle cx="11" cy="10" r="1.6"/><path d="M1.5 1.5v13h13" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span>Vulnerability View</span><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div>
     <div class="ph"><h2 id="t-sc"></h2><div class="key" id="k-sc"></div></div>
@@ -77,7 +52,7 @@
     <div class="view" id="heat"></div>
   </section>
   </div>
-  <div class="col col-c">
+  <div class="col col-c" data-tabpane="explorer">
   <section class="panel p-topo" aria-labelledby="t-topo">
     <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.6 2.9 8 1 9.4 2.9" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="7.5" r="2.4"/></svg><span>Topography View</span><button class="vtog" id="seriesbtn" type="button" aria-pressed="false" title="Show the full series: Δ maps in non-overlapping blocks aligned with the Time View">Series</button><button class="vplay" id="playbtn" type="button" aria-pressed="false" aria-label="Play the five minutes" title="Play the five minutes (follow it in the Time View)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="pl" d="M5 3.2v9.6L12.6 8z"/><path class="pa" d="M5.2 3.5v9M10.8 3.5v9"/></svg></button><button class="vplay" id="prevbtn" type="button" hidden aria-label="Previous epoch (4 s)" title="Previous epoch (4 s)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></button><button class="vplay" id="nextbtn" type="button" hidden aria-label="Next epoch (4 s)" title="Next epoch (4 s)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg></button><button class="vplay" id="stopbtn" type="button" hidden aria-label="Stop and return to the normal view" title="Stop and return to the normal view"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="4" width="8" height="8" rx="1" fill="currentColor" stroke="none"/></svg></button><div class="key" id="k-topo"></div><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div>
     <div class="ph"><h2 id="t-topo"></h2></div>
@@ -90,9 +65,91 @@
   </section>
   </div>
   <aside class="col col-s" id="side" aria-label="Secondary views">
-    <div class="side-head"><span class="side-title vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 14 4v4c0 3.6-2.6 5.7-6 6.5C4.6 13.7 2 11.6 2 8V4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m5.3 8 1.9 1.9L10.8 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Validation Panel</span></span><button class="btn btn-icon" id="sidebtn" type="button" aria-expanded="true" aria-controls="side-body" title="Collapse secondary views">›</button></div>
+  <!-- controles en la cabeza de la columna izquierda y debajo las vistas de validación; las personas van a la derecha,
+       con más espacio (17 nov 2026) -->
+  <header class="bar">
+    <div class="dbox">
+    <h3 class="sbh">Dataset</h3>
+    <div class="dset dinfo" aria-label="Dataset">
+      <span><svg class="di" viewBox="0 0 16 16" aria-hidden="true"><ellipse cx="8" cy="3.5" rx="5.5" ry="2"/><path d="M2.5 3.5v9c0 1.1 2.5 2 5.5 2s5.5-.9 5.5-2v-9M2.5 8c0 1.1 2.5 2 5.5 2s5.5-.9 5.5-2"/></svg><i class="vh-l">Dataset</i><b title="OpenNeuro ds004902: resting-state EEG after normal sleep and after sleep deprivation">ds004902</b></span>
+      <span><svg class="di" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5" r="2.3"/><path d="M1.5 13.5c.4-2.6 2.2-4 4.5-4s4.1 1.4 4.5 4"/><circle cx="11.5" cy="5.5" r="1.8"/><path d="M11 9.6c1.9.1 3.2 1.4 3.5 3.4"/></svg><i class="vh-l">People</i><b title="68 people with both recordings (normal sleep and deprivation)">68 people</b></span>
+      <span><svg class="di" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.6" r="5.6"/><path d="M6.6 3.1 8 1.4l1.4 1.7"/><circle cx="6" cy="7" r=".9"/><circle cx="10" cy="7" r=".9"/><circle cx="8" cy="10.5" r=".9"/></svg><i class="vh-l">Electrodes</i><b title="61 scalp electrodes, average reference">61 electrodes</b></span>
+      <span><svg class="di" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.6"/></svg><i class="vh-l">Recording</i><b title="Up to 75 epochs of 4 s per recording, eyes open">75 × 4 s epochs</b></span>
+      <span class="dset-p"><svg class="di" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12"/><circle cx="5" cy="4" r="1.2"/><circle cx="10" cy="8" r="1.2"/><circle cx="7" cy="12" r="1.2"/></svg><i>Pipeline</i><button class="pipe" id="pipebtn" type="button" aria-haspopup="dialog" title="What everything was computed from: theta band 4–8 Hz as a fraction of 1–40 Hz power (Welch); average reference; ICA (ocular and muscle components removed); 75 4-s epochs per recording, those above 200 µV rejected; eyes open. Click: full method in About.">avg. ref. · ICA · 75 × 4 s</button></span>
+    </div>
+    <h3 class="sbh">Controls</h3>
+    <div class="ctrls" role="region" aria-label="Controls" data-tabpane="explorer">
+      <div class="fld"><i>Region</i><div class="seg" id="roiseg" role="group" aria-label="EEG region">
+        <button data-v="front" aria-pressed="true">Frontal</button>
+        <button data-v="ct" aria-pressed="false">Centrotemporal</button>
+      </div></div>
+      <div class="fld"><i>Band</i><div class="seg" id="bandseg" role="group" aria-label="Frequency band" data-theta-only>
+        <button data-v="delta" aria-pressed="false" title="Delta, 1–4 Hz (exploratory)">δ</button>
+        <button data-v="theta" aria-pressed="true" title="Theta, 4–8 Hz (main hypothesis)">θ</button>
+        <button data-v="alpha" aria-pressed="false" title="Alpha, 8–13 Hz (exploratory)">α</button>
+        <button data-v="beta" aria-pressed="false" title="Beta, 13–30 Hz (exploratory; sensitive to muscle)">β</button>
+      </div></div>
+      <div class="fld"><i>Metric</i><div class="seg" id="metseg" role="group" aria-label="Theta metric">
+        <button data-v="var" aria-pressed="true">σθ</button>
+        <button data-v="mean" aria-pressed="false">μθ</button>
+      </div></div>
+      <div class="fld"><i>Electrode</i><select id="elsel" aria-label="Electrode on the x-axis instead of the region"></select></div>
+      <button class="chip" id="xchip" hidden aria-label="Remove the time window from the x-axis"></button>
+      <div class="fld"><i>Compare</i><select id="cmpsel" aria-label="Compare two groups"></select></div>
+      <div class="fld"><i>Behavior (y)</i><select id="ysel" aria-label="Behavioral marker on the Y-axis"></select></div>
+    </div>
+    <div class="ctrls mlctrls" role="region" aria-label="Classifier controls" data-tabpane="classifier" hidden>
+      <div class="fld"><i>Scenario</i><div class="seg" id="scseg" role="group" aria-label="Scenario">
+        <button data-v="paired" aria-pressed="true" title="Given both recordings of a person: which one is after sleep deprivation? Each person's two recordings are centered on their own mean.">Paired</button>
+        <button data-v="strict" aria-pressed="false" title="Each recording alone, from a person the model never saw (features that depend on the absolute signal scale are left out)">Strict</button>
+      </div></div>
+      <div class="fld"><i>Model</i><div class="seg" id="mdseg" role="group" aria-label="Model">
+        <button data-v="lr" aria-pressed="true" title="Logistic regression with elastic-net penalty">Logistic</button>
+        <button data-v="ebm" aria-pressed="false" title="Explainable Boosting Machine (interpret): one shape curve per feature">EBM</button>
+      </div></div>
+      <div class="fld"><i>Order</i><div class="seg" id="orseg" role="group" aria-label="Visit order">
+        <button data-v="all" aria-pressed="true">All</button>
+        <button data-v="NS->SD" aria-pressed="false" title="Normal sleep first">NS→SD</button>
+        <button data-v="SD->NS" aria-pressed="false" title="Deprivation first">SD→NS</button>
+      </div></div>
+      <div class="fld"><i>Show</i><div class="seg" id="shseg" role="group" aria-label="Which records">
+        <button data-v="all" aria-pressed="true">All</button>
+        <button data-v="err" aria-pressed="false" title="Only records the model got wrong">Errors</button>
+      </div></div>
+      <div class="fld"><i>Features</i><select id="ffsel" aria-label="Feature filter">
+        <option value="all">All features</option>
+        <option value="theta">θ band power (σθ, μθ)</option>
+        <option value="delta">δ band power</option>
+        <option value="alpha">α band power</option>
+        <option value="beta">β band power</option>
+        <option value="aperiodic">Aperiodic (1/f)</option>
+        <option value="spectral">Spectral (TSFEL)</option>
+        <option value="statistical">Statistical (TSFEL)</option>
+      </select></div>
+    </div>
+    <div class="ctlbtns"><button class="btn" id="resetbtn" disabled data-tabpane="explorer">Clear</button>
+      <button class="btn" id="reportbtn" data-tabpane="explorer">Report</button>
+      <button class="btn btn-icon" id="linkbtn" type="button" aria-label="Copy a link to this exact view" title="Copy a link to this exact view"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6.7 9.3a2.6 2.6 0 0 0 3.7 0l2.4-2.4a2.6 2.6 0 0 0-3.7-3.7l-.8.8M9.3 6.7a2.6 2.6 0 0 0-3.7 0L3.2 9.1a2.6 2.6 0 0 0 3.7 3.7l.8-.8"/></svg></button>
+      </div>
+    </div>
+  </header>
+    <!-- validación: en la columna, solo la lista de verificaciones con su veredicto; los gráficos se abren en un panel
+         flotante no modal (sigue la selección, se mueve, se agranda y se cierra con Esc), sin cambiar de página -->
+    <section class="panel valsum" aria-labelledby="h-valsum" data-tabpane="explorer">
+      <div class="vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 14 4v4c0 3.6-2.6 5.7-6 6.5C4.6 13.7 2 11.6 2 8V4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m5.3 8 1.9 1.9L10.8 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span id="h-valsum">Validation</span></div>
+      <div class="vlist" id="vlist" role="list"></div>
+    </section>
+    <section class="panel valsum mlsum" aria-labelledby="t-cards" data-tabpane="classifier" hidden>
+      <div class="vh"><span>Result</span></div>
+      <div class="ph"><h2 id="t-cards"></h2></div>
+      <div class="cards" id="cards"></div>
+      <h3 class="sbh vsh">Validation</h3>
+      <div class="vlist" id="mlvlist" role="list"></div>
+    </section>
+    <div class="sidebox" role="dialog" aria-modal="false" aria-labelledby="h-valfloat">
+    <div class="side-head"><span class="side-title vh"><svg class="vi" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 14 4v4c0 3.6-2.6 5.7-6 6.5C4.6 13.7 2 11.6 2 8V4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m5.3 8 1.9 1.9L10.8 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span id="h-valfloat">Validation Panel</span></span><span class="valhint" title="Drag the title bar to move, the lower-right corner to resize; Esc closes. Another row of the Validation table replaces this chart.">drag · resize · Esc</span><button class="btn btn-icon" id="sidebtn" hidden type="button" aria-expanded="true" aria-controls="side-body" title="Collapse secondary views">›</button><button class="vbtn" id="valclose" type="button" aria-label="Close the validation panel" title="Close (Esc)">×</button></div>
     <div class="side-body" id="side-body">
-      <section data-theta-only class="sec" data-open="true" aria-labelledby="b-aper">
+      <section data-theta-only class="sec" data-open="false" aria-labelledby="b-aper">
         <div class="sec-hd"><button class="sec-btn" id="b-aper" type="button" aria-expanded="true" aria-labelledby="l-aper"></button><div class="sec-lbl"><b id="l-aper">Oscillatory &amp; aperiodic components</b><span class="tonly" title="This view is computed for theta only">θ only</span></div></div>
         <div class="sec-body"><div class="ph"><h2 id="t-aper"></h2><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="aper"></div></div>
       </section>
@@ -109,8 +166,44 @@
         <div class="sec-body"><div class="ph"><h2 id="t-graph"></h2><div class="key" id="k-graph"></div><button class="vx" type="button" aria-label="Expand view" title="Expand (Esc to close)"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="ex" d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/><path class="co" d="M13.5 2.5 9 7M9 3.5V7h3.5M2.5 13.5 7 9M7 12.5V9H3.5"/></svg></button></div><div class="view" id="graph"></div></div>
       </section>
     </div>
+    </div>
   </aside>
+  <!-- pestaña Classifier: centro (registros; features e importancia) y derecha (métricas y persona); la barra lateral es
+       la misma de Explorer (js/ml.js, css/ml.css, data/ml.json) -->
+  <div class="mlcol ml-c" data-tabpane="classifier" hidden>
+    <section class="panel ml-rec" aria-labelledby="t-rec">
+      <div class="vh"><span>Records view</span></div>
+      <div class="ph"><h2 id="t-rec"></h2><div class="key" id="k-rec"></div></div>
+      <div class="view" id="rec"></div>
+    </section>
+    <div class="mlbottom">
+    <section class="panel ml-feat" aria-labelledby="t-feat">
+      <div class="vh"><span>Features</span></div>
+      <div class="ph"><h2 id="t-feat"></h2><div class="key" id="k-feat"></div></div>
+      <div class="view" id="feat"></div>
+    </section>
+    <section class="panel ml-imp" aria-labelledby="t-imp">
+      <div class="vh"><span>Feature groups</span></div>
+      <div class="ph"><h2 id="t-imp"></h2></div>
+      <div class="view" id="imp"></div>
+    </section>
+    </div>
+  </div>
+  <div class="mlcol ml-r" data-tabpane="classifier" hidden>
+    <section class="panel ml-met" aria-labelledby="t-met">
+      <div class="vh"><span>Model metrics</span></div>
+      <div class="ph"><h2 id="t-met"></h2></div>
+      <div class="view" id="met"></div>
+    </section>
+    <section class="panel ml-person" aria-labelledby="t-person">
+      <div class="vh"><span>Person</span></div>
+      <div class="ph"><h2 id="t-person"></h2><div class="key" id="k-person"></div></div>
+      <div class="view" id="person"></div>
+    </section>
+  </div>
+  <div class="ml-warn" id="warn" hidden role="alert"></div>
 </main>
+
 
 <dialog class="sheet" id="about" aria-labelledby="h-about">
   <div class="sheet-head"><h2 id="h-about">About BATIMIX</h2><button class="btn" data-close>Close</button></div>
@@ -161,19 +254,20 @@
 </dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<script src="js/core.js?v=20261116g"></script>
-<script src="js/scatter.js?v=20261116g"></script>
-<script src="js/topomap.js?v=20261116g"></script>
-<script src="js/dynamics.js?v=20261116g"></script>
-<script src="js/individuals.js?v=20261116g"></script>
-<script src="js/secondary.js?v=20261116g"></script>
-<script src="js/graph.js?v=20261116g"></script>
-<script src="js/report.js?v=20261116g"></script>
-<script src="js/main.js?v=20261116g"></script>
-<script src="js/share.js?v=20261116g"></script>
-<script src="js/tour.js?v=20261116g"></script>
-<script src="js/about.js?v=20261116g"></script>
-<script src="js/i18n.js?v=20261116g"></script>
-<script src="js/embed.js?v=20261116g"></script>
+<script src="js/core.js?v=20261118y"></script>
+<script src="js/scatter.js?v=20261118y"></script>
+<script src="js/topomap.js?v=20261118y"></script>
+<script src="js/dynamics.js?v=20261118y"></script>
+<script src="js/individuals.js?v=20261118y"></script>
+<script src="js/secondary.js?v=20261118y"></script>
+<script src="js/graph.js?v=20261118y"></script>
+<script src="js/report.js?v=20261118y"></script>
+<script src="js/main.js?v=20261118y"></script>
+<script src="js/share.js?v=20261118y"></script>
+<script src="js/tour.js?v=20261118y"></script>
+<script src="js/about.js?v=20261118y"></script>
+<script src="js/ml.js?v=20261118y"></script>
+<script src="js/i18n.js?v=20261118y"></script>
+<script src="js/embed.js?v=20261118y"></script>
 </body>
 </html>

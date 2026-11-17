@@ -1,7 +1,7 @@
-/* Similarity between people (Validation Panel, task T4: do the vulnerable people resemble each other?).
+/* Similarity between people (Validation, task T4: do the people who deteriorate most resemble each other?).
    Each person is joined to the 3 people whose pattern of change (Δ of the header metric over the 61 electrodes) is most
    alike (Pearson r). Groups come from behavior only (worse than the median of the header marker vs. the rest), never from
-   theta, so a vulnerable cluster could not be produced by construction.
+   theta, so a cluster of the more impaired could not be produced by construction.
    Two layouts, with an animated switch between them:
    - "On scatter" (default): every person sits where they are in the Vulnerability View (same axes, same quadrant), and
      the similarity links are drawn over it, so the network is read against the main chart.
@@ -26,7 +26,9 @@ const simg = (() => {
     let groups;
     if(G) groups = G.map(g => ({name:g.name, color:g.color, ids:g.ids.filter(id => D.has(id))}));
     else { const w = mk.worse || 1, med = d3.median(withY, id => byId.get(id)[yk]), worse = id => w*(byId.get(id)[yk]-med) > 0;
-      groups = [{name:"Vulnerable", color:C.vuln, ids:withY.filter(worse)}, {name:"Resilient", color:C.rest, ids:withY.filter(id => !worse(id))}]; }
+      groups = [{name:"More impaired", color:C.g1, ids:withY.filter(worse)}, {name:"Less impaired", color:C.rest, ids:withY.filter(id => !worse(id))}]; }
+    // (18 nov 2026) antes «Vulnerable/Resilient» en ámbar: se confundía con el cuadrante vulnerable de la Vulnerability View,
+    // que también exige Δθ alto; estos grupos son solo conducta (peor o mejor que la mediana del marcador)
     groups = groups.filter(g => g.ids.length);
     const ids = groups.flatMap(g => g.ids);
     const R = new Map(ids.map(a => [a, new Map()]));
@@ -41,7 +43,7 @@ const simg = (() => {
   function draw(){
     if(sim) sim.stop();
     d3.select(el).selectAll("*").remove();
-    const W = el.clientWidth || 300, H = Math.max(260, el.clientHeight || 360), {groups, ids, nbrs, mk, byId: P_} = model;
+    const W = el.clientWidth || 300, H = Math.max(150, el.clientHeight || 360), {groups, ids, nbrs, mk, byId: P_} = model;
     const scat = mode === "scatter", m = {l:40, r:12, t:12, b:34}, xk = S.xKey(), yk = yK();
     const gOf = new Map(); groups.forEach((g, gi) => g.ids.forEach(id => gOf.set(id, gi)));
     // scatter targets: the same coordinates as the Vulnerability View
@@ -187,7 +189,7 @@ const simg = (() => {
   }
   function render(){
     if(!isOpen()){ clear(); return; }
-    build(); draw(); titles();
+    build(); titles(); draw();   // título y leyenda primero: ocupan alto y el gráfico se mide después
   }
   function clear(){ if(sim) sim.stop(); d3.select(el).selectAll("*").remove(); }
   bus.on("frame.simg", w => { fw = w; if(isOpen()) render(); });

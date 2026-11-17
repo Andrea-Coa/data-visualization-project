@@ -94,7 +94,80 @@ function setTheme(t){
   if(document.fonts) document.fonts.ready.then(drawAll);   // las fuentes del otro tema cambian la medida del texto
 }
 const themeNow = () => document.documentElement.dataset.theme === "light" ? "light" : "dark";
-function drawAll(){ scatter.render(); topo.render(); dyn.render(); indiv.render(); side.render(); updateStatus(); }
+function drawAll(){ scatter.render(); topo.render(); dyn.render(); indiv.render(); side.render(); drawValList(); updateStatus(); }
+
+// ---------- validación: tabla de verificaciones y ventanas flotantes ----------
+// cada verificación se abre en su propia ventana (tamaño inicial según su gráfico); varias a la vez; la fila de una
+// ventana ya abierta la trae al frente
+const VALWIN = {"b-aper":[400, 620], "b-eye":[420, 500], "b-conn":[440, 580], "b-graph":[480, 480]};   // ancho, alto iniciales
+let valZ = 60, valN = 0;   // z-index de las ventanas: 61, 62…; se reinicia al cerrarlas todas (no crece sin fin)
+const valOpen = () => [...document.querySelectorAll(".sidebox .sec[data-open=true]")];
+function openVal(secId){
+  secId = secId || "b-aper";
+  const sec = $(secId) && $(secId).closest(".sec"); if(!sec) return;
+  if(sec.dataset.open !== "true"){
+    // posición inicial: a la derecha de la última ventana abierta (si cabe), si no escalonada; así varias se ven a la vez
+    const [w, h] = VALWIN[secId] || [460, 560], W = Math.min(w, innerWidth - 16), H = Math.min(h, innerHeight - 16);
+    const open = valOpen().map(s => s.getBoundingClientRect()), last = open.sort((p, q) => p.right - q.right).pop();
+    let x = innerWidth*.24, y = Math.max(8, innerHeight*.05);
+    if(last){ x = last.right + 8; y = last.top; if(x + W > innerWidth - 8){ const k = valN % 4; x = innerWidth*.24 + k*36; y = innerHeight*.05 + k*32; } }
+    valN++;
+    x = Math.max(8, Math.min(innerWidth - W - 8, x)); y = Math.max(8, Math.min(innerHeight - H - 8, y));
+    sec.style.setProperty("--w", W + "px"); sec.style.setProperty("--h", H + "px"); sec.style.setProperty("--x", x + "px"); sec.style.setProperty("--y", y + "px");
+    sec.dataset.open = "true"; sec.querySelector(".sec-btn").setAttribute("aria-expanded", "true");
+    if(!sec.querySelector(".secx")){
+      const b = document.createElement("button"); b.type = "button"; b.className = "secx"; b.textContent = "×"; b.title = "Close (Esc closes the front window)"; b.setAttribute("aria-label", "Close this chart");
+      b.addEventListener("click", e => { e.stopPropagation(); closeVal(secId); });
+      sec.querySelector(".sec-hd").appendChild(b);
+    }
+    if(!sec.dataset.watch){ sec.dataset.watch = "1"; let t = null; new ResizeObserver(() => { clearTimeout(t); t = setTimeout(() => { if(sec.dataset.open === "true") side.render(); }, 120); }).observe(sec); }
+    dragVal(sec);
+  }
+  sec.style.setProperty("--z", ++valZ);
+  sec.classList.add("flash"); setTimeout(() => sec.classList.remove("flash"), 700);
+  drawValList();
+  requestAnimationFrame(() => side.render());
+}
+function closeVal(secId){
+  const secs = secId ? [$(secId).closest(".sec")] : valOpen();
+  secs.forEach(s => { s.dataset.open = "false"; s.querySelector(".sec-btn").setAttribute("aria-expanded", "false"); if(s.classList.contains("is-max")) setMax(null); });
+  if(!valOpen().length) valZ = 60;
+  drawValList(); side.render();
+}
+// la ventana de adelante (mayor z) para Esc
+const valFront = () => valOpen().sort((a, b) => (+b.style.getPropertyValue("--z") || 0) - (+a.style.getPropertyValue("--z") || 0))[0];
+// arrastre por el título de cada ventana; un clic sin arrastre la trae al frente
+function dragVal(sec){
+  if(sec.dataset.drag) return; sec.dataset.drag = "1";
+  const head = sec.querySelector(".sec-hd");
+  head.addEventListener("pointerdown", e => {
+    if(sec.dataset.open !== "true" || sec.classList.contains("is-max") || e.target.closest(".secx, .info, a")) return;
+    sec.style.setProperty("--z", ++valZ);
+    const r = sec.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+    head.setPointerCapture(e.pointerId);
+    const move = ev => { sec.style.setProperty("--x", Math.max(0, Math.min(innerWidth - 120, ev.clientX - dx)) + "px"); sec.style.setProperty("--y", Math.max(0, Math.min(innerHeight - 40, ev.clientY - dy)) + "px"); };
+    const up = () => { head.removeEventListener("pointermove", move); head.removeEventListener("pointerup", up); };
+    head.addEventListener("pointermove", move); head.addEventListener("pointerup", up);
+  });
+}
+// Validation de Explorer: filas con su cifra y un mini gráfico (escala fina con la referencia punteada); clic abre el
+// gráfico completo en una ventana flotante. El mismo componente (miniRows, core.js) que la Validation del clasificador
+function drawValList(){
+  const el = $("vlist"); if(!el) return;
+  const roi = S.roi, rows = [];
+  const AB = S.band !== "theta" && APER && APER.bands ? APER.bands[S.band] : null;
+  const sg = APER ? (AB ? AB.sigma[roi] : APER.sigma[roi]) : null;
+  if(QUAL){ const sm = QUAL.summary[roi]; rows.push({id:"b-eye", k:"Without blinks", v:`ρ ${f2(sm.rho_clean_vs_all)}`, dom:[0, 1], marks:[{v:sm.rho_clean_vs_all, lab:"ρ"}],
+    tip:`Δσθ recomputed without the 1-s windows near a blink vs the full Δσθ (${ROI[roi].name}, n = ${sm.n_clean}). Near 1: blinks do not drive the effect. Click to open the chart.`}); }
+  if(sg) rows.push({id:"b-aper", k:"Periodic part", v:`ρ ${f2(sg.rho_periodic)}`, dom:[0, 1], marks:[{v:sg.rho_periodic, lab:"ρ"}],
+    tip:`Δσθ vs Δσθ of the periodic component, 1/f removed (${ROI[roi].name}, n = ${sg.n}). High: the change is oscillatory, not the 1/f background. Click to open the chart.`});
+  if(CONN){ const g = CONN.global; rows.push({id:"b-conn", k:"θ synchrony", v:`p ${fp(g.p_perm)}`, dom:[0, 1], ref:.05, refLab:"0.05", marks:[{v:g.p_perm, lab:"p, permutation"}],
+    tip:`Global change in between-region wPLI² (permutation test, n = ${CONN.meta.n}); exploratory. Right of the dashed line (0.05): no change. Click to open the chart.`}); }
+  rows.push({id:"b-graph", k:"Similarity", v:"3 most alike", desc:"each person linked to the three with the most similar change",
+    tip:"Each person linked to the three whose pattern of change over the 61 electrodes is most alike. Click to open the chart."});
+  miniRows(el, rows, openVal, d => { const s = $(d.id) && $(d.id).closest(".sec"); return !!s && s.dataset.open === "true"; });
+}
+
 function setY(v){ S.y = v; $("ysel").value = v; scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 function setRoi(v){ S.roi = v; S.elec = null; segRoi.set(v); computeX(); scatter.clearBrushVisual(); scatter.render(); refreshGroup(); topo.render(); bus.call("axes"); }
 // σθ necesita al menos 60 s (WIN_MIN_VAR épocas): al pasar a σθ con la ventana de 32 s, sube a 60 s
@@ -178,13 +251,9 @@ loadData().then(D => {
     const off = document.querySelector(".board").classList.toggle("side-off");
     this.setAttribute("aria-expanded", !off); this.textContent = off ? "‹" : "›"; this.title = off ? "Show secondary views" : "Collapse secondary views";
   });
-  // acordeón: una vista secundaria abierta a la vez, que ocupa todo el alto disponible
-  document.querySelectorAll(".sec-btn").forEach(b => b.addEventListener("click", () => {
-    const sec = b.closest(".sec"), open = sec.dataset.open !== "true";
-    document.querySelectorAll(".sec").forEach(s => { s.dataset.open = "false"; s.querySelector(".sec-btn").setAttribute("aria-expanded", "false"); });
-    if(open){ sec.dataset.open = "true"; b.setAttribute("aria-expanded", "true"); }
-    side.render();
-  }));
+  // validación (17 nov 2026): los cuatro gráficos se abren juntos en un panel flotante no modal; la barra de cada
+  // gráfico (y la lista de la columna) abre el panel y resalta ese gráfico
+  document.querySelectorAll(".sec-btn").forEach(b => b.addEventListener("click", () => openVal(b.id)));
   d3.select("#cmpsel").on("change", function(){ setCmp(this.value); });
   d3.selectAll("#wlen button").on("click", function(){ setWinLen(+this.dataset.n); });
   d3.select("#seriesbtn").on("click", () => setSeries(!S.series));
@@ -221,18 +290,19 @@ loadData().then(D => {
   $("maxbg").addEventListener("click", () => setMax(null));
   // Espacio y ← → controlan la reproducción de los mapas (fase 5 de PLAN.md), salvo al escribir o con un control enfocado
   addEventListener("keydown", e => {
-    if(![" ", "ArrowLeft", "ArrowRight"].includes(e.key) || e.defaultPrevented || document.querySelector("dialog[open]")) return;
+    if(![" ", "ArrowLeft", "ArrowRight"].includes(e.key) || e.defaultPrevented || document.querySelector("dialog[open]") || document.body.classList.contains("tab-ml")) return;
     const t = e.target; if(t && t.closest && t.closest("input, select, textarea, button, [contenteditable], [role=button], .sbox")) return;
     if(dyn.key(e.key)) e.preventDefault();
   });
   addEventListener("keydown", e => {
-    if(e.key !== "Escape" || e.defaultPrevented || document.querySelector("dialog[open]")) return;
+    if(e.key !== "Escape" || e.defaultPrevented || document.querySelector("dialog[open]") || document.body.classList.contains("tab-ml")) return;
     if(document.querySelector(".is-max")){ setMax(null); return; }
+    { const f = valFront(); if(f){ closeVal(f.querySelector(".sec-btn").id); return; } }
     resetAll(); });
   bus.on("select.status", updateStatus); bus.on("pin.status", updateStatus); bus.on("axes.status", updateStatus);
 
   $("boot").classList.add("done");   // la rejilla se muestra antes de dibujar para que cada vista mida su espacio real
-  scatter.render(); topo.render(); dyn.render(); indiv.render(); side.render();
+  scatter.render(); topo.render(); dyn.render(); indiv.render(); side.render(); drawValList();
   updateStatus();
   if(document.fonts) document.fonts.ready.then(drawAll);
   // cada vista se redibuja cuando cambia el tamaño real de su contenedor

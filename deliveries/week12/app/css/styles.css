@@ -47,6 +47,11 @@ button,select{font:inherit;color:inherit}
 .chip::after{content:" ×";color:var(--ink2)}
 .btn{background:var(--raise);border:1px solid var(--rule);color:var(--ink);border-radius:7px;padding:5px 11px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
 .btn:disabled{opacity:.4;cursor:default}
+a.btn{text-decoration:none;display:inline-flex;align-items:center}
+/* acceso a la página del clasificador (ml.html), junto al nombre: no ocupa lugar entre los controles */
+.brand-row{display:flex;align-items:baseline;gap:10px}
+.mllink{font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:0;color:var(--ink2);border:1px solid var(--rule2);border-radius:999px;padding:0 8px;line-height:17px;text-decoration:none;white-space:nowrap}
+.mllink:hover,.mllink:focus-visible{color:var(--ink);border-color:var(--ink2)}
 .btn:not(:disabled):active,.seg button:active{transform:scale(.97)}
 @media (hover:hover) and (pointer:fine){
   .seg button:not([aria-pressed="true"]):hover{color:var(--ink);background:rgba(232,234,240,.06)}
@@ -313,9 +318,10 @@ body{background:var(--page)}
 .dset>span{flex:none}
 .ctrls select{max-width:190px}
 .sec-hd{padding:5px 10px}
-@media (max-width:1499px){ .dset{display:none} .ctrls{gap:8px} .ctrls select{max-width:160px} .tag{font-size:10.5px} }
+/* hasta 1619 px (antes 1499): con los datos cargados, entre 1500 y 1600 px los controles no cabían (16 nov 2026) */
+@media (max-width:1619px){ .dset{display:none} .ctrls{gap:8px} .ctrls select{max-width:160px} .tag{font-size:10.5px} }
 /* con el selector de banda (noviembre 2026) el header necesita ~80 px más: botones y menús más compactos hasta 1499 px */
-@media (min-width:1101px) and (max-width:1499px){ .bar{gap:10px} .ctrls{gap:6px} .seg button{padding:3px 7px} .ctrls select{max-width:132px} .bar .btn{padding-left:8px;padding-right:8px} }
+@media (min-width:1101px) and (max-width:1619px){ .bar{gap:10px} .ctrls{gap:6px} .seg button{padding:3px 7px} .ctrls select{max-width:132px} .bar .btn{padding-left:8px;padding-right:8px} }
 .tag{white-space:normal;max-width:235px;line-height:1.2;margin-top:2px}
 @media (max-width:1100px){
   .ctrls{align-items:flex-end}
@@ -399,7 +405,7 @@ body{background:var(--page)}
 /* grafo de similitud */
 .glab{font-size:8.5px;fill:var(--ink2);pointer-events:none;paint-order:stroke;stroke:var(--panel);stroke-width:3px}
 .btn-sm{padding:1px 8px;font-size:11px;border-radius:3px}
-.btn-sm[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.btn-sm[aria-pressed="true"],:root[data-theme="light"] .btn-sm[aria-pressed="true"],.btn-sm[aria-pressed="true"]:not(:disabled):hover,:root[data-theme="light"] .btn-sm[aria-pressed="true"]:not(:disabled):hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}   /* en el tema claro .btn pone fondo blanco: sin esto el texto blanco no se veía */
 .sec-body .ph:has(#k-graph){flex-wrap:wrap}
 .sec-body .ph:has(#k-graph) h2{flex:1 1 calc(100% - 30px)}
 #k-graph{order:3;flex:1 1 100%;justify-content:flex-start}
@@ -483,7 +489,7 @@ body[data-focus="compare"] .bar .fld:not(:has(#cmpsel)){opacity:.35}
 /* About sheet: a designed page */
 .sheet{width:min(1000px,calc(100% - 32px))}
 .sheet[open]{display:flex;flex-direction:column;overflow:hidden}
-.sheet .sheet-body{position:relative;padding:0 28px 26px;overflow:auto;flex:1;scroll-behavior:auto;font-size:13.5px}
+.sheet .sheet-body{position:relative;padding:0 28px 26px;overflow:auto;flex:1 1 auto;min-height:0;scroll-behavior:auto;font-size:13.5px}   /* 1 1 auto: con flex:1 (base 0) el cuerpo colapsaba y solo se veía la cabecera */
 .ab-hero{padding:22px 0 8px}
 .ab-eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
 .ab-lead{margin:0;font-size:17px!important;line-height:1.55;color:var(--ink)!important;max-width:70ch!important}
@@ -554,3 +560,234 @@ body[data-focus="compare"] .bar .fld:not(:has(#cmpsel)){opacity:.35}
 .k.cl-test{margin-left:6px;color:var(--ink2)}
 .k i.bdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#1B1B1B;margin-right:4px;vertical-align:0}
 .k.notest{color:var(--muted);font-style:italic}
+
+/* ---------- controles en la columna izquierda, al estilo de las herramientas de TVCG (17 nov 2026) ----------
+   Como VISTA y otras: la marca arriba sin recuadro (logo, nombre y subtítulo) y debajo un recuadro de datos con pares
+   «rótulo valor» e íconos chicos (dataset, personas, electrodos, registro, pipeline) seguido de los controles con el
+   mismo formato, en dos columnas cuando hay ancho; las acciones son enlaces de texto. Mismo elemento (header.bar) y
+   mismos IDs: main.js, la guía y el modo embebido no cambian. */
+:root{--bar-h:0px}
+/* izquierda: controles y vistas de validación; centro: mapas y tiempo; derecha: las personas, más anchas */
+.board{--wl:minmax(0,.98fr);--ws:minmax(262px,.84fr)}
+.col-s,.board.swap .col-s{background:transparent;border:0;border-radius:0;gap:8px;min-width:0}
+.sidebox{flex:1 1 0;min-height:0;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--border);border-radius:3px}
+.col-s>.bar{height:auto;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:8px;padding:2px 2px 0;border:0;background:transparent;min-width:0}
+.col-s>.bar .brand{width:100%;gap:10px;align-items:center}
+.col-s>.bar .brand .mark{height:32px}
+.col-s>.bar .brand-t{min-width:0}
+.col-s>.bar .logo{font-size:23px;letter-spacing:.06em}
+.col-s>.bar .brand-row{flex-wrap:nowrap;gap:8px;align-items:center}
+.col-s>.bar .tag{display:block;max-width:none;font-size:11px;line-height:1.2;margin-top:1px;white-space:normal}
+.ctlbtns .cbreak{flex-basis:100%;height:0}
+.ctlbtns .mllink{text-decoration:none;color:var(--ns)}
+.ctlbtns .btn-icon{border:1px solid var(--rule);padding:0 5px;text-transform:none}
+.ctlbtns .mllink + .btn-icon{margin-left:auto}
+:root[data-theme="light"] .ctlbtns .mllink{color:var(--ns)}
+.dbox{border:1px solid var(--border);border-radius:3px;background:var(--panel);padding:7px 10px 8px;display:flex;flex-direction:column;gap:6px;container-type:inline-size;min-width:0}
+.col-s>.bar .dset.dinfo{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 12px;border:0;border-radius:0;padding:0 0 6px;border-bottom:1px solid var(--rule);overflow:visible}
+.dinfo>span{display:flex!important;flex-direction:row!important;align-items:center;gap:5px;padding:0!important;border:0!important;min-width:0;font-size:11.5px}
+.dinfo .di{width:12px;height:12px;flex:none;fill:none;stroke:var(--muted);stroke-width:1.2}
+.dinfo i{font-style:normal;font-family:var(--sans)!important;font-size:11.5px!important;font-weight:400!important;letter-spacing:0!important;text-transform:none!important;color:var(--ink2)!important}
+.dinfo i.vh-l{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.dinfo i::after{content:":"}
+.dinfo .dset-p{grid-column:1/-1}
+.dinfo b,.dinfo .pipe{font-size:11.5px!important;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.col-s>.bar .ctrls{display:grid;grid-template-columns:minmax(0,1fr);gap:3px 14px;align-items:center;width:100%}
+.col-s>.bar .fld{display:grid;grid-template-columns:68px minmax(0,1fr);align-items:center;gap:6px;min-width:0;flex:none!important}
+.col-s>.bar .fld>i{font-family:var(--sans);font-size:11.5px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--ink2)}
+.col-s>.bar .fld>i::after{content:":"}
+.col-s>.bar .fld .seg{justify-self:start;max-width:100%}
+.col-s>.bar .seg button{padding:0 6px;font-size:11.5px;line-height:19px}
+.col-s>.bar .ctrls select{width:100%;max-width:none!important;min-width:0;flex:none!important;font-size:11.5px;padding-top:1px;padding-bottom:1px;line-height:18px}
+.col-s>.bar .chip{justify-self:start}
+/* acciones: enlaces de texto con borde fino solo en los íconos, como en las figuras de las herramientas */
+.ctlbtns{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px;margin-top:4px;padding-top:6px;border-top:1px solid var(--rule)}
+.ctlbtns .btn{border:0;background:transparent;padding:0 4px;font-size:11px;line-height:19px;font-weight:500;color:var(--ink2);text-transform:uppercase;letter-spacing:.03em}
+.ctlbtns .btn:not(:disabled):hover{color:var(--ink);background:var(--raise)}
+@container (min-width:330px){
+  .col-s>.bar .dset.dinfo,.col-s>.bar .ctrls{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .col-s>.bar .fld{grid-template-columns:68px minmax(0,1fr);grid-column:1/-1}
+  /* solo Band y Metric (cortos) comparten fila; Region y los menús van a todo el ancho para no cortarse */
+  .col-s>.bar .fld:has(#bandseg),.col-s>.bar .fld:has(#metseg){grid-column:auto}
+  .col-s>.bar .fld:has(#metseg){grid-template-columns:auto minmax(0,1fr)}
+  .dinfo .dset-p{grid-column:1/-1}
+}
+@media (min-width:1101px){
+  .board{grid-template-columns:var(--ws) var(--wc) var(--wl)}
+  .board .col-s{order:-1}
+  .board .col-l{order:1}
+  /* barras del acordeón de validación en una línea (la columna izquierda es angosta) */
+  .col-s .sec-lbl b{font-size:11px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .col-s .sec-lbl{display:flex;align-items:center;gap:6px;min-width:0}
+  .board.swap{grid-template-columns:var(--wl) var(--wc) var(--ws)}
+  .board.swap .col-s{order:5}
+  .board.swap .col-l{order:-1}
+  .col-l{grid-template-rows:auto minmax(0,1fr)}
+  .p-scatter .view{height:min(calc(100cqw + 2px), calc(50vh - 70px), calc(50svh - 70px))}
+}
+/* ventanas bajas: sin el subtítulo y con la dispersión más chica, para que la Individual View quepa */
+@media (min-width:1101px) and (max-height:800px){
+}
+@media (max-width:1100px){
+  .col-s{display:contents}   /* apilado: los controles primero, luego los mapas, las personas y la validación */
+  .col-s>.bar{order:-3}
+  .sidebox{order:5}
+}
+/* encabezado de las vistas: si los controles no caben, pasan a una segunda línea en vez de empujar ⤢ fuera del panel */
+.p-topo .vh{flex-wrap:wrap;row-gap:4px}
+.p-topo .vh>span:first-of-type{white-space:nowrap}
+
+/* ---------- validación: lista de verificaciones y panel flotante (17 nov 2026) ----------
+   En la columna queda la lista con el veredicto de cada verificación; los cuatro gráficos se abren juntos en un panel
+   flotante no modal (sin fondo que bloquee): sigue a la selección, se arrastra por su cabecera, se agranda desde la
+   esquina y se cierra con × o Esc. Así las personas y los mapas conservan su espacio. */
+:root .col-s>.bar,:root[data-theme="light"] .col-s>.bar{background:transparent;border:0;box-shadow:none}
+.valsum{flex:0 0 auto;min-height:0}
+.vbtn{flex:none;margin-left:auto;font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:.03em;text-transform:uppercase;color:var(--ink2);background:transparent;border:1px solid var(--rule2);border-radius:3px;padding:1px 7px;cursor:pointer}
+.vbtn:hover{color:var(--ink);border-color:var(--ink2)}
+.vlist{min-height:0;overflow:auto}
+/* tabla mínima (booktabs): sin íconos ni recuadros; filetes finos y cifras tabulares */
+.vtab{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums}
+.vtab tr{border-bottom:1px solid var(--rule);cursor:pointer}
+.vtab tr:first-child{border-top:1px solid var(--rule2)}
+.vtab tr:last-child{border-bottom:1px solid var(--rule2)}
+.vtab tr:hover th,.vtab tr:focus-visible th{color:var(--ink)}
+.vtab tr.on th,.vtab tr.on td{color:var(--ink);font-weight:600}
+.vtab tr.on th::before{content:"▸ ";color:var(--ns)}
+.vnote{margin-left:auto;font-family:var(--sans);font-size:10.5px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.vtab th{text-align:left;font-weight:400;color:var(--ink2);padding:4px 8px 4px 0}
+.vtab td{text-align:right;font-weight:600;color:var(--ink);padding:4px 0;white-space:nowrap}
+/* cada verificación es su propia ventana flotante no modal: tamaño inicial según su gráfico, se mueve por el título,
+   se achica o agranda desde la esquina, y pueden abrirse varias a la vez (la tabla Validation las abre o las trae al
+   frente). La posición y el tamaño van en variables, así la vista ampliada (⤢) sigue funcionando. */
+.sidebox,.sidebox .side-body{display:contents}
+.sidebox .side-head{display:none}
+.sidebox .sec{display:none}
+.sidebox .sec.is-max{display:flex;flex-direction:column}   /* vista ampliada (⤢) de un gráfico de validación */
+.sidebox .sec[data-open="true"]:not(.is-max){display:flex;flex-direction:column;position:fixed;z-index:var(--z,60);left:var(--x,30vw);top:var(--y,6vh);
+  width:var(--w,460px);height:var(--h,560px);min-width:300px;min-height:260px;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);resize:both;overflow:hidden;
+  background:var(--panel);border:1px solid var(--rule2);border-radius:4px;box-shadow:0 16px 44px rgba(0,0,0,.24),0 2px 8px rgba(0,0,0,.14)}
+.sidebox .sec[data-open="true"] .sec-hd{background:transparent;color:var(--ink);margin:0;padding:7px 10px 5px;border-bottom:1px solid var(--rule2);border-radius:0;cursor:move;user-select:none}
+.sidebox .sec[data-open="true"] .sec-hd::before{display:none}
+.sidebox .sec[data-open="true"] .sec-hd .info{color:var(--ink2);opacity:1}
+.sidebox .sec[data-open="true"] .sec-btn{cursor:move}
+.sidebox .sec[data-open="true"] .sec-body{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+.sidebox .sec.flash{outline:2px solid var(--ns);outline-offset:-1px}
+.secx{position:absolute;right:6px;top:5px;z-index:2;font-size:15px;line-height:1;padding:1px 7px;border:1px solid var(--rule2);border-radius:3px;background:var(--panel);color:var(--ink2);cursor:pointer}
+.secx:hover{color:var(--ink);border-color:var(--ink2)}
+.sidebox .sec[data-open="true"] .sec-lbl{padding-right:34px}
+@media (max-width:1100px){ .sidebox .sec[data-open="true"]:not(.is-max){left:8px;top:8px;width:calc(100vw - 16px);height:calc(100vh - 16px);resize:none} }
+/* encabezado de la Topography View estable: el selector de marcas y su leyenda siempre en la segunda línea, para que
+   no salte de línea según la marca elegida */
+.p-topo .vh #k-topo{order:20;flex-basis:100%;justify-content:flex-start;margin-left:0}
+.p-topo .vh .vexp{margin-left:auto}
+.p-topo .vh .vexp + .vx{margin-left:2px}
+
+/* columna de controles: filas con un espacio moderado (con tope) y las acciones a continuación; el recuadro de
+   validación llega hasta el pie de la columna */
+@media (min-width:1101px){
+  .col-s>.bar .ctrls{display:flex;flex-direction:column;align-items:stretch;gap:7px}
+  .valsum{flex:1 1 auto}
+}
+}
+
+/* ---------- pestañas Explorer | Classifier (17 nov 2026) ----------
+   Bajo la marca, en la columna izquierda de las dos vistas: texto con subrayado en la activa, sin cajas. */
+.vtabs{display:flex;padding:0 2px;border-bottom:1px solid var(--rule2);margin:0 0 2px}
+.vtabs button + button{margin-left:20px}
+.vtabs button{background:none;border:0;padding:3px 0 5px;margin-bottom:-1px;font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer}
+.vtabs button:hover{color:var(--ink2)}
+.vtabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.ml-l>.vtabs{flex:none}
+
+/* pantallas angostas: sin container query en el recuadro de controles (Chrome calculaba su alto con una columna y lo
+   dibujaba con dos: quedaba un hueco); las dos columnas van por media query */
+@media (max-width:1100px){
+  .dbox{container-type:normal}
+}
+@media (max-width:1100px) and (min-width:360px){
+  .col-s>.bar .dset.dinfo,.col-s>.bar .ctrls{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .col-s>.bar .fld{grid-template-columns:68px minmax(0,1fr);grid-column:1/-1}
+  .col-s>.bar .fld:has(#bandseg),.col-s>.bar .fld:has(#metseg){grid-column:auto}
+  .col-s>.bar .fld:has(#metseg){grid-template-columns:auto minmax(0,1fr)}
+  .dinfo .dset-p{grid-column:1/-1}
+  .valsum{order:-2}   /* la tabla de validación, justo después de los controles */
+}
+
+/* ---------- barra lateral única (17 nov 2026, segunda versión) ----------
+   La misma en Explorer y Classifier: marca, pestañas, un recuadro con las secciones DATASET y CONTROLS (cambian solo los
+   controles) y las acciones, y debajo el resumen de la pestaña con VALIDATION. Ritmo fijo, sin espacios estirados. */
+.sbh{margin:0 0 6px;font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.dbox .sbh + .dset.dinfo{margin-top:0}
+.dbox .dset.dinfo{border-bottom:0!important;padding-bottom:0!important}
+.dbox > .sbh:not(:first-child){margin-top:8px;padding-top:9px;border-top:1px solid var(--rule)}
+.dbox{gap:0!important;padding:9px 11px 9px!important}
+.dbox > .ctlbtns{margin-top:10px}
+.vsh{margin:10px 0 2px}
+/* filas de verificación con mini gráfico */
+.vrow2{display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--rule);padding:6px 4px 2px;color:inherit;font:inherit}
+.vlist .vrow2:first-child{border-top:1px solid var(--rule2)}
+.vrow2.clk{cursor:pointer}
+.vrow2.clk:hover,.vrow2.clk:focus-visible{background:var(--raise)}
+.vrow2.on{background:var(--sel)}
+.vtop{display:flex;align-items:baseline;gap:6px;font-size:12px;line-height:1.3}
+.vk{flex:1 1 auto;color:var(--ink2);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vrow2.clk .vk{color:var(--ink)}
+.vv{flex:none;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.vgo{flex:none;width:12px;text-align:right;font-size:11px;color:var(--muted)}
+.vrow2.clk:hover .vgo,.vrow2.on .vgo{color:var(--ink)}
+.vch{display:block;margin-top:2px;min-height:14px}
+.vch svg{display:block;overflow:visible}
+.vax{font-size:8.5px;fill:var(--muted)}
+.vdesc{display:block;font-size:11px;color:var(--muted);padding:1px 0 4px}
+.valsum .vlist{overflow:auto;min-height:0}
+.valsum .cards{flex:none}
+/* ventanas bajas: grafiquitos más finos (sin los números de los extremos) para que quepan todas las filas */
+@media (min-width:1101px) and (max-height:820px){
+  .vrow2{display:grid;grid-template-columns:minmax(0,1fr) 54px 66px 12px;align-items:center;column-gap:5px;padding:2px 4px;min-height:23px}
+  .vv{text-align:right;white-space:nowrap;font-size:11.5px}
+  .vk{font-size:11.5px}
+  .vch .vax{display:none}
+  .vtop{display:contents}
+  .vk{order:1}.vch{order:2;margin:0;min-height:0}.vv{order:3}.vgo{order:4}
+  .vch svg{height:16px;overflow:hidden}
+  .vdesc{display:none}
+}
+.ml-c,.ml-r{min-height:0}
+.mlsum .ph:has(#t-cards:empty){display:none}
+
+/* ---------- barra superior (17 nov 2026, versión final) ----------
+   Lo que nunca cambia, a todo el ancho y en gris muy oscuro en los dos temas, como Unlearning Comparator: marca (el
+   topo tal cual), pestañas tipo navegador pegadas al borde
+   inferior (la activa toma el fondo de la página, así «se abre» hacia ella) y las acciones globales a la derecha. */
+:root{--bar-h:48px;--topbar:#1B1F27}
+:root[data-theme="dark"],:root:not([data-theme="light"]){--topbar:#14171D}
+.topbar{height:var(--bar-h);display:flex;align-items:stretch;gap:26px;padding:0 14px;background:var(--topbar);color:#E8EAF0;border-bottom:1px solid var(--rule)}
+.topbar .brand{display:flex;align-items:center;gap:10px;flex:none;min-width:0}
+.topbar .brand .mark{height:34px;width:auto}
+.topbar .brand-t{display:flex;flex-direction:row;align-items:baseline;gap:12px;min-width:0}
+.topbar .logo,:root[data-theme="light"] .topbar .logo{font-family:var(--cond);font-size:22px;font-weight:700;letter-spacing:.05em;color:#FFFFFF}
+.topbar .tag{color:#9AA3B2;font-size:11.5px;white-space:nowrap;max-width:none;margin:0;overflow:hidden;text-overflow:ellipsis}
+.topbar .vtabs{display:flex;align-items:flex-end;align-self:stretch;gap:4px;border:0;margin:0;padding:0}
+.topbar .vtabs button,.topbar .vtabs button + button{margin:0;height:36px;padding:0 18px;border:0;border-radius:3px 3px 0 0;background:transparent;color:#9AA3B2;
+  font-family:var(--cond);font-size:13.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.topbar .vtabs button:hover{color:#FFFFFF;background:rgba(255,255,255,.07)}
+.topbar .vtabs button[aria-selected="true"]{background:var(--page);color:var(--ink);position:relative;margin-bottom:-1px;height:37px}
+.gacts{margin-left:auto;display:flex;align-items:center;gap:4px;flex:none}
+.gacts .btn,:root[data-theme="light"] .gacts .btn{background:none;border:0;color:#C9D0DB;font-size:11.5px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;padding:3px 7px}
+.gacts .btn:hover,:root[data-theme="light"] .gacts .btn:not(:disabled):hover{color:#FFFFFF;background:rgba(255,255,255,.08)}
+.gacts .btn-icon{font-size:14px;text-transform:none}
+@media (min-width:1101px){ .board{height:calc(100vh - var(--bar-h));height:calc(100svh - var(--bar-h))} }
+@media (max-width:1300px){ .topbar .tag{display:none} }
+@media (max-width:1100px){
+  .topbar{height:auto;flex-wrap:wrap;gap:4px 14px;padding:6px 10px 0}
+  .topbar .gacts{order:2}
+  .topbar .vtabs{order:3;flex-basis:100%}
+}
+
+/* guía: solo la ventana de validación del paso actual; las demás se ocultan mientras dura (tour.js) */
+body.touring .sidebox .sec[data-open="true"]:not(.tourcur){visibility:hidden}
+
+/* el tooltip (y la ⓘ) siempre encima de todo: las ventanas flotantes de validación suben su z-index cada vez que se
+   traen al frente (--z, desde 60), y la vista ampliada usa 70; la guía (200) queda por encima de la página, no del tooltip */
+#tooltip{z-index:1000}

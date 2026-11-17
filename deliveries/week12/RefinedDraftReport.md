@@ -5,7 +5,7 @@
 **Date:** 28 October 2026 (updated 3 and 15 November 2026)
 **Application:** `deliveries/week12/app/` · planned deployment at https://andrea-coa.github.io/data-visualization-project/deliveries/week12/app/ (verify after the push)
 
-![BATIMIX at 1600 × 900: Vulnerability View (scatter), Individual View (person × electrode heatmap), Topography View (topomap matrix), Time View and Validation Panel](assets/dashboard-1600x900.png)
+![BATIMIX at 1600 × 900, Explorer tab: controls and Validation table (left), Topography View and Time View (center), Vulnerability View and Individual View (right)](assets/dashboard-1600x900.png)
 
 > **Correction, 15 November 2026.** In ds004902 the session folder gives the condition (`ses-1` is always normal sleep, `ses-2` always deprivation; the visit order is only in `SessionOrder`). Our pipeline took `ses-1` as the first condition of `SessionOrder`, so for the 28 people who were deprived first, normal sleep and deprivation were swapped in the EEG. It is now fixed and every number in this report was recomputed. The main conclusions changed: deprivation does raise theta variability across the whole scalp. Evidence and before/after figures: `research/correccion_sesiones.md`.
 
@@ -59,7 +59,7 @@
 
 ## 3. Design rationale
 
-**Layout.** Three columns, following the team's sketch and the most common pattern in IEEE VIS systems (Chen et al.: large views in the center, narrow side panels). Since 2 November each view is a box with a short uppercase name and an icon (Vulnerability, Individual, Topography and Time views; Validation Panel), with an ⓘ icon next to the name for the reading and the figures and no subtitle over the chart; controls carry a label above them (Region, Metric, Electrode, Compare, Behavior), the header has the system name, a one-line description and a dataset summary, and conditions are written out as Normal Sleep and Sleep Deprivation, following VISTA and Unlearning Comparator. Center: the topomap matrix, the main view, with the five-minute series below, wide enough for its 75 epochs. Left: the people, with a compact scatter and a tall heatmap. Right: secondary views in an accordion (one open at a time) that collapse to a strip to give the maps more room. The ⇄ button swaps the sides; the center does not move. On narrow screens the panels stack, maps first.
+**Layout.** Three columns, following the team's sketch and the most common pattern in IEEE VIS systems (Chen et al.: large views in the center, narrow side panels). Since 2 November each view is a box with a short uppercase name and an icon (Vulnerability, Individual, Topography and Time views; Validation Panel), with an ⓘ icon next to the name for the reading and the figures and no subtitle over the chart; controls carry a label above them (Region, Metric, Electrode, Compare, Behavior), the header has the system name, a one-line description and a dataset summary, and conditions are written out as Normal Sleep and Sleep Deprivation, following VISTA and Unlearning Comparator. Center: the topomap matrix, the main view, with the five-minute series below, wide enough for its 75 epochs. Since 17 November, following VISTA and model-analysis tools such as JaMoNA: the controls moved from a top bar to a box in the left column under the name (so no button falls off narrow screens and the maps gain height); the people moved to the right, with more room; and the secondary views became a **Validation** table under the controls, one row per check with its key figure, whose charts open in floating, non-modal windows that can be moved, resized and opened side by side, each sized for its chart. A thin dark top bar, as in Unlearning Comparator, holds the name, the two tabs (**Explorer** and **Classifier**, browser-like, the active one opening onto the page) and the global actions; below it, both tabs share one sidebar that never moves (Dataset, the tab's Controls, global actions and a Validation summary in which every check has its figure and a small chart); only the central and right areas change, so switching tabs reloads nothing and does not feel like leaving the page. The ⇄ button swaps the side columns; the center does not move. On narrow screens the panels stack, controls first, then the maps.
 
 **Tasks and views** (typology of Brehmer and Munzner, 2013). Since 15 November every task can also be done for delta, alpha or beta with the **Band** selector (δ θ α β) in the header; theta σ remains the confirmatory hypothesis and the other bands are exploratory (section 5b):
 
@@ -142,6 +142,20 @@ No band exceeds chance jointly, with σ only either (theta σ median r +0.030, p
 
 **Oscillatory or aperiodic, by band** (specparam, same settings as finding 7; frontal, n = 46): the change in epoch-to-epoch variability tracks its periodic part in theta (ρ = 0.78) and alpha (0.86), less in beta (0.44) and barely in delta (0.30), where the variability of the aperiodic exponent explains most of it (R² = 0.68 vs 0.06 in theta). So the delta increase in σ is mostly a broadband (1/f) change, not a delta rhythm; the theta increase is oscillatory. Periodic power itself rises only in theta (d_z = 0.56, p = 1.7e-5, 48 of 61 electrodes with q < 0.05; delta d_z = −0.21, p = 0.09; alpha −0.04; beta −0.06; no electrode with q < 0.05). Delta is at the lower edge of the fit, so this is the least reliable band.
 
+## 5c. Classifier: which features tell the night without sleep apart (exploratory)
+
+A new tab (**Classifier**, next to Explorer under the name) classifies each recording as normal sleep or deprivation with two explainable models, an elastic-net logistic regression and an Explainable Boosting Machine, on 147 features: TSFEL spectral and statistical features per region plus the project's band and aperiodic features (method and decisions in `research/ml_xai.md`, design in `research/ml_boceto.md`). Validation keeps each person out of training when tested (5 folds × 10 repetitions, nested CV); the permutation test swaps the two labels within each person.
+
+| | Paired: which of a person's two recordings is SD | Strict: one recording of a new person |
+|---|---|---|
+| Logistic regression, AUC (pair accuracy) | 0.88 (81 %), p ≤ 0.001 | 0.75 (77 %), p ≤ 0.001 |
+| EBM, AUC (pair accuracy) | 0.90 (80 %), p ≤ 0.005 | 0.72 (77 %), p ≤ 0.005 |
+| Gradient boosting with SHAP (reference only) | 0.84 | 0.70 |
+| Control: predicting the visit (1st vs 2nd) | 0.49 | 0.49 |
+| Only the project features (band and 1/f) | 0.85 | 0.71 |
+
+Reading: (1) the deprivation recording can be told apart in about 4 of 5 people, and it is not the visit, which is not predictable; (2) theta is the band group that matters most and σθ centrotemporal leads the logistic ranking, so the classifier agrees with the paired test; (3) generic time-series features add little; (4) the explainable models do not lose against the black box. Single-feature rankings are unstable across folds (Kendall τ 0.42; top-10 overlap 0.30) and the information is redundant (retraining without the top 10 keeps AUC 0.88), so the page leads with grouped importance.
+
 ## 6. Limitations
 
 - Small n for behavior (PVT 30), with low statistical power.
@@ -152,6 +166,7 @@ No band exceeds chance jointly, with σ only either (theta σ median r +0.030, p
 - Xiang et al. (2024) appear to assign the PVT t values to indicators different from those in the dataset dictionary; we follow the dictionary.
 - The trial-level PVT files of ds004902 are only partly consistent with the dataset summary columns (median RT matches in 24 of 67 sessions); with the corrected session mapping, 27 of 29 people are slower after deprivation (+40.8 ms), as expected. We use only the summary columns (`app/tools/check_pvt_trials.py`). The PVT was recorded separately from the resting EEG, which has no event markers, so no ERP or time-locked analysis is possible.
 - The visit order is counterbalanced but unbalanced (40 NS→SD, 28 SD→NS), so the paired test per electrode (the simple mean of SD − NS) could mix in a visit effect: it equals c + 0.18·π. The crossover analysis (`research/analisis_cruzado.md`, validated on synthetic data) shows π ≈ 0 everywhere (no electrode with q < 0.05 in any band), so the paired test stands; the adjusted effect c is almost identical (frontal σθ +0.0128 vs +0.0129). Carryover is tested only descriptively (Freeman, 1989). The SD recordings were made 40 min earlier than the NS ones (median), a possible time-of-day confound that was not tested.
+- **Classifier:** n = 136 recordings for 147 features; the explanations are exploratory and single features are unstable across folds. The paired scenario needs both recordings of the person, so it is not a test for a single unknown night. Recordings of deprivation were made about 40 minutes earlier in the day than those of normal sleep (`research/analisis_cruzado.md`): time of day is not controlled.
 - User evaluation still pending.
 
 ## 7. Functional connectivity: from postponed to an exploratory secondary view

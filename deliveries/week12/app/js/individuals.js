@@ -37,7 +37,9 @@ const indiv = (() => {
     if(G) groups = G.map(g => ({name:g.name, color:g.color, ids:g.ids.filter(id => D.has(id))}));
     // la selección no reagrupa: se marca con un contorno en paintHeat, así las columnas no se mueven
     else { const w = mk.worse || 1, med = d3.median(withY, id => byId.get(id)[yk]), worse = id => w*(byId.get(id)[yk]-med) > 0;
-      groups = [{name:"Vulnerable", color:C.vuln, ids:withY.filter(worse)}, {name:"Resilient", color:C.rest, ids:withY.filter(id => !worse(id))}]; }
+      groups = [{name:"More impaired", color:C.g1, ids:withY.filter(worse)}, {name:"Less impaired", color:C.rest, ids:withY.filter(id => !worse(id))}]; }
+    // (18 nov 2026) antes «Vulnerable/Resilient» en ámbar: se confundía con el cuadrante vulnerable de la Vulnerability View,
+    // que también exige Δθ alto; estos grupos son solo conducta (peor o mejor que la mediana del marcador)
     groups = groups.filter(g => g.ids.length).map(g => {
       const ids = g.ids.slice().sort((a, b) => rowMean(b)-rowMean(a));
       const cons = E.map((e, i) => { const v = ids.map(id => D.get(id)[i]).filter(x => x != null); return v.length ? (v.filter(x => x > 0).length-v.filter(x => x < 0).length)/v.length : 0; });
@@ -51,7 +53,7 @@ const indiv = (() => {
   // hv.row = persona (columna) y hv.col = índice de electrodo (fila): mismos nombres que en el estado compartido
   function drawHeat(){
     d3.select(heatEl).selectAll("*").remove();
-    const W = heatEl.clientWidth || 400, H = Math.max(180, heatEl.clientHeight || 400), {E, D, groups, lim} = model;   // nunca más alto que su panel
+    const W = heatEl.clientWidth || 400, H = Math.max(80, heatEl.clientHeight || 400), {E, D, groups, lim} = model;   // nunca más alto que su panel (mínimo 130: ventanas bajas con los controles en la columna)
     // encima de las celdas: el nombre de cada grupo (una o dos líneas) y una banda para los rótulos verticales
     // (códigos de persona y C(e)), del alto justo para ellos
     const nP = model.ids.length, regW = 14, regGap = 4, gGap = 6, cS = W > 640 ? 30 : 14, nameLH = 11, band = 22;   // ampliada: celdas y franja C(e) crecen con el ancho

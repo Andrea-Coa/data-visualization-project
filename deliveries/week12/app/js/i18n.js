@@ -116,7 +116,7 @@
     // composed titles by group
     "Δθ vs. Δ behavior: two groups":"Δθ vs. Δ conducta: dos grupos", "Δθ vs. Δ behavior: your selection":"Δθ vs. Δ conducta: tu selección",
     "{G}: Spearman ρ = # [#, #], n = #; {G}: Spearman ρ = # [#, #], n = #":"{G}: ρ de Spearman = # [#, #], n = #; {G}: ρ de Spearman = # [#, #], n = #",
-    "θ topomaps: two groups":"Topomapas θ: dos grupos", "θ topomaps: crossover by session order":"Topomapas θ: diseño cruzado por orden de sesión", "c · deprivation, adjusted":"c · privación, ajustada", "π · 2nd − 1st visit":"π · 2.ª − 1.ª visita", "1st visit":"1.ª visita", "2nd visit":"2.ª visita", "Deprivation (c)":"Privación (c)", "Visit (π)":"Visita (π)", "θ topomaps: your selection":"Topomapas θ: tu selección", "θ topomaps: two people":"Topomapas θ: dos personas",
+    "θ topomaps: two groups":"Topomapas θ: dos grupos", "Classifier →":"Clasificador →", "Explorer":"Explorador", "Classifier":"Clasificador", "Open in Explorer →":"Abrir en Explorador →", "θ topomaps: crossover by session order":"Topomapas θ: diseño cruzado por orden de sesión", "c · deprivation, adjusted":"c · privación, ajustada", "π · 2nd − 1st visit":"π · 2.ª − 1.ª visita", "1st visit":"1.ª visita", "2nd visit":"2.ª visita", "Deprivation (c)":"Privación (c)", "Visit (π)":"Visita (π)", "θ topomaps: your selection":"Topomapas θ: tu selección", "θ topomaps: two people":"Topomapas θ: dos personas",
     "mean Δ{S}θ: {G} #, {G} #":"Δ{S}θ medio: {G} #, {G} #", "mean Δ{S}θ: {P} #, {P} #":"Δ{S}θ medio: {P} #, {P} #",
     "Δ moving {S}θ · frontal: two groups":"Δ {S}θ móvil · frontal: dos grupos", "Δ moving {S}θ · centrotemporal: two groups":"Δ {S}θ móvil · centrotemporal: dos grupos", "n = # and #":"n = # y #",
     "Both rows share the same scales. No per-electrode test.":"Ambas filas comparten las mismas escalas. Sin prueba por electrodo.",
@@ -133,13 +133,13 @@
   };
   // group names (also lower case) and how they read in Spanish
   const GL = {"Women":"Mujeres", "Men":"Hombres", "women":"mujeres", "men":"hombres", "Normal sleep first":"Sueño normal primero", "normal sleep first":"sueño normal primero",
-    "Deprivation first":"Privación primero", "deprivation first":"privación primero", "Vulnerable":"Vulnerables", "vulnerable":"vulnerables", "Resilient":"Resilientes", "resilient":"resilientes",
+    "Deprivation first":"Privación primero", "deprivation first":"privación primero", "Vulnerable":"Vulnerables", "vulnerable":"vulnerables", "Resilient":"Resilientes", "resilient":"resilientes", "More impaired":"Más deterioro", "more impaired":"más deterioro", "Less impaired":"Menos deterioro", "less impaired":"menos deterioro", "MORE IMPAIRED":"MÁS DETERIORO", "LESS IMPAIRED":"MENOS DETERIORO",
     "Rest":"Resto", "rest":"resto", "Your selection":"Tu selección", "your selection":"tu selección"};
   const elecRe = () => (typeof ELEC !== "undefined" && ELEC.length ? ELEC.slice().sort((a, b) => b.length-a.length).join("|") : "Fp1");
   let RE = null;
-  const rebuild = () => { RE = new RegExp(`(sub-\\d+)|(\\b(?:${elecRe()})\\b)|(\\b[Pp][Ss][Qq][Ii] [>≤] \\d+|\\b(?:Normal sleep first|normal sleep first|Deprivation first|deprivation first|Women|women|Men|men|Vulnerable|vulnerable|Resilient|resilient|Rest|rest|Your selection|your selection)\\b)|([σμ])(?=θ)|([−+-]?\\d+(?:[.,]\\d+)?)`, "g"); };
+  const rebuild = () => { RE = new RegExp(`(sub-\\d+)|(\\b(?:${elecRe()})\\b)|(\\b[Pp][Ss][Qq][Ii] [>≤] \\d+|\\b(?:Normal sleep first|normal sleep first|Deprivation first|deprivation first|Women|women|Men|men|More impaired|more impaired|Less impaired|less impaired|Vulnerable|vulnerable|Resilient|resilient|Rest|rest|Your selection|your selection)\\b)|([σμ])(?=θ)|([−+-]?\\d+(?:[.,]\\d+)?)`, "g"); };
 
-  const GRE = /\b[Pp][Ss][Qq][Ii] [>≤] #|\b(?:Normal sleep first|normal sleep first|Deprivation first|deprivation first|Women|women|Men|men|Vulnerable|vulnerable|Resilient|resilient|Rest|rest|Your selection|your selection)\b/g;
+  const GRE = /\b[Pp][Ss][Qq][Ii] [>≤] #|\b(?:Normal sleep first|normal sleep first|Deprivation first|deprivation first|Women|women|Men|men|More impaired|more impaired|Less impaired|less impaired|Vulnerable|vulnerable|Resilient|resilient|Rest|rest|Your selection|your selection)\b/g;
   const DD = {};
   Object.keys(D).forEach(k => { const kk = k.replace(GRE, "{G}"); if(kk !== "{G}") DD[kk] = D[k]; });   // a lone group name is translated by GL, not by the dictionary
   let RE0 = null;

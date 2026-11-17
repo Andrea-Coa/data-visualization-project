@@ -60,7 +60,7 @@ OpenNeuro ds004902 (Xiang, Fan, Bai, Lv and Lei, 2024, *Scientific Data*), CC0. 
 
 Remove each item once it is done.
 
-- [ ] Translate the new ⓘ texts of the Window and Series modes in `js/i18n.js` (the short labels and buttons are already in Spanish).
+- [ ] Translate into Spanish in `js/i18n.js`: the new ⓘ texts of the Window and Series modes, the Classifier tab (its views, controls and ⓘ texts; only the tab names are translated) and the Validation table (the short labels and buttons are already in Spanish).
 - [ ] Rewrite `deliveries/week12/paper/FinalPaper_draft.html` with the corrected results (session correction of 15 November 2026: `deliveries/week12/research/correccion_sesiones.md`); it only carries a correction notice for now.
 - [ ] Add the references of the band literature review (`research/bandas_literatura.md`, cited in the team's plan but not in this repository) before citing band results.
 - [ ] Re-analyze the similarity graph between people after the session correction (finding 6 of `RefinedDraftReport.md`).
