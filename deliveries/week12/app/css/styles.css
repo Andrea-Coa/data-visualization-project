@@ -787,3 +787,7 @@ body[data-focus="compare"] .bar .fld:not(:has(#cmpsel)){opacity:.35}
 
 /* guía: solo la ventana de validación del paso actual; las demás se ocultan mientras dura (tour.js) */
 body.touring .sidebox .sec[data-open="true"]:not(.tourcur){visibility:hidden}
+
+/* el tooltip (y la ⓘ) siempre encima de todo: las ventanas flotantes de validación suben su z-index cada vez que se
+   traen al frente (--z, desde 60), y la vista ampliada usa 70; la guía (200) queda por encima de la página, no del tooltip */
+#tooltip{z-index:1000}

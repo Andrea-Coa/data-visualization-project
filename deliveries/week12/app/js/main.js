@@ -100,7 +100,7 @@ function drawAll(){ scatter.render(); topo.render(); dyn.render(); indiv.render(
 // cada verificación se abre en su propia ventana (tamaño inicial según su gráfico); varias a la vez; la fila de una
 // ventana ya abierta la trae al frente
 const VALWIN = {"b-aper":[400, 620], "b-eye":[420, 500], "b-conn":[440, 580], "b-graph":[480, 480]};   // ancho, alto iniciales
-let valZ = 60, valN = 0;
+let valZ = 60, valN = 0;   // z-index de las ventanas: 61, 62…; se reinicia al cerrarlas todas (no crece sin fin)
 const valOpen = () => [...document.querySelectorAll(".sidebox .sec[data-open=true]")];
 function openVal(secId){
   secId = secId || "b-aper";
@@ -131,6 +131,7 @@ function openVal(secId){
 function closeVal(secId){
   const secs = secId ? [$(secId).closest(".sec")] : valOpen();
   secs.forEach(s => { s.dataset.open = "false"; s.querySelector(".sec-btn").setAttribute("aria-expanded", "false"); if(s.classList.contains("is-max")) setMax(null); });
+  if(!valOpen().length) valZ = 60;
   drawValList(); side.render();
 }
 // la ventana de adelante (mayor z) para Esc
