@@ -380,6 +380,39 @@ def test_aperiodic_bands():
     check("permutación de secuencias = Welch en σθ", same == len(X) and pi == 0, f"misma decisión en c: {same}/{len(X)}; π con q < 0.05 (permutación): {pi}")
 
 
+def test_ml(binary, base, profile, out):
+    """Pestaña Classifier (index.html#classifier, fase ML): contribuciones locales que suman la probabilidad, exactitud por orden
+    recalculada, y la página cargada muestra las cifras de data/ml.json; capturas en los dos temas."""
+    f = APP / "data" / "ml.json"
+    if not f.exists():
+        return
+    print("\n15. Clasificador NS vs SD (pestaña Classifier y data/ml.json)")
+    import math
+    M = json.loads(f.read_text(encoding="utf-8"))
+    worst, n, wo = 0.0, 0, 0.0
+    for sc, S in M["scenarios"].items():
+        for md in ("lr", "ebm"):
+            R = S["models"][md]
+            for l in R["local"]:
+                z = l["intercept"] + sum(v for _, v in l["top"]) + l["other"]
+                worst = max(worst, abs(1 / (1 + math.exp(-z)) - l["p0"])); n += 1
+            for o, v in R["byOrder"].items():
+                ids = sorted({r["id"] for r in M["records"] if r["order"] == o})
+                pr = {(r["id"], r["cond"]): R["prob"][i] for i, r in enumerate(M["records"])}
+                wo = max(wo, abs(sum(pr[(q, "SD")] > pr[(q, "NS")] for q in ids) / len(ids) - v["pairacc"]))
+    check("contribuciones locales = P(SD) del modelo", worst < 2e-3, f"{n} registros × modelo × escenario, diferencia máx. {worst:.1e}")
+    check("exactitud pareada por orden recalculada", wo < 1e-3, f"diferencia máx. {wo:.1e}")
+    dom = chrome(binary, profile, "--window-size=1600,900", "--virtual-time-budget=15000", "--dump-dom", f"{base}/index.html?theme=dark#classifier")
+    vals = re.findall(r'<td class="v">([^<]+)', dom)
+    lr = M["scenarios"]["paired"]["models"]["lr"]["metrics"]["auc"]["mean"]
+    check("la pestaña Classifier carga y muestra el AUC de ml.json", bool(vals) and vals[0].strip() == f"{lr:.2f}" and "Could not load" not in dom,
+          f"cifras en tablas {len(vals)}; AUC en la página {vals[0] if vals else 'n/a'}, en ml.json {lr:.2f}")
+    for theme in ("oscuro", "claro"):
+        g = out / f"batimix_ml_1600x900_{theme}.png"
+        chrome(binary, profile, "--window-size=1600,900", "--hide-scrollbars", "--virtual-time-budget=10000", f"--screenshot={g}", f"{base}/index.html?tema={theme}#classifier")
+        print(f"  {'listo' if g.exists() else 'NO SE GENERÓ'}: {g.name}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", type=Path, default=None, help="carpeta para las capturas (por defecto, una temporal)")
@@ -405,6 +438,7 @@ def main():
         test_multiverse_bands()
         test_crossover()
         test_aperiodic_bands()
+        test_ml(a.chrome, base, profile, out)
         take_screenshots(a.chrome, base, profile, out)
     srv.shutdown()
     bad = [n for n, ok, _ in RESULTS if not ok]
