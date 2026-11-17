@@ -5,7 +5,7 @@
 const renderAbout = (() => {
   const T = {
     en:{
-      title:"About BATIMIX", close:"Close", eyebrow:"DS5343 Data Visualization · UTEC 2026-2",
+      title:"About BATIMIX", close:"Close", eyebrow:"A Visual Analytics System for Individual Vulnerability to Sleep Deprivation · DS5343 Data Visualization · UTEC 2026-2",
       lead:"Does the night-to-night change in resting theta show who deteriorates after sleep deprivation? Cui et al. (2026) reported that a rise in theta variability tracks PVT slowing (ρ ≈ 0.55, n = 28) on this dataset. BATIMIX re-examines it person by person. <b>Exploratory screening, not diagnosis.</b>",
       nav:[["ab-findings", "Findings"], ["ab-data", "Data"], ["h-method", "Method"], ["h-robust", "Robustness"], ["ab-limits", "Limits"], ["ab-gloss", "Glossary"], ["h-table", "Data table"]],
       findings:"Key findings",
@@ -33,7 +33,7 @@ const renderAbout = (() => {
         ["σθ · μθ", "How erratic theta is across epochs · its average level."], ["NS · SD", "Normal sleep · sleep deprivation."]],
       table:"Scatter data", credits:"Jimena Gurbillon, Andrea Coa and Paolo Medrano · DS5343 Data Visualization, UTEC 2026-2. D3.js 7.8.5; Roboto (OFL). Developed with AI assistance (Claude) and reviewed by the team. Method and tasks: README and RefinedDraftReport."},
     es:{
-      title:"Acerca de BATIMIX", close:"Cerrar", eyebrow:"DS5343 Visualización de Datos · UTEC 2026-2",
+      title:"Acerca de BATIMIX", close:"Cerrar", eyebrow:"Un sistema de analítica visual de la vulnerabilidad individual a la privación de sueño · DS5343 Visualización de Datos · UTEC 2026-2",
       lead:"¿El cambio de theta en reposo entre una noche y otra muestra quién se deteriora tras la privación de sueño? Cui et al. (2026) informaron que un aumento de la variabilidad theta acompaña al enlentecimiento en el PVT (ρ ≈ 0,55; n = 28) en este conjunto de datos. BATIMIX lo revisa persona por persona. <b>Cribado exploratorio, no diagnóstico.</b>",
       nav:[["ab-findings", "Hallazgos"], ["ab-data", "Datos"], ["h-method", "Método"], ["h-robust", "Robustez"], ["ab-limits", "Límites"], ["ab-gloss", "Glosario"], ["h-table", "Tabla"]],
       findings:"Hallazgos clave",
