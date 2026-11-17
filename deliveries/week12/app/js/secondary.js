@@ -35,11 +35,13 @@ const side = (() => {
     // por banda si el archivo lo trae; si no, la sección vuelve a ser solo theta (distintivo «θ only» y sin cambio de rótulos)
     const AB = S.band !== "theta" && APER.bands ? APER.bands[S.band] : null, sec = elA.closest("section");
     if(sec) sec.toggleAttribute("data-theta-only", S.band !== "theta" && !AB);
-    const W = elA.clientWidth || 280, H = Math.max(300, elA.clientHeight || 520);
+    // con poco alto (controles arriba en la misma columna) se dibujan solo el espectro y los mapas; la dispersión
+    // periódica vuelve cuando hay espacio o en la vista ampliada (⤢)
+    const compact = (elA.clientHeight || 520) < 300, W = elA.clientWidth || 280, H = Math.max(compact ? 150 : 300, elA.clientHeight || 520);
     const svg = d3.select(elA).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
       .attr("role", "img").attr("aria-label", "Spectrum with aperiodic fit, change in exponent and offset per electrode, and theta variability against its periodic part");
     const all = Object.keys(APER.persons), ids = idsOf(all), sel = ids.length < all.length, E = APER.meta.electrodes;
-    const h1 = Math.round(H*.32), h2 = Math.round(H*.27), y2 = h1+14, y3 = y2+h2+16, h3 = H-y3;
+    const h1 = Math.round(H*(compact ? .52 : .32)), h2 = compact ? H - h1 - 16 : Math.round(H*.27), y2 = h1+14, y3 = y2+h2+16, h3 = H-y3;
     // ---- 1. espectro: media de log10 potencia (todas las regiones) y ajuste aperiódico medio
     const fr = APER.spectrum.freqs, spec = c => fr.map((f, i) => d3.mean(ids, id => APER.spectrum.persons[id] && APER.spectrum.persons[id][c][i]));
     const apOf = c => { const ex = d3.mean(ids, id => d3.mean(APER.persons[id].exp[c === "NS" ? 0 : 1])), of = d3.mean(ids, id => d3.mean(APER.persons[id].off[c === "NS" ? 0 : 1])); return {ex, of}; };
@@ -110,6 +112,7 @@ const side = (() => {
     });
     // ---- 3. Δσθ (θ relativa) frente a Δσθ periódica, por persona, en la región del header
     const sg = AB ? AB.sigma[S.roi] : APER.sigma[S.roi], pts = Object.entries(sg.persons).map(([id, v]) => ({id, x:v[0], y:v[1]})).filter(d => d.x != null && d.y != null);
+    if(!compact){
     const mm = {l:44, r:14, t:4, b:34}, px = d3.scaleLinear().domain(d3.extent(pts, d => d.x)).nice().range([mm.l, W-mm.r]);
     const py = d3.scaleLinear().domain(d3.extent(pts, d => d.y)).nice().range([y3+h3-mm.b, y3+mm.t]);
     svg.append("g").attr("class", "axis").attr("transform", `translate(0,${y3+h3-mm.b})`).call(d3.axisBottom(px).ticks(3).tickSizeOuter(0).tickFormat(fTick(L.format("+.2~f"))));
@@ -126,6 +129,7 @@ const side = (() => {
     // ρ, R² y n en un recuadro dentro de la dispersión (siempre de todas las personas con ajuste válido)
     aperLeg.mount({svg, parent:svg, area:{x0:mm.l, x1:W-mm.r, y0:y3+mm.t, y1:y3+h3-mm.b}, marks:pts.map(d => [px(d.x), py(d.y)]), avoid:null, key:S.roi+S.band,
       items:[{t:"ρ", v:f2(sg.rho_periodic), strong:true}, {t:"R²", v:f2(sg.r2_exponent)}, {t:"n", v:String(sg.n)}]});
+    }
     // ---- sin título sobre los gráficos: la lectura y de dónde sale cada cifra van en el ícono ⓘ de la barra
     const g = APER.global;
     setTitle("t-aper", "", "",
@@ -140,7 +144,7 @@ const side = (() => {
   function renderConn(){
     if(!CONN){ empty(elC, "Data missing (data/connectivity.json): generate it with tools/build_secondary.py."); setTitle("t-conn", "", ""); return; }
     d3.select(elC).selectAll("*").remove();
-    const W = elC.clientWidth || 280, H = Math.max(300, elC.clientHeight || 480);
+    const W = elC.clientWidth || 280, H = Math.max(190, elC.clientHeight || 480);
     const svg = d3.select(elC).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
       .attr("role", "img").attr("aria-label", "Change in theta synchrony between 10 scalp regions");
     const all = Object.keys(CONN.persons), ids = idsOf(all), sel = ids.length < all.length, G = CONN.group;
@@ -169,9 +173,11 @@ const side = (() => {
     // escala y resumen
     const ly = cy+R+24, gid = "cgrad", lg = svg.append("defs").append("linearGradient").attr("id", gid);
     d3.range(0, 1.001, .1).forEach(t => lg.append("stop").attr("offset", t).attr("stop-color", C.div(t)));
-    svg.append("rect").attr("x", cx-70).attr("y", ly).attr("width", 140).attr("height", 7).attr("rx", 3).attr("fill", `url(#${gid})`);
-    svg.append("text").attr("class", "mdim").attr("x", cx-74).attr("y", ly+7).attr("text-anchor", "end").text(`${fsr(-mx)} less`);
-    svg.append("text").attr("class", "mdim").attr("x", cx+74).attr("y", ly+7).text(`more ${fsr(mx)}`);
+    // barra de color con su ancho ajustado al panel: los rótulos de los extremos (~70 px cada uno) siempre caben
+    const hb = Math.max(30, Math.min(70, W/2 - 78));
+    svg.append("rect").attr("x", cx-hb).attr("y", ly).attr("width", 2*hb).attr("height", 7).attr("rx", 3).attr("fill", `url(#${gid})`);
+    svg.append("text").attr("class", "mdim").attr("x", cx-hb-4).attr("y", ly+7).attr("text-anchor", "end").text(`${fsr(-mx)} less`);
+    svg.append("text").attr("class", "mdim").attr("x", cx+hb+4).attr("y", ly+7).text(`more ${fsr(mx)}`);
     svg.append("text").attr("class", "mdim").attr("x", cx).attr("y", ly+22).attr("text-anchor", "middle").text(sel ? "Δ wPLI² (SD − NS), mean of your selection" : "Δ wPLI² (SD − NS); thick line: uncorrected p < 0.05");
     // ---- efecto por par: media de Δ con IC 95 %, ordenado; con selección, el IC se calcula con esas personas
     const tq = df => { const z = 1.959964; return z+(z**3+z)/(4*df)+(5*z**5+16*z**3+3*z)/(96*df*df)+(3*z**7+19*z**5+17*z**3-15*z)/(384*df**3); };   // cuantil t 0.975 (Cornish-Fisher)
@@ -208,8 +214,9 @@ const side = (() => {
   function renderEye(){
     if(!QUAL){ empty(elE, "Data missing (data/quality.json): generate it with tools/build_quality.py."); setTitle("t-eye", "", ""); return; }
     d3.select(elE).selectAll("*").remove();
-    const W = elE.clientWidth || 280, H = Math.max(300, elE.clientHeight || 520);
-    const svg = d3.select(elE).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
+    // ancho limitado a ~1.1 veces el alto y centrado: en un panel ancho la dispersión no se deforma
+    const H = Math.max(190, elE.clientHeight || 520), W = Math.min(elE.clientWidth || 280, Math.round(H*1.1));
+    const svg = d3.select(elE).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").style("width", W+"px").style("margin", "0 auto")
       .attr("role", "img").attr("aria-label", "Blink rate per person in NS and SD, and theta variability with and without blink-contaminated windows");
     const Q = QUAL.persons, sm = QUAL.summary[S.roi], ss = S.selected ? new Set(S.selected) : null;
     const colOf = id => S.vuln.has(id) ? C.vuln : C.rest;

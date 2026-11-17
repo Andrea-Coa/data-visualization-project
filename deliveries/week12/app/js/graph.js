@@ -41,7 +41,7 @@ const simg = (() => {
   function draw(){
     if(sim) sim.stop();
     d3.select(el).selectAll("*").remove();
-    const W = el.clientWidth || 300, H = Math.max(260, el.clientHeight || 360), {groups, ids, nbrs, mk, byId: P_} = model;
+    const W = el.clientWidth || 300, H = Math.max(150, el.clientHeight || 360), {groups, ids, nbrs, mk, byId: P_} = model;
     const scat = mode === "scatter", m = {l:40, r:12, t:12, b:34}, xk = S.xKey(), yk = yK();
     const gOf = new Map(); groups.forEach((g, gi) => g.ids.forEach(id => gOf.set(id, gi)));
     // scatter targets: the same coordinates as the Vulnerability View
@@ -187,7 +187,7 @@ const simg = (() => {
   }
   function render(){
     if(!isOpen()){ clear(); return; }
-    build(); draw(); titles();
+    build(); titles(); draw();   // título y leyenda primero: ocupan alto y el gráfico se mide después
   }
   function clear(){ if(sim) sim.stop(); d3.select(el).selectAll("*").remove(); }
   bus.on("frame.simg", w => { fw = w; if(isOpen()) render(); });

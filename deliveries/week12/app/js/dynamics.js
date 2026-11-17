@@ -178,9 +178,7 @@ const dyn = (() => {
   function begin(){
     hideTip(); curIdx = -1;
     topo.startFrames();   // fija las escalas de color de los mapas para toda la pasada
-    // el grafo de similitud también sigue la ventana: se abre mientras dura la reproducción
-    const cur0 = document.querySelector(".sec[data-open=true] .sec-btn");
-    if(document.querySelector(".board:not(.side-off)") && (!cur0 || cur0.id !== "b-graph")){ openedSec = cur0 ? cur0.id : "none"; $("b-graph").click(); }
+    // el grafo de similitud sigue la ventana; con el panel de validación abierto ya está a la vista (17 nov 2026)
   }
   function tick(){ pt += 300*50/DUR; if(pt >= 300){ show(300); pause(); return; } show(pt); }
   function play(){

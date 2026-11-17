@@ -476,6 +476,39 @@ function slopePerMin(arr, xs){
   return a/b;
 }
 
+// ---------- filas de verificación con mini gráfico (Validation de Explorer y de Classifier) ----------
+// Cada fila: nombre y cifra; debajo, una escala fina con la referencia (azar o umbral, punteada), un rango opcional y
+// marcas (llena = la cifra principal; vacía = la comparación). Con onOpen la fila es un botón que abre su gráfico.
+// rows: {id, k, v, tip, desc?, dom:[a,b], ref?, refLab?, band?:[lo,hi], marks:[{v, lab, open?}]}
+function miniRows(el, rows, onOpen, isOn){
+  if(!el) return;
+  // ventanas bajas: una sola línea por fila (nombre, gráfico de 64 px y cifra; ver styles.css)
+  const one = matchMedia("(min-width:1101px) and (max-height:820px)").matches;
+  const box = d3.select(el), W = one ? 54 : Math.max(120, (el.clientWidth || 240) - 4), H = one ? 16 : 22;
+  const item = box.selectAll(".vrow2").data(rows, d => d.id).join(enter => {
+    const r = enter.append(onOpen ? "button" : "div").attr("class", "vrow2");
+    if(onOpen) r.attr("type", "button");
+    const top = r.append("span").attr("class", "vtop"); top.append("span").attr("class", "vk"); top.append("b").attr("class", "vv");
+    if(onOpen) top.append("span").attr("class", "vgo").attr("aria-hidden", "true").text("↗");
+    r.append("span").attr("class", "vch"); return r;
+  });
+  item.attr("title", d => d.tip).classed("on", d => !!(isOn && isOn(d))).classed("clk", !!onOpen);
+  if(onOpen) item.on("click", (ev, d) => onOpen(d.id));
+  item.select(".vk").text(d => d.k); item.select(".vv").text(d => d.v);
+  item.select(".vch").each(function(d){
+    const g = d3.select(this); g.selectAll("*").remove();
+    if(!d.dom){ g.append("span").attr("class", "vdesc").text(d.desc || ""); return; }
+    const x = d3.scaleLinear().domain(d.dom).range([4, W-4]).clamp(true), svg = g.append("svg").attr("width", W).attr("height", H).attr("aria-hidden", "true");
+    svg.append("line").attr("x1", x(d.dom[0])).attr("x2", x(d.dom[1])).attr("y1", 9).attr("y2", 9).attr("stroke", C.rule2).attr("stroke-width", 1);
+    [d.dom[0], d.dom[1]].filter(v => !(d.ref != null && d.refLab && Math.abs(x(v) - x(d.ref)) < 26)).forEach(v => svg.append("text").attr("class", "vax").attr("x", x(v)).attr("y", 21).attr("text-anchor", v === d.dom[0] ? "start" : "end").text(L.format("~g")(v)));
+    if(d.band) svg.append("rect").attr("x", x(d.band[0])).attr("width", Math.max(1, x(d.band[1])-x(d.band[0]))).attr("y", 5).attr("height", 8).attr("fill", C.ink).attr("opacity", .12);
+    if(d.ref != null){ svg.append("line").attr("x1", x(d.ref)).attr("x2", x(d.ref)).attr("y1", 2).attr("y2", 16).attr("stroke", C.muted).attr("stroke-dasharray", "2 2");
+      if(d.refLab) svg.append("text").attr("class", "vax").attr("x", x(d.ref)).attr("y", 21).attr("text-anchor", "middle").text(d.refLab); }
+    (d.marks || []).forEach(m => svg.append("circle").attr("cx", x(m.v)).attr("cy", 9).attr("r", m.open ? 3.4 : 4)
+      .attr("fill", m.open ? C.panel : C.ink).attr("stroke", C.ink).attr("stroke-width", 1.3).append("title").text(m.lab ? `${m.lab}: ${L.format(".2f")(m.v)}` : ""));
+  });
+}
+
 // ---------- tooltip ----------
 const tipEl = $("tooltip");
 function showTip(e, html){ tipEl.innerHTML = html; tipEl.style.opacity = 1; moveTip(e); }

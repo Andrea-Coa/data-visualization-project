@@ -51,7 +51,7 @@ const indiv = (() => {
   // hv.row = persona (columna) y hv.col = índice de electrodo (fila): mismos nombres que en el estado compartido
   function drawHeat(){
     d3.select(heatEl).selectAll("*").remove();
-    const W = heatEl.clientWidth || 400, H = Math.max(180, heatEl.clientHeight || 400), {E, D, groups, lim} = model;   // nunca más alto que su panel
+    const W = heatEl.clientWidth || 400, H = Math.max(80, heatEl.clientHeight || 400), {E, D, groups, lim} = model;   // nunca más alto que su panel (mínimo 130: ventanas bajas con los controles en la columna)
     // encima de las celdas: el nombre de cada grupo (una o dos líneas) y una banda para los rótulos verticales
     // (códigos de persona y C(e)), del alto justo para ellos
     const nP = model.ids.length, regW = 14, regGap = 4, gGap = 6, cS = W > 640 ? 30 : 14, nameLH = 11, band = 22;   // ampliada: celdas y franja C(e) crecen con el ancho

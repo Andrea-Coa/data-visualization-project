@@ -15,8 +15,8 @@ const scatter = (() => {
     d3.select(el).selectAll("*").remove();
     // el SVG nunca es más alto que su panel: si no, el título del eje x invade el panel de abajo
     // área de datos cuadrada: el lado es el menor entre el ancho y el alto disponibles, y el SVG se centra en el panel
-    const aw = el.clientWidth || 600, ah = Math.round(Math.max(170, el.clientHeight || 400)), bottom = 32;
-    const side = Math.max(120, Math.min(aw-m.l-m.r, ah-m.t-bottom));
+    const aw = el.clientWidth || 600, ah = Math.round(Math.max(110, el.clientHeight || 400)), bottom = 32;
+    const side = Math.max(96, Math.min(aw-m.l-m.r, ah-m.t-bottom));
     W = side+m.l+m.r; H = side+m.t+bottom;
     plotB = H-bottom;   // debajo: marcas y título del eje x
     svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px").style("width", W+"px").style("margin", "0 auto").attr("role", "img")
