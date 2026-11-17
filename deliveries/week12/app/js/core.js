@@ -335,6 +335,14 @@ function tTest1(d){
   const t = m/(sd/Math.sqrt(n)), df = n-1;
   return {t, p:betaInc(df/(df+t*t), df/2, .5), n};
 }
+// Welch t de dos muestras (a − b) con gl de Welch-Satterthwaite y p bilateral (betaInc): para el análisis cruzado
+function welchT(a, b){
+  if(a.length < 2 || b.length < 2) return null;
+  const ma = d3.mean(a), mb = d3.mean(b), va = d3.variance(a)/a.length, vb = d3.variance(b)/b.length, se = Math.sqrt(va+vb);
+  if(!se) return null;
+  const t = (ma-mb)/se, df = (va+vb)**2/(va*va/(a.length-1)+vb*vb/(b.length-1));
+  return {diff:ma-mb, t, df, p:betaInc(df/(df+t*t), df/2, .5)};
+}
 // ---------- prueba de permutación por clusters (Maris y Oostenveld, 2007) ----------
 // Para Δ = SD − NS por persona (diseño pareado): t de una muestra por nodo (electrodo, o electrodo × bloque en la
 // serie); los nodos vecinos con |t| sobre el umbral de p < 0.05 bilateral y el mismo signo forman un cluster, cuya

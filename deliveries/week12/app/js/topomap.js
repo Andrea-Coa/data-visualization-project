@@ -78,6 +78,7 @@ const topo = (() => {
       return {mode:"pair", names:[lab[0]+a, lab[1]+b], rows:[{label:lab[0]+a, met:S.met, T:frame ? winTopo([a], frame) : SUBTOPO[a]}, {label:lab[1]+b, met:S.met, T:frame ? winTopo([b], frame) : SUBTOPO[b]}]};
     }
     const G = viewGroups();
+    if(G && S.cmp === "order" && !frame) return crossoverSpec(G);
     if(G){
       const ts = G.map(gr => groupTopo(gr.ids, !gr.circular));
       return {mode:"cmp", G, circular:G[0].circular, rows:G.map((gr, i) => ({label:`${gr.name} (${ts[i].n || gr.ids.length})`, met:S.met, T:ts[i].T, color:gr.color, ids:gr.ids, test:!gr.circular}))};
@@ -85,6 +86,43 @@ const topo = (() => {
     const g = groupTopo(S.selected, !S.selected);
     const ids = (S.selected || EEG_IDS).filter(id => SUBTOPO[id]);
     return {mode:g.mode, n:g.n, rows:[{label:"σθ", met:"var", T:g.T, ids, test:!S.selected}, {label:"μθ", met:"mean", T:g.T, ids, test:!S.selected}]};
+  }
+  // ---------------------------------------------------------------- análisis cruzado por orden de sesiones (fase B)
+  // Diseño cruzado de dos períodos (AB = NS->SD, BA = SD->NS). Por persona y electrodo: d = SD − NS, p = 2.ª − 1.ª visita
+  // (= d en AB, −d en BA). Fila 1: efecto de la privación ajustado por visita, c = (media d_AB + media d_BA)/2, con la
+  // Welch t de p entre secuencias; sus columnas NS y SD son las medias con igual peso por secuencia. Fila 2: efecto de
+  // visita, π = (media d_AB − media d_BA)/2 (2.ª − 1.ª visita), con la Welch t de d entre secuencias; sus columnas son la
+  // 1.ª y la 2.ª visita. FDR dentro de cada fila (61 electrodos). Validado con datos sintéticos y contra
+  // tools/crossover.py (Grizzle, 1965; Hills y Armitage, 1979; Senn, 2002; Jones y Kenward, 2014).
+  function crossoverSpec(G){
+    const [A, B] = G.map(gr => gr.ids.filter(id => SUBTOPO[id]));   // G[0] = NS->SD, G[1] = SD->NS (COMPARES)
+    const rowC = {}, rowP = {};
+    ELEC.forEach(e => {
+      const has = id => SUBTOPO[id][e];
+      const a = A.filter(has), b = B.filter(has); if(a.length < 2 || b.length < 2) return;
+      const mOf = (ids, cond, met) => d3.mean(ids, id => SUBTOPO[id][e][cond][met]);
+      const cell = {C:{}, P:{}};
+      ["var", "mean"].forEach(met => {
+        const d = id => SUBTOPO[id][e].SD[met]-SUBTOPO[id][e].NS[met];
+        const tc = welchT(a.map(d), b.map(id => -d(id))), tp = welchT(a.map(d), b.map(d));
+        const bal = cond => (mOf(a, cond, met)+mOf(b, cond, met))/2;            // igual peso por secuencia
+        const v1 = (mOf(a, "NS", met)+mOf(b, "SD", met))/2, v2 = (mOf(a, "SD", met)+mOf(b, "NS", met))/2;
+        cell.C[met] = {ns:bal("NS"), sd:bal("SD"), d:tc.diff/2, t:tc.t, p:tc.p};
+        cell.P[met] = {ns:v1, sd:v2, d:tp.diff/2, t:tp.t, p:tp.p};
+      });
+      const mk = X => ({NS:{var:X.var.ns, mean:X.mean.ns}, SD:{var:X.var.sd, mean:X.mean.sd}, dVar:X.var.d, dMean:X.mean.d,
+        sigVar:X.var.p, sigMean:X.mean.p, tXVar:X.var.t, tXMean:X.mean.t, nPaired:a.length+b.length});
+      rowC[e] = mk(cell.C); rowP[e] = mk(cell.P);
+    });
+    [rowC, rowP].forEach(T => [["sigVar", "qVar"], ["sigMean", "qMean"]].forEach(([pk, qk]) => {
+      const es = ELEC.filter(e => T[e]), q = bh(es.map(e => T[e][pk])); es.forEach((e, i) => { T[e][qk] = q[i]; });
+    }));
+    const lab = `${METN[S.met]}`;
+    return {mode:"xover", G, nA:A.length, nB:B.length, rows:[
+      {label:"Deprivation (c)", met:S.met, T:rowC, noCluster:true, colLabels:["Normal Sleep", "Sleep Deprivation", "c · deprivation, adjusted"], colShort:["Normal", "Deprivation", "c"],
+       tipNames:["Normal · Deprivation (balanced)", `c = deprivation effect`]},
+      {label:"Visit (π)", met:S.met, T:rowP, noCluster:true, colLabels:["1st visit", "2nd visit", "π · 2nd − 1st visit"], colShort:["1st visit", "2nd visit", "π"],
+       tipNames:["1st visit · 2nd visit", `π = visit effect`]}]};
   }
   function scalesFor(rows){
     const seqDom = rs => d3.extent(rs.flatMap(r => ELEC.flatMap(e => r.T[e] ? [val(r.T[e], "NS", r.met), val(r.T[e], "SD", r.met)] : [])).filter(v => v != null));
@@ -307,7 +345,8 @@ const topo = (() => {
     const narrow = W < 560, labW = 22, barW = narrow ? 58 : 66, topH = 22;
     // espacios horizontales por agrupación: juntos lo que se lee junto (NS y SD con su barra, Δ con la suya);
     // más aire entre el bloque NS/SD y el bloque Δ (otra codificación de color)
-    const gapPair = 8, gapBlock = S.showD ? 20 : 0, rowGap = 10;
+    const perRow = sp.rows.some(r => r.colLabels);   // modo cruzado: cada fila trae sus propios títulos de columna
+    const gapPair = 8, gapBlock = S.showD ? 20 : 0, rowGap = perRow ? 26 : 10;
     const s = Math.floor(Math.max(64, Math.min((W-labW-nB*barW-gapPair-gapBlock-8)/nC, (H-topH-rowGap-4)/2)));
     const usedW = labW+nC*s+gapPair+nB*barW+gapBlock, x0 = Math.max(0, (W-usedW)/2), y0 = Math.max(0, (H-(topH+2*s+rowGap))/2);
     const sd = x0+labW+s+gapPair;
@@ -319,13 +358,15 @@ const topo = (() => {
       const t = svg.append("text").attr("class", "colhead").attr("x", X[k]+s/2).attr("y", y0+14);
       t.append("tspan").text(a); t.append("tspan").attr("class", "m").text(b);
     });
-    const shared = sp.mode === "pair" || sp.mode === "cmp" ? sc(sp.rows) : null;
+    if(perRow) svg.selectAll("text.colhead").remove();
+    const shared = sp.mode === "pair" || sp.mode === "cmp" || sp.mode === "xover" ? sc(sp.rows) : null;
     if(sp.mode !== "pair") sp.rows.forEach(r => { r.cl = clustersFor(r); });   // resultado global de la leyenda y la ⓘ
     MAPS = []; curSpec = sp;
     sp.rows.forEach((row, ri) => {
       const y = y0+topH+ri*(s+rowGap), dom = shared || sc([row]);
       const seqF = v => C.seq((v-dom.seq[0])/((dom.seq[1]-dom.seq[0]) || 1)), divF = v => C.div((v+dom.div)/(2*dom.div));
       svg.append("text").attr("class", "rowhead").attr("transform", `translate(${X.lab+labW/2+2},${y+s/2})${row.label.length > 3 ? " rotate(-90)" : ""}`).style("fill", row.color || null).text(row.label);
+      if(row.colLabels) conds.forEach((cond, ci) => svg.append("text").attr("class", "colhead").attr("x", X[cond]+s/2).attr("y", y-2).text((s < 130 ? row.colShort : row.colLabels)[ci]));
       conds.forEach(cond => drawMap(svg, defs, `${ri}${cond}`, X[cond], y, s, row, cond, cond === "D" ? divF : seqF, cond === "D" ? divF : seqF, sp.mode));
       // una barra por fila cuando las filas son métricas distintas (σθ y μθ tienen rangos distintos)
       if(!shared){
@@ -372,7 +413,7 @@ const topo = (() => {
     // (sexo, orden, PSQI). Sin prueba: dos personas, selecciones (se eligen por su Δθ) y vulnerables vs resto (circular)
     // una sola capa de marcas, la elegida en la leyenda (S.marks): cluster = contorno de la zona significativa;
     // fdr = punto en los electrodos con q < 0.05; p = anillo en los de p < 0.05 sin corregir (exploratorio)
-    const mm = cond === "D" && mode !== "pair" ? S.marks : "none";
+    const mm0 = cond === "D" && mode !== "pair" ? S.marks : "none", mm = row.noCluster && mm0 === "cluster" ? "fdr" : mm0;
     const pts = ELEC.filter(e => row.T[e]).map(e => ({e, t:row.T[e], px:cx+dpos(e)[0]*R, py:cy-dpos(e)[1]*R}));
     // null < .05 es verdadero en JS: sin prueba (n < 3) no hay marca
     const p05 = d => pOf(d.t, row.met) != null && pOf(d.t, row.met) < .05;
@@ -421,9 +462,9 @@ const topo = (() => {
     const sp = curSpec, all68 = sp.mode === "all";
     return `<div class="h">${e}</div>` + sp.rows.map(row => {
       const t = row.T[e]; if(!t) return "";
-      const met = row.met, dv = met === "var" ? t.dVar : t.dMean, r = sp.mode === "pair" ? null : elecRho(e, met), hasP = pOf(t, met) != null;
-      return `<div class="m" style="margin-top:4px">${row.label}</div>` + trow("Normal · Deprivation", `${fr(t.NS[met])} · ${fr(t.SD[met])}`) +
-        trow("Δ Deprivation − Normal", `${fsr(dv)}${hasP ? ` <span class="m">p ${fp(pOf(t, met))}, q ${fp(qOf(t, met))}</span>` : ""}`) +
+      const met = row.met, dv = met === "var" ? t.dVar : t.dMean, r = sp.mode === "pair" || sp.mode === "xover" ? null : elecRho(e, met), hasP = pOf(t, met) != null;
+      return `<div class="m" style="margin-top:4px">${row.label}</div>` + trow(row.tipNames ? row.tipNames[0] : "Normal · Deprivation", `${fr(t.NS[met])} · ${fr(t.SD[met])}`) +
+        trow(row.tipNames ? row.tipNames[1] : "Δ Deprivation − Normal", `${fsr(dv)}${hasP ? ` <span class="m">p ${fp(pOf(t, met))}, q ${fp(qOf(t, met))}</span>` : ""}`) +
         // tamaño de efecto de la prueba t pareada (solo con las 68 personas, donde hay prueba por electrodo)
         (all68 && t.tVar != null ? (sf => trow("95% CI of Δ", `[${fsr(t["ci"+sf][0])}, ${fsr(t["ci"+sf][1])}]`) +
           trow(`t(${t.nPaired-1}) · d<sub>z</sub>`, `${f2(t["t"+sf])} · ${f2(t["dz"+sf])}`))(met === "var" ? "Var" : "Mean") : "") +
@@ -440,6 +481,19 @@ const topo = (() => {
     const cnt = (T, met) => ({p: ELEC.filter(e => T[e] && pOf(T[e], met) != null && pOf(T[e], met) < .05).length,
       q: ELEC.filter(e => T[e] && qOf(T[e], met) != null && qOf(T[e], met) < .05).length});
     const legend = () => marksKey(sp.rows);
+    if(sp.mode === "xover"){
+      // análisis cruzado (fase B): c = privación ajustada por visita, π = 2.ª − 1.ª visita; la diferencia entre los Δ de
+      // los dos órdenes es 2π (la interacción condición × orden de un cruzado de dos períodos es el efecto de visita)
+      const [rc, rp] = sp.rows, kc = cnt(rc.T, S.met), kp = cnt(rp.T, S.met);
+      setTitle("t-topo", "θ topomaps: crossover by session order",
+        nb(`c: ${kc.q} of 61 electrodes q &lt; 0.05 · π: ${kp.q} of 61`),
+        notes(...base,
+          `Two-period crossover (Normal sleep first n = ${sp.nA}, Deprivation first n = ${sp.nB}). Top row, deprivation effect adjusted for visit: c = (mean Δ in each order, averaged with equal weight); Normal and Deprivation maps also give each order equal weight. Bottom row, visit effect: π = 2nd − 1st visit whatever the condition; it equals half the difference between the Δ maps of the two orders, so comparing those Δ maps tests the visit, not \"order modulates deprivation\".`,
+          `Welch t per electrode between orders (c: on 2nd − 1st visit; π: on Δ); FDR within each row (61 electrodes). Rings: q &lt; 0.05; dots: p &lt; 0.05. c: ${kc.p} p and ${kc.q} q; π: ${kp.p} p and ${kp.q} q. No cluster test in this mode (two independent groups).`,
+          "With 40 vs 28 people the plain mean Δ is c + 0.18·π; here π is near 0, so both agree. Carryover (difference between orders in the average of both nights) is descriptive only (Freeman, 1989). Grizzle (1965); Hills and Armitage (1979); Senn (2002); Jones and Kenward (2014)."));
+      legend();
+      return;
+    }
     if(sp.mode === "pair" || sp.mode === "cmp"){
       const [r0, r1] = sp.rows, m0 = meanD(r0.T, S.met), m1 = meanD(r1.T, S.met);
       const n0 = sp.mode === "pair" ? sp.names[0] : sp.G[0].name, n1 = sp.mode === "pair" ? sp.names[1] : sp.G[1].name;
@@ -657,5 +711,5 @@ const topo = (() => {
   // ventana cualquiera [época, época]: la de la reproducción o un intervalo elegido sobre la serie; null = estado normal
   const setFrame = w => { if(!w){ endFrames(); return; } if(!frame || frame[0] !== w[0] || frame[1] !== w[1]){ frame = w; render(); } };
   function endFrames(){ if(!frame) return; frame = null; lock = null; render(); }
-  return {render, rebuild(){}, stats, mini, startFrames, setFrame, endFrames, framing:() => !!frame, winT:(ids, w) => ELEP ? winTopo(ids.filter(id => ELEP.persons[id]), w) : {}, winOne:(id, w) => ELEP && ELEP.persons[id] ? winTopo([id], w) : null};
+  return {render, rebuild(){}, spec:() => curSpec, stats, mini, startFrames, setFrame, endFrames, framing:() => !!frame, winT:(ids, w) => ELEP ? winTopo(ids.filter(id => ELEP.persons[id]), w) : {}, winOne:(id, w) => ELEP && ELEP.persons[id] ? winTopo([id], w) : null};
 })();
