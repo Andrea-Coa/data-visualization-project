@@ -62,6 +62,5 @@ Remove each item once it is done.
 
 - [ ] Translate the new ⓘ texts of the Window and Series modes in `js/i18n.js` (the short labels and buttons are already in Spanish).
 - [ ] Rewrite `deliveries/week12/paper/FinalPaper_draft.html` with the corrected results (session correction of 15 November 2026: `deliveries/week12/research/correccion_sesiones.md`); it only carries a correction notice for now.
-- [ ] Crossover analysis by session order (phase B of the team's plan): separate the deprivation effect from the visit effect (Grizzle, 1965; Hills and Armitage, 1979). The `visit` column (1 or 2) is already in `deliveries/week12/data/processed_ica/*.csv`.
 - [ ] Add the references of the band literature review (`research/bandas_literatura.md`, cited in the team's plan but not in this repository) before citing band results.
 - [ ] Re-analyze the similarity graph between people after the session correction (finding 6 of `RefinedDraftReport.md`).

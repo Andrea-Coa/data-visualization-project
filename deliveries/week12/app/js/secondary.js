@@ -32,6 +32,9 @@ const side = (() => {
   function renderAper(){
     if(!APER){ empty(elA, "Data missing (data/aperiodic.json): generate it with tools/build_secondary.py."); setTitle("t-aper", "", ""); return; }
     d3.select(elA).selectAll("*").remove();
+    // por banda si el archivo lo trae; si no, la sección vuelve a ser solo theta (distintivo «θ only» y sin cambio de rótulos)
+    const AB = S.band !== "theta" && APER.bands ? APER.bands[S.band] : null, sec = elA.closest("section");
+    if(sec) sec.toggleAttribute("data-theta-only", S.band !== "theta" && !AB);
     const W = elA.clientWidth || 280, H = Math.max(300, elA.clientHeight || 520);
     const svg = d3.select(elA).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).style("height", H+"px")
       .attr("role", "img").attr("aria-label", "Spectrum with aperiodic fit, change in exponent and offset per electrode, and theta variability against its periodic part");
@@ -43,7 +46,9 @@ const side = (() => {
     const lines = ["NS", "SD"].map(c => ({c, col:c === "NS" ? C.ns : C.sd, y:spec(c), ap:apOf(c)}));
     // clic en la banda θ: el espectro pasa a 4–8 Hz (eje y ajustado a ese tramo); con zoom la banda cubre el gráfico
     // y otro clic vuelve a 1–40 Hz
-    // la franja marca la banda elegida (BANDS en core.js); el resto de esta vista es solo theta (data-theta-only)
+    // la franja marca la banda elegida (BANDS en core.js). Con aperiodic.json por banda (build_secondary.py, "bands"),
+    // la dispersión de abajo y el % de electrodos con pico también siguen a la banda; los rótulos se escriben en θ y
+    // bandText (core.js) los cambia. Con un aperiodic.json viejo (solo theta) la sección queda marcada «θ only»
     const BB = BANDS[S.band], blo = BB.lo, bhi = BB.hi;
     const dom = aperZoom ? [blo, bhi] : [1, 40], vis = i => fr[i] >= dom[0] && fr[i] <= dom[1], fv = fr.filter((f, i) => vis(i));
     const m = {l:aperZoom ? 50 : 44, r:12, t:6, b:22}, sx = d3.scaleLinear().domain(dom).range([m.l, W-m.r]);   // con zoom, marcas con un decimal: más margen
@@ -104,7 +109,7 @@ const side = (() => {
       svg.append("text").attr("class", "mdim").attr("x", cx).attr("y", cy+R+12).attr("text-anchor", "middle").text(`${fsr(-mx)} to ${fsr(mx)}`);
     });
     // ---- 3. Δσθ (θ relativa) frente a Δσθ periódica, por persona, en la región del header
-    const sg = APER.sigma[S.roi], pts = Object.entries(sg.persons).map(([id, v]) => ({id, x:v[0], y:v[1]})).filter(d => d.x != null && d.y != null);
+    const sg = AB ? AB.sigma[S.roi] : APER.sigma[S.roi], pts = Object.entries(sg.persons).map(([id, v]) => ({id, x:v[0], y:v[1]})).filter(d => d.x != null && d.y != null);
     const mm = {l:44, r:14, t:4, b:34}, px = d3.scaleLinear().domain(d3.extent(pts, d => d.x)).nice().range([mm.l, W-mm.r]);
     const py = d3.scaleLinear().domain(d3.extent(pts, d => d.y)).nice().range([y3+h3-mm.b, y3+mm.t]);
     svg.append("g").attr("class", "axis").attr("transform", `translate(0,${y3+h3-mm.b})`).call(d3.axisBottom(px).ticks(3).tickSizeOuter(0).tickFormat(fTick(L.format("+.2~f"))));
@@ -119,12 +124,13 @@ const side = (() => {
       .on("click", (ev, d) => { hideTip(); const p = P.find(o => o.id === d.id); if(!p) return; if(ev.shiftKey) pin(p); else togglePick(p); });
     dots.filter(d => ss && ss.has(d.id)).raise();
     // ρ, R² y n en un recuadro dentro de la dispersión (siempre de todas las personas con ajuste válido)
-    aperLeg.mount({svg, parent:svg, area:{x0:mm.l, x1:W-mm.r, y0:y3+mm.t, y1:y3+h3-mm.b}, marks:pts.map(d => [px(d.x), py(d.y)]), avoid:null, key:S.roi,
+    aperLeg.mount({svg, parent:svg, area:{x0:mm.l, x1:W-mm.r, y0:y3+mm.t, y1:y3+h3-mm.b}, marks:pts.map(d => [px(d.x), py(d.y)]), avoid:null, key:S.roi+S.band,
       items:[{t:"ρ", v:f2(sg.rho_periodic), strong:true}, {t:"R²", v:f2(sg.r2_exponent)}, {t:"n", v:String(sg.n)}]});
     // ---- sin título sobre los gráficos: la lectura y de dónde sale cada cifra van en el ícono ⓘ de la barra
     const g = APER.global;
     setTitle("t-aper", "", "",
-      notes(`specparam (Bai et al., 2024 settings). Aperiodic change: exponent d_z = ${f2(g.exp.dz)} (p = ${fp(g.exp.p)}), offset d_z = ${f2(g.off.dz)} (p = ${fp(g.off.p)}); ${Math.round(APER.theta_peak_fraction.NS*100)}% of electrodes have a 4–8 Hz peak.`,
+      notes(`specparam (Bai et al., 2024 settings). Aperiodic change: exponent d_z = ${f2(g.exp.dz)} (p = ${fp(g.exp.p)}), offset d_z = ${f2(g.off.dz)} (p = ${fp(g.off.p)}); ${Math.round((AB ? AB.peak_fraction.NS : APER.theta_peak_fraction.NS)*100)}% of electrodes have a 4–8 Hz peak.`,
+        S.band === "delta" && AB ? "Delta sits at the lower edge of the fit (1 Hz) and the 1-s windows give it only 3 frequencies: the least reliable band here." : "",
         `Bottom: each person's Δσθ (relative θ) vs. Δσθ of the periodic component (1/f removed), ${ROI[S.roi].name}. n = ${sg.n}: people with at least 50 well-fitted epochs (R² ≥ 0.8) in each session.`,
         `Spearman ρ = ${f2(sg.rho_periodic)}: both rank people alike, so the σθ change is mostly oscillatory. R² = ${f2(sg.r2_exponent)}: share of the Δσθ variance explained (linearly) by the change in epoch-to-epoch variability of the aperiodic exponent.`,
         sel ? `Spectrum and maps: mean of your selection (${ids.length}). The scatter always shows all ${sg.n}, with your selection ringed.` : ""));

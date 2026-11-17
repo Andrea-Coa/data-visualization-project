@@ -113,6 +113,7 @@ All figures after the session correction of 15 November 2026 (`research/correcci
 8. **Blinks do not drive σθ.** Blinks detected on Fp1/Fp2 of the raw EEG rise somewhat with deprivation (median 17.1 → 22.8 per minute in the people with both nights; t = 1.36, p = 0.18). Removing the 1-s windows within 0.25 s of a blink leaves each person's Δσθ almost unchanged (ρ = 0.95 frontal, 0.93 centrotemporal, n = 47), the group increase survives (t = 4.57 frontal), within recordings epochs with more blinks do not have more theta (r = −0.05), and the change in blink rate is unrelated to Δσθ (ρ = 0.15, p = 0.23).
 9. **Theta synchrony between regions (exploratory).** With average reference and wPLI², it decreases in 30 of 45 region pairs after deprivation, but the global change is small (d_z = −0.08, permutation p = 0.58) and no pair survives FDR.
 10. **The result does not depend on the preprocessing pipeline.** ICA removes 5.1 components per recording (2.5 ocular, 2.6 muscle) and 71 of 75 epochs are kept. The Week 6 pipeline without ICA, read with the corrected session labels, also shows the increase (frontal t = 3.44, centrotemporal t = 5.72), and each person's Δσθ agrees with the main pipeline (ρ = 0.64 frontal, 0.79 centrotemporal). Copying Cui et al. exactly gives frontal t = 4.53 and centrotemporal t = 5.97 (section 4).
+11. **It is not a visit effect.** In a two-period crossover analysis by session order, the deprivation effect adjusted for visit, c, is +0.0128 in frontal σθ (Welch t = 5.40, p = 2.2e-6) and survives FDR at 61 of 61 electrodes; the visit effect (2nd − 1st visit) survives at none, in any band. Behavior agrees: KSS c = +2.25, PVT median RT c = +42.7 ms, both with π not significant (`research/analisis_cruzado.md`).
 
 ## 5b. Other bands (exploratory)
 
@@ -127,6 +128,20 @@ Relative power of each band over 1–40 Hz, computed in the same spectral pass a
 
 Reading: after deprivation the epoch-to-epoch variability rises most in theta, then in delta and less in beta; alpha does not change. Mean power rises only in theta. No band links clearly with the PVT (no ρ reaches p < 0.05 except centrotemporal theta). Caveats in section 6.
 
+**Band as a multiverse dimension** (`tools/build_multiverse_bands.py`, 2240 analyses, the same 2000 permutations of the behavioral rows for every band; theta keeps both pipelines, the other bands only the main one because the Week 6 pipeline computed theta only):
+
+| Band | Analyses | Median r (p) | Significant with r > 0 (chance up to) | Stouffer Z (p) |
+|---|---|---|---|---|
+| Delta | 448 | −0.044 (p = 0.77) | 0 (57) | −1.52 (p = 0.60) |
+| Theta | 896 | +0.027 (p = 0.33) | 4 (103) | +2.95 (p = 0.39) |
+| Alpha | 448 | +0.005 (p = 0.46) | 3 (56) | −3.34 (p = 0.67) |
+| Beta | 448 | +0.062 (p = 0.13) | 8 (46) | +3.94 (p = 0.28) |
+| All bands | 2240 | +0.017 (p = 0.28) | 15 (157) | +1.45 (p = 0.42) |
+
+No band exceeds chance jointly, with σ only either (theta σ median r +0.030, p = 0.33; beta σ +0.073, p = 0.16). By marker, PVT median RT has the most positive median r in theta (+0.21) and delta (+0.23), and a negative one in alpha (−0.21): the weak vigilance link is specific to slow bands. The theta p values differ slightly from section 4 because the permutations are drawn again; its 896 r are identical (checked). The all-band joint test mixes non-equivalent measures and is descriptive only.
+
+**Oscillatory or aperiodic, by band** (specparam, same settings as finding 7; frontal, n = 46): the change in epoch-to-epoch variability tracks its periodic part in theta (ρ = 0.78) and alpha (0.86), less in beta (0.44) and barely in delta (0.30), where the variability of the aperiodic exponent explains most of it (R² = 0.68 vs 0.06 in theta). So the delta increase in σ is mostly a broadband (1/f) change, not a delta rhythm; the theta increase is oscillatory. Periodic power itself rises only in theta (d_z = 0.56, p = 1.7e-5, 48 of 61 electrodes with q < 0.05; delta d_z = −0.21, p = 0.09; alpha −0.04; beta −0.06; no electrode with q < 0.05). Delta is at the lower edge of the fit, so this is the least reliable band.
+
 ## 6. Limitations
 
 - Small n for behavior (PVT 30), with low statistical power.
@@ -136,7 +151,7 @@ Reading: after deprivation the epoch-to-epoch variability rises most in theta, t
 - Three eyes-open recordings (`sub-01`, `sub-28` and `sub-44`, session 2) are truncated in the OpenNeuro bucket and MNE cannot read them; this was verified with a download on 2 November 2026, so downloading again does not fix them.
 - Xiang et al. (2024) appear to assign the PVT t values to indicators different from those in the dataset dictionary; we follow the dictionary.
 - The trial-level PVT files of ds004902 are only partly consistent with the dataset summary columns (median RT matches in 24 of 67 sessions); with the corrected session mapping, 27 of 29 people are slower after deprivation (+40.8 ms), as expected. We use only the summary columns (`app/tools/check_pvt_trials.py`). The PVT was recorded separately from the resting EEG, which has no event markers, so no ERP or time-locked analysis is possible.
-- The visit order is counterbalanced but unbalanced (40 NS→SD, 28 SD→NS). The paired test per electrode is the simple mean of SD − NS; a crossover analysis that separates the deprivation effect from the visit effect is pending (phase B of the team's plan). After the correction both orders show the increase (frontal Δσθ +0.013 and +0.012).
+- The visit order is counterbalanced but unbalanced (40 NS→SD, 28 SD→NS), so the paired test per electrode (the simple mean of SD − NS) could mix in a visit effect: it equals c + 0.18·π. The crossover analysis (`research/analisis_cruzado.md`, validated on synthetic data) shows π ≈ 0 everywhere (no electrode with q < 0.05 in any band), so the paired test stands; the adjusted effect c is almost identical (frontal σθ +0.0128 vs +0.0129). Carryover is tested only descriptively (Freeman, 1989). The SD recordings were made 40 min earlier than the NS ones (median), a possible time-of-day confound that was not tested.
 - User evaluation still pending.
 
 ## 7. Functional connectivity: from postponed to an exploratory secondary view

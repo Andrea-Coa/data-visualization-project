@@ -39,6 +39,8 @@ deliveries/week12/
     tools/build_eeg_ica.py       main pipeline: generates ../data/processed_ica/*.csv from the raw EEG (same columns as Week 6), and ../data/processed_ica/bands/<band>/ for delta, alpha and beta in the same pass
     tools/build_participants.py  generates data/participants.json (EEG fields), data/subject_epochs.json, data/electrode_epochs.json (per-electrode epoch series for the time view) and ../data/participants_deltas.csv
     tools/build_multiverse.py    generates data/multiverse.json and ../data/multiverse_specs.csv (896 analyses, 2000 permutations)
+    tools/crossover.py           crossover analysis by session order: data/crossover.json (deprivation effect c and visit effect π per electrode, region and band; behavior); --validate checks it on synthetic data
+    tools/build_multiverse_bands.py  band as a multiverse dimension: data/multiverse_bands.json and ../data/multiverse_bands_specs.csv (2240 analyses: theta 896 with both pipelines, delta, alpha and beta 448 each with the main one; the same 2000 permutations for every band)
     tools/build_subject_topo.py  generates data/topo_by_subject.json
     tools/build_coords.py        generates data/coords.json (2D) and data/coords3d.json (3D) from electrodes.tsv
     tools/build_topo_stats.py    generates data/topo.json: NS, SD, Δ, paired t, d_z and 95% CI per electrode (68 paired people)
@@ -85,6 +87,10 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 for b in delta alpha beta; do python3 tools/build_topo_stats.py --band $b && python3 tools/build_subject_topo.py --band $b && python3 tools/build_participants.py --band $b; done
 ```
 
+**Crossover by session order:** `python3 tools/crossover.py --validate` (synthetic data, about 1.5 minutes) and `python3 tools/crossover.py` (seconds; reads `data/topo_by_subject.json` and `data/bands/*/topo_by_subject.json`, so run it after them). Method and results: `research/analisis_cruzado.md`.
+
+**Band multiverse:** `python3 tools/build_multiverse_bands.py --perms 2000 --procs 6` (about 11 minutes with 6 processes; it does not change `multiverse.json`, and its theta specifications are checked to be identical to it).
+
 **Times measured on 15 November 2026 on a Mac with 8 cores (7 processes):** `build_eeg_ica.py` 1.5 minutes with the ICA cache (all bands); `build_secondary.py` about 45 minutes; `build_quality.py` 2 to 30 minutes; `build_cui_variant.py` about 3 hours; `build_multiverse.py --perms 2000` about 3 hours; the rest seconds. On macOS, `caffeinate -dimsu` keeps the machine awake during the long ones.
 
 With the dataset in `<root>/ds004902` (see `deliveries/week06/README.md`; the eyes-open files, ~6 GB, are enough and are never committed) and the Week 6 behavioral data (`deliveries/week06/data/processed/behavioral_deltas.csv`). From `deliveries/week12/app/`:
@@ -125,6 +131,7 @@ Added on 15 November 2026. The topomaps answer *where* theta changes; this answe
 - **Other views:** in Window and Playback the scatter, the heatmap and the similarity graph follow the window; in Series they stay on the five minutes, and hovering a block highlights it in the Time View. Clicking a block opens it as a window.
 - **Results on the real data (68 people, after the session correction of 15 November 2026):** frontal moving σθ is higher after deprivation in every window (61 of 61 with 60 s, 66 of 66 with 40 s, 51 of 51 with 100 s). In the Series of 5 × 60 s, 445 of 610 electrode-blocks (σθ and μθ rows) survive FDR across blocks: the increase holds throughout the five minutes. (The large «session-order effect» shown before the correction was the session mix-up, not a real effect.)
 - **Why this design:** for analysis, small multiples are more accurate than animation, which works better for presentation (Robertson et al., 2008; Brehmer et al., 2020). In resting recordings wakefulness drifts within minutes (Tagliazucchi and Laufs, 2014), so time within the recording matters, and more so after a sleepless night. Short sliding windows produce spurious fluctuations (Leonardi and Van De Ville, 2015). The stricter test over electrodes × time would be a cluster-based permutation (Maris and Oostenveld, 2007); it is listed as pending in the root README. Details and verified references: `research/literatura_verificada.md`, group F.
+- **Session order is a crossover:** with Compare → Session order (five minutes, not a window or the Series), the Topography View shows a two-period crossover analysis instead of each order's Δ. Top row: deprivation effect adjusted for visit, c, with Normal and Deprivation maps that give each order equal weight. Bottom row: visit effect, π = 2nd − 1st visit, with the 1st and 2nd visit maps. Welch t between orders per electrode, FDR within each row, the same rings and dots. Comparing the Δ maps of the two orders tests the visit (their difference is 2π), not whether order changes the deprivation effect. Result: σθ c survives FDR at 61 of 61 electrodes and π at none (`research/analisis_cruzado.md`).
 - **Code:** state and helpers (`S.winLen`, `S.series`, `WINLENS`, `seriesBlocks`, `winCentered`) in `js/core.js`; Series, window labels and their ⓘ in `js/topomap.js`; click, playback length, block edges and axis alignment in `js/dynamics.js`; controls in `js/main.js` and `index.html`; Spanish strings in `js/i18n.js`.
 
 ## Secondary views (from the raw EEG)
@@ -134,6 +141,8 @@ python3 tools/build_secondary.py --procs 6
 ```
 
 With the main pipeline (it reuses the cached ICA), it separates the periodic from the aperiodic part of the spectrum with specparam (settings of Bai et al., 2024, on this dataset) and computes theta wPLI² between 10 regions with average reference, including the mean change and 95% CI per region pair. It requires `mne-connectivity` and `fooof==1.1.0` (in `requirements.txt`) and takes about 5 minutes. If `data/aperiodic.json` or `data/connectivity.json` is missing, the app still works and the right column says so.
+
+**By band:** the same specparam fit also gives the periodic power and peak presence of delta, alpha and beta (`bands` in `data/aperiodic.json`; theta keeps its keys and values, checked identical). With δ, α or β selected, the bottom scatter of the Oscillatory & aperiodic components view (Δσ relative vs Δσ periodic) and its ρ follow the band; the exponent and offset maps do not depend on the band. Spearman ρ between Δσ and Δσ periodic: theta 0.78 frontal / 0.86 centrotemporal, alpha 0.86 / 0.88, beta 0.44 / 0.48, delta 0.30 / 0.26. Delta sits at the lower edge of the 1–40 Hz fit and the 1-s windows give it 3 frequencies, so it is the least reliable.
 
 ## Data quality and blink check (from the raw EEG)
 

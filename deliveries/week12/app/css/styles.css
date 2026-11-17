@@ -541,7 +541,7 @@ body[data-focus="compare"] .bar .fld:not(:has(#cmpsel)){opacity:.35}
 
 /* ---------- bandas: distintivo «θ only» en las vistas calculadas solo para theta (visible con otra banda) ---------- */
 .tonly{display:none;margin-left:6px;font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:0;text-transform:none;padding:0 5px;border:1px solid currentColor;border-radius:3px;opacity:.8}
-:root[data-band]:not([data-band="theta"]) .tonly{display:inline-block}
+:root[data-band]:not([data-band="theta"]) [data-theta-only] .tonly{display:inline-block}
 #bandseg[aria-busy="true"]{opacity:.5;cursor:progress}
 
 /* ---------- selector de marcas de los mapas Δ (cluster, FDR, p, ninguna) en la leyenda de la Topography View ---------- */

@@ -303,6 +303,83 @@ def test_clusters(R):
     check("p de cada cluster (Monte Carlo)", worst <= .03, f"diferencia máx. {worst:.3f} (app {C['perms']} permutaciones, MNE 5000)")
 
 
+def test_multiverse_bands():
+    """Multiverso por banda (data/multiverse_bands.json y ../data/multiverse_bands_specs.csv): theta igual a
+    multiverse.json y una muestra de correlaciones de cada banda recalculada con scipy desde los Δ por persona."""
+    f = APP / "data" / "multiverse_bands.json"
+    if not f.exists():
+        return
+    print("\n12. Multiverso por banda (data/multiverse_bands.json)")
+    import csv as _csv
+    M = json.loads(f.read_text(encoding="utf-8"))
+    check("theta igual a multiverse.json", M["meta"]["checkThetaVsMultiverseJson"] == 0 and M["meta"]["nSpecs"] == 2240,
+          f"{M['meta']['nSpecs']} especificaciones; diferencia máx. de r en theta {M['meta']['checkThetaVsMultiverseJson']}")
+    rows = list(_csv.DictReader(open(APP.parent / "data" / "multiverse_bands_specs.csv", encoding="utf-8")))
+    P = {r["id"]: r for r in json.loads((APP / "data" / "participants.json").read_text(encoding="utf-8"))}
+    worst, n = 0.0, 0
+    for b in ("delta", "alpha", "beta"):
+        E = json.loads((APP / "data" / "bands" / b / "participants_eeg.json").read_text(encoding="utf-8"))
+        for r in rows:
+            if r["band"] != b or r["roi"] not in ("front", "ct") or r["delta"] != "abs" or r["outliers"] != "all" or r["correlation"] != "spearman" or r["marker"] not in ("pvt_rt", "kss", "sss"):
+                continue
+            k = {"front": "d_front_", "ct": "d_ct_"}[r["roi"]] + {"var": "var", "mean": "pow"}[r["metric"]]
+            y = {"pvt_rt": "d_pvt", "kss": "d_kss", "sss": "d_sss"}[r["marker"]]
+            pr = [(E[i][k], P[i][y]) for i in E if E[i].get(k) is not None and P.get(i, {}).get(y) is not None]
+            worst = max(worst, abs(stats.spearmanr(*zip(*pr)).statistic - float(r["r"]))); n += 1
+    check("ρ por banda recalculado con scipy", worst < 1e-3, f"{n} especificaciones (delta, alfa, beta; regiones frontal y centrotemporal), diferencia máx. {worst:.1e}")
+
+
+def test_crossover():
+    """Fase B: c y π de data/crossover.json frente a una regresión independiente (mínimos cuadrados con efecto fijo por
+    persona + condición + visita, formato largo). Con pares completos el coeficiente de condición es c y el de visita es π."""
+    f = APP / "data" / "crossover.json"
+    if not f.exists():
+        return
+    print("\n13. Análisis cruzado por orden de sesiones (data/crossover.json)")
+    import csv as _csv
+    X = json.loads(f.read_text(encoding="utf-8"))
+    O = {r["participant_id"]: r["SessionOrder"].replace(" ", "") for r in _csv.DictReader(open(APP.parents[2] / "deliveries" / "week04" / "data" / "participants.tsv", encoding="utf-8"), delimiter="\t")}
+    worst, n = 0.0, 0
+    for band in ("theta", "delta"):
+        S = json.loads((APP / "data" / ("" if band == "theta" else f"bands/{band}") / "topo_by_subject.json").read_text(encoding="utf-8"))
+        for met in ("var", "mean"):
+            for e in ("Fz", "Cz", "Pz", "O1", "T7"):
+                ids = [i for i in S if e in S[i] and O.get(i) in ("NS->SD", "SD->NS")]
+                rows, y = [], []
+                for k, i in enumerate(ids):
+                    for cond in ("NS", "SD"):
+                        visit2 = (O[i] == "NS->SD") == (cond == "SD")
+                        fe = [0.0] * len(ids); fe[k] = 1.0
+                        rows.append(fe + [0.5 if cond == "SD" else -0.5, 0.5 if visit2 else -0.5]); y.append(S[i][e][cond][met])
+                b = np.linalg.lstsq(np.array(rows), np.array(y), rcond=None)[0]
+                r = X["bands"][band]["electrodes"][met][e]
+                worst = max(worst, abs(b[-2] - r["c"]), abs(b[-1] - r["pi"])); n += 1
+    check("c y π iguales a la regresión con efecto fijo por persona", worst < 1e-6, f"{n} electrodos × métricas (theta y delta), diferencia máx. {worst:.1e}")
+    th = X["bands"]["theta"]["electrodes"]["var"]
+    qc, qp = sum(v["q_c"] < .05 for v in th.values()), sum(v["q_pi"] < .05 for v in th.values())
+    beh = X["behavior"]
+    check("conducta: c > 0 y π no lo explica", all(v["c"] > 0 and v["p_c"] < .05 and v["p_pi"] > .05 for v in beh.values()),
+          ", ".join(f"{k} c {v['c']:+.2f} (p {v['p_c']:.1e}), π p {v['p_pi']:.2f}" for k, v in beh.items()) + f"; σθ: c q < 0.05 en {qc}/61, π en {qp}/61")
+
+
+def test_aperiodic_bands():
+    """Espectro aperiódico por banda (aperiodic.json, "bands"): ρ(Δσ relativa, Δσ periódica) recalculado con scipy desde
+    las personas, y la permutación de etiquetas de secuencia de crossover.json frente a Welch (σθ)."""
+    A = json.loads((APP / "data" / "aperiodic.json").read_text(encoding="utf-8"))
+    if "bands" not in A:
+        return
+    print("\n14. Aperiódico por banda y permutación del análisis cruzado")
+    worst, n = 0.0, 0
+    for b, B in A["bands"].items():
+        for roi, sg in B["sigma"].items():
+            xy = [(v[0], v[1]) for v in sg["persons"].values() if v[0] is not None and v[1] is not None]
+            worst = max(worst, abs(stats.spearmanr(*zip(*xy)).statistic - sg["rho_periodic"])); n += 1
+    check("ρ periódico por banda recalculado con scipy", worst < 1e-3, f"{n} banda × región, diferencia máx. {worst:.1e}; bandas {', '.join(A['bands'])}")
+    X = json.loads((APP / "data" / "crossover.json").read_text(encoding="utf-8"))["bands"]["theta"]["electrodes"]["var"]
+    same = sum((r["q_c"] < .05) == (r["qperm_c"] < .05) for r in X.values()); pi = sum(r["qperm_pi"] < .05 for r in X.values())
+    check("permutación de secuencias = Welch en σθ", same == len(X) and pi == 0, f"misma decisión en c: {same}/{len(X)}; π con q < 0.05 (permutación): {pi}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", type=Path, default=None, help="carpeta para las capturas (por defecto, una temporal)")
@@ -325,6 +402,9 @@ def main():
         test_electrode_epochs()
         test_clusters(R)
         test_bands(R)
+        test_multiverse_bands()
+        test_crossover()
+        test_aperiodic_bands()
         take_screenshots(a.chrome, base, profile, out)
     srv.shutdown()
     bad = [n for n, ok, _ in RESULTS if not ok]
