@@ -10,7 +10,7 @@ DATA = Path(__file__).resolve().parent.parent / "data"
 FILES = {"participants": "participants", "topo": "topo", "coords": "coords", "subEpochs": "subject_epochs",
          "subTopo": "topo_by_subject", "multiverse": "multiverse", "coords3d": "coords3d",
          "aperiodic": "aperiodic", "connectivity": "connectivity", "quality": "quality",
-         "elecEpochs": "electrode_epochs"}   # mismo orden que build-data.js
+         "elecEpochs": "electrode_epochs", "ml": "ml"}   # mismo orden que build-data.js; ml = página de clasificación (fase ML)
 HEADER = ("/* Generado desde data/*.json para abrir index.html con doble clic (file://). "
           "No editar a mano: regenerar con tools/build-data.js */")
 

@@ -16,3 +16,8 @@ fooof==1.1.0      # specparam for the «Oscillatory or aperiodic» view (tools/b
 mne-icalabel      # ICLabel muscle components in the Cui-style ICA variant (tools/build_cui_variant.py)
 onnxruntime       # backend required by mne-icalabel
 pymatreader  # required by mne.io.read_raw_eeglab for MATLAB v7.3 (HDF5) .set files
+
+# ML: classification NS vs SD with explainable models (plan phase ML)
+scikit-learn==1.6.1  # cross-validation grouped by person, logistic regression, permutation importance
+tsfel==0.2.0         # time-series features per epoch and ROI (spectral, statistical, temporal domains)
+interpret==0.7.8     # Explainable Boosting Machine (EBM) with exact local contributions
