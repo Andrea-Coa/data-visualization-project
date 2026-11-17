@@ -784,3 +784,6 @@ body[data-focus="compare"] .bar .fld:not(:has(#cmpsel)){opacity:.35}
   .topbar .gacts{order:2}
   .topbar .vtabs{order:3;flex-basis:100%}
 }
+
+/* guía: solo la ventana de validación del paso actual; las demás se ocultan mientras dura (tour.js) */
+body.touring .sidebox .sec[data-open="true"]:not(.tourcur){visibility:hidden}

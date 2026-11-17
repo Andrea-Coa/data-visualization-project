@@ -8,7 +8,13 @@ const tour = (() => {
   const fld = id => () => $(id).closest(".fld") || $(id);
   // validación (17 nov 2026): cada verificación se abre en su propia ventana flotante; el paso la abre (o la trae al frente)
   const openSide = () => {};
-  const openSec = id => () => { if(typeof openVal === "function") openVal(id); };
+  // la guía recuerda qué ventanas de validación abrió ella y las cierra al pasar a un paso que no las usa y al terminar;
+  // las que abrió quien usa la app quedan como estaban
+  const tourWins = new Set();
+  const isWinOpen = id => { const s = $(id) && $(id).closest(".sec"); return !!s && s.dataset.open === "true"; };
+  const openSec = id => Object.assign(() => { if(typeof openVal !== "function") return; if(!isWinOpen(id)) tourWins.add(id); openVal(id); }, {win:id});
+  const closeTourWins = keep => { if(typeof closeVal !== "function") return;
+    [...tourWins].forEach(id => { if(id !== keep){ if(isWinOpen(id)) closeVal(id); tourWins.delete(id); } }); };
   const secOf = id => () => ($(id) && $(id).closest(".sec")) || $("vlist");
   const CH = {
     en:{start:"Welcome", views:"The views", ctrl:"Controls", valid:"Validation", tips:"Tips"},
@@ -134,6 +140,10 @@ const tour = (() => {
     if(n < 0) n = 0;
     if(n >= STEPS.length){ stop(); return; }
     i = n; const s = STEPS[i], my = ++token;
+    closeTourWins(s.before && s.before.win);   // ventanas de pasos anteriores: fuera, para que no tapen este paso
+    // durante la guía solo se ve la ventana del paso actual; las que abrió quien usa la app se ocultan y vuelven al terminar
+    document.body.classList.add("touring");
+    document.querySelectorAll(".sidebox .sec").forEach(x => x.classList.toggle("tourcur", !!(s.before && s.before.win) && x.contains($(s.before.win))));
     if(s.before) s.before();
     const show = () => {
       if(!on || my !== token) return;
@@ -158,6 +168,8 @@ const tour = (() => {
   }
   function refresh(){ if(on) go(i); }
   function stop(){
+    closeTourWins(null);
+    document.body.classList.remove("touring"); document.querySelectorAll(".sidebox .sec.tourcur").forEach(x => x.classList.remove("tourcur"));
     on = false; token++; removeEventListener("keydown", key, true); removeEventListener("resize", refresh);
     card.classList.remove("show"); shade.classList.remove("on");
     const s = shade, c = card; setTimeout(() => { s.remove(); c.remove(); }, 260);
