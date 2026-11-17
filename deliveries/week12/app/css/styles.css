@@ -405,7 +405,7 @@ body{background:var(--page)}
 /* grafo de similitud */
 .glab{font-size:8.5px;fill:var(--ink2);pointer-events:none;paint-order:stroke;stroke:var(--panel);stroke-width:3px}
 .btn-sm{padding:1px 8px;font-size:11px;border-radius:3px}
-.btn-sm[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.btn-sm[aria-pressed="true"],:root[data-theme="light"] .btn-sm[aria-pressed="true"],.btn-sm[aria-pressed="true"]:not(:disabled):hover,:root[data-theme="light"] .btn-sm[aria-pressed="true"]:not(:disabled):hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}   /* en el tema claro .btn pone fondo blanco: sin esto el texto blanco no se veía */
 .sec-body .ph:has(#k-graph){flex-wrap:wrap}
 .sec-body .ph:has(#k-graph) h2{flex:1 1 calc(100% - 30px)}
 #k-graph{order:3;flex:1 1 100%;justify-content:flex-start}
