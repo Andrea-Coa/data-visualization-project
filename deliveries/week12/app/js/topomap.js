@@ -551,7 +551,9 @@ const topo = (() => {
       .attr("title", d => ({cluster:"Channels inside the clusters of the cluster-based permutation test (descriptive: the test says the maps differ, not where; Sassenhagen and Draschkow, 2019)",
         fdr:"Electrodes that survive Benjamini–Hochberg FDR across the 61 electrodes (supports per-electrode statements)", p:"Electrodes with p < 0.05 before any correction (exploratory: about 3 of 61 reach it by chance)",
         none:"Only the color map"})[d[0]])
-      .on("click", (ev, d) => { S.marks = d[0]; try{ localStorage.setItem("batimix-marks", d[0]); }catch(e){} render(); });
+      // durante la reproducción la leyenda no se redibuja en cada cuadro: el botón elegido se marca aquí mismo
+      .on("click", (ev, d) => { S.marks = d[0]; seg.selectAll("button").attr("aria-pressed", x => x[0] === S.marks);
+        try{ localStorage.setItem("batimix-marks2", d[0]); }catch(e){} render(); });
     if(S.marks === "fdr") k.append("span").attr("class", "k").html(`<i class="ring"></i>FDR q &lt; 0.05`);
     else if(S.marks === "cluster") k.append("span").attr("class", "k").html(`<i class="ring"></i>in a cluster`);
     else if(S.marks === "p") k.append("span").attr("class", "k").html(`<i class="bdot"></i>uncorrected`);
