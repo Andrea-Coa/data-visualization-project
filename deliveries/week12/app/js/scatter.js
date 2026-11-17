@@ -134,8 +134,16 @@ const scatter = (() => {
   }
   // leyenda dentro del área del gráfico: los grupos de la comparación (con su color) y la selección (anillo).
   // Sin comparación ni selección no hay nada que explicar y no se dibuja
-  const legendItems = () => { const G = cmpGroups();
-    return (G ? G.map(g => ({mark:"dot", c:g.color, t:g.name})) : []).concat(S.selected ? [{mark:"ring", c:C.ink, t:"your selection"}] : []); };
+  // ρ de Spearman con su IC 95 % y n, de nuevo dentro del recuadro (se había quitado el 2 nov 2026 con «clear up
+  // clutter»; el equipo lo pidió de vuelta el 18 nov): de las 68, de la selección o de cada grupo al comparar
+  const legendItems = () => { const G = cmpGroups(), xk = S.xKey(), yk = yK();
+    const marks = (G ? G.map(g => ({mark:"dot", c:g.color, t:g.name})) : []).concat(S.selected ? [{mark:"ring", c:C.ink, t:"your selection"}] : []);
+    const rr = rows => spearman(rows, xk, yk), fmtR = r => isNaN(r.rho) ? "n/a" : f2(r.rho);
+    let read;
+    if(G) read = G.map(g => { const r = rr(EEG.filter(d => g.set.has(d.id))); return {t:`ρ ${g.name}`, v:`${fmtR(r)} (n ${r.n})`, strong:true}; });
+    else { const r = rr(S.selected ? EEG.filter(d => S.selected.includes(d.id)) : EEG);
+      read = [{t:"Spearman ρ", v:fmtR(r), strong:true}].concat(isNaN(r.rho) ? [] : [{t:"95% CI", v:`${f2(r.lo)}, ${f2(r.hi)}`}]).concat([{t:"n", v:String(r.n)}]); }
+    return marks.concat(read); };
   function paint(){
     if(!ptsG) return;
     const ss = S.selected ? new Set(S.selected) : null, hv = S.hovered, xk = S.xKey(), yk = yK(), G = cmpGroups();
@@ -160,7 +168,7 @@ const scatter = (() => {
   function title(){
     const head = "Δθ vs. Δ behavior", G = cmpGroups(), xk = S.xKey(), yk = yK();
     const info = notes("One point per person: Δθ (deprivation − normal) vs. Δ of the behavioral marker. Shaded: vulnerable quadrant (both above the median).",
-      "Legend box: comparison groups and your selection (drag to move, click to minimize). Click: select a person; drag: lasso.");
+      "Box: Spearman ρ with its 95% CI and n (of each group when comparing), the comparison groups and your selection; drag to move, click to minimize. Click: select a person; drag: lasso.");
     const rho = rows => { const r = spearman(rows, xk, yk); return isNaN(r.rho) ? `n = ${r.n}` : `Spearman ρ = ${f2(r.rho)} [${f2(r.lo)}, ${f2(r.hi)}], n = ${r.n}`; };
     const sub = G ? G.map(g => `${g.name}: ${rho(EEG.filter(d => g.set.has(d.id)))}`).join("; ")
       : rho(S.selected ? EEG.filter(d => S.selected.includes(d.id)) : EEG);
