@@ -10,7 +10,9 @@
   --ease:cubic-bezier(.22,.7,.2,1);
 }
 *{box-sizing:border-box}
-html{scroll-snap-type:y mandatory;scroll-behavior:smooth;background:var(--navy)}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth;background:var(--navy);overflow-x:hidden}
+body{overflow-x:hidden}
+.cv{width:100%;display:flex;flex-direction:column;justify-content:center;min-height:0}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:18px;line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 :focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:4px}
 button{font:inherit;color:inherit;cursor:pointer}
@@ -130,13 +132,14 @@ body.on-demo .stage{opacity:1;transform:none}
 body.on-demo .stage-foot button{pointer-events:auto}
 
 /* fichas de cada gráfico: qué muestra, cómo está codificado, por qué este diseño, interacción */
-.chart .side h2{font-size:clamp(28px,2.9vw,44px);margin-bottom:12px}
+.chart .side h2{font-size:clamp(30px,3.2vw,48px);margin-bottom:14px}
 .chart .eyebrow{margin-bottom:8px} .chart .tags{margin-bottom:10px}
-.spec{display:grid;gap:8px}
-.spec div{padding:8px 14px 9px;border-left:3px solid var(--rule2);background:#fff;border-radius:0 10px 10px 0;box-shadow:0 3px 12px rgba(14,23,38,.05)}
+.spec{display:grid;gap:9px}
+.spec .inter{background:transparent;box-shadow:none;border-left-color:var(--sd);padding-top:2px;padding-bottom:2px} .spec .inter p{font-size:clamp(14px,1.15vw,17px);color:var(--muted)}
+.spec div{padding:10px 16px 11px;border-left:3px solid var(--rule2);background:#fff;border-radius:0 10px 10px 0;box-shadow:0 3px 12px rgba(14,23,38,.05)}
 .spec div:nth-child(1){border-left-color:var(--ns)} .spec div:nth-child(2){border-left-color:var(--indigo)} .spec div:nth-child(3){border-left-color:var(--amber)} .spec div:nth-child(4){border-left-color:var(--sd)}
 .spec b{display:block;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
-.spec p{margin:0;font-size:clamp(12.5px,1.03vw,14.5px);line-height:1.38;color:var(--ink2);max-width:none}
+.spec p{margin:0;font-size:clamp(15px,1.3vw,19px);line-height:1.35;color:var(--ink2);max-width:none}
 .spec p b{display:inline;font-size:inherit;letter-spacing:0;text-transform:none;color:var(--ink);margin:0}
 .refs{margin-top:22px;font-size:13.5px;color:var(--muted);max-width:none}
 /* diseño */
@@ -155,7 +158,7 @@ body.on-demo .stage-foot button{pointer-events:auto}
 .f.hero h4{font-size:clamp(20px,2vw,28px);color:#fff} .f.hero p{color:#9FB0CC;font-size:16px}
 
 /* en cristiano: la tarea real y su versión sencilla, lado a lado */
-.cristiano{flex-direction:row;align-items:center;gap:3.5vw}
+.cristiano .cv{flex-direction:row;align-items:center;gap:3.5vw}
 .cr-img{flex:0 0 31%;display:flex;align-items:center;justify-content:center}
 .cr-img img{width:100%;height:auto;max-height:70vh;object-fit:contain;display:block;filter:drop-shadow(0 18px 30px rgba(14,23,38,.18))}
 .cr-txt{flex:1;min-width:0}
@@ -185,7 +188,7 @@ body.on-demo .stage-foot button{pointer-events:auto}
 
 @media screen and (max-width:1100px){
   .cols{grid-template-columns:1fr} .tg{grid-template-columns:repeat(2,1fr)} .dg,.fg,.lg{grid-template-columns:repeat(2,1fr)} .f.hero{grid-column:span 2}
-  .stage{display:none} .demo .side{width:auto} .cristiano{flex-direction:column;align-items:stretch} .cr-img{flex:none}
+  .stage{display:none} .demo .side{width:auto} .cristiano .cv{flex-direction:column;align-items:stretch} .cr-img{flex:none}
 }
 @media (prefers-reduced-motion:reduce){ .rv{transition:none;opacity:1;transform:none} .cover .wave{animation:none} .device iframe{transition:none} html{scroll-behavior:auto} }
 
@@ -195,13 +198,14 @@ body.on-demo .stage-foot button{pointer-events:auto}
   html{scroll-snap-type:none;scroll-behavior:auto;background:#fff} body{font-size:14px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .mark,.pager,.rail,.stage,.notebar,.clockpill{display:none!important}
   .rv{opacity:1!important;transform:none!important;transition:none!important}
+  .cv{zoom:1!important}
   .slide{min-height:7.5in;height:7.5in;page-break-after:always;break-after:page;padding:.55in .7in;overflow:hidden}
   h1{font-size:54px} h2{font-size:38px;margin-bottom:14px} .lead{font-size:16px}
-  .demo{flex-direction:row;align-items:center;gap:.45in} .demo .side{width:3.8in;flex:none}
+  .demo{flex-direction:row;align-items:center;gap:.45in} .demo .cv{width:auto;flex:none} .demo .side{width:3.8in;flex:none}
   .shot{display:block;margin:0;flex:1;min-width:0} .shot img{width:100%;border:1px solid var(--rule2);border-radius:12px;box-shadow:0 10px 30px rgba(14,23,38,.18)}
   .chart .side{width:5.1in} .spec{gap:5px} .spec div{padding:5px 11px 6px} .spec p{font-size:10.5px;line-height:1.3} .spec b{font-size:9px} .chart h2{font-size:28px!important}
   .cols{display:grid;grid-template-columns:1fr 1.1fr;gap:.5in}
-  .cristiano{display:flex;flex-direction:row;gap:.45in} .cr-img{flex:0 0 3.9in;min-height:5.2in}  .bubbles p{font-size:13.5px;padding:6px 14px}
+  .cristiano .cv{display:flex;flex-direction:row;gap:.4in} .cr-img{flex:0 0 3.5in} .cr-img img{max-height:5in} .fm{font-size:12.5px;padding:5px 10px} .pl{font-size:13px;padding:5px 12px}
   .tg{grid-template-columns:1.1fr 1.5fr .9fr .9fr} .dg,.fg,.lg{grid-template-columns:repeat(3,1fr)} .dv .num{font-size:200px}
   /* el texto con degradado se imprime como recuadro: en el PDF van en color sólido */
   .dv .num,.thanks,.f.hero b,.concl li::before{background:none!important;-webkit-text-fill-color:currentColor!important}

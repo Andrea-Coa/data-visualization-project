@@ -8,6 +8,15 @@
   $("pt").textContent = slides.length;
   if(new URLSearchParams(location.search).has("static")) document.body.classList.add("static");   // sin animaciones de entrada (capturas)
 
+  /* cada diapositiva se ajusta a la ventana: si su contenido no cabe (pantallas bajas o pequeñas) se reduce, sin recortes ni solapes */
+  slides.forEach(sl => { const cv = document.createElement("div"); cv.className = "cv"; while(sl.firstChild) cv.appendChild(sl.firstChild); sl.appendChild(cv); });
+  function fit(){
+    slides.forEach(sl => { const cv = sl.firstElementChild; cv.style.zoom = 1;
+      const cs = getComputedStyle(sl), avail = innerHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+      const need = cv.scrollHeight; if(need > avail) cv.style.zoom = Math.max(.55, avail/need); });
+  }
+  fit(); addEventListener("resize", fit); document.fonts && document.fonts.ready.then(fit);
+
   /* navegación */
   const go = i => { i = Math.max(0, Math.min(slides.length-1, i)); slides[i].scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}); };
   addEventListener("keydown", e => {

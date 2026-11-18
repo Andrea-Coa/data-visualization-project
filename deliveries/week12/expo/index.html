@@ -62,8 +62,8 @@
     <div class="txt">
       <p class="eyebrow rv">Problema y audiencia</p>
       <h2 class="rv">El promedio del grupo <em>esconde a las personas</em></h2>
-      <p class="lead rv">Tras una noche sin dormir, unas personas se deterioran mucho y otras casi nada. Un solo número por grupo no dice quién es quién.</p>
-      <div class="persona rv"><svg><use href="#i-people"/></svg><div><b>Para quién</b><span>Investigadoras e investigadores del sueño que exploran datos públicos antes de hacer una prueba formal: ¿qué electrodos, regiones y variables merecen estudiarse con más detalle?</span><small>No es una herramienta de diagnóstico ni de predicción.</small></div></div>
+      <p class="lead rv">Tras una noche sin dormir, unas personas se deterioran mucho y otras casi nada. Un promedio no dice quién es quién.</p>
+      <div class="persona rv"><svg><use href="#i-people"/></svg><div><b>Para quién</b><span>Investigadores del sueño que exploran datos públicos antes de una prueba formal.</span><small>No es una herramienta de diagnóstico.</small></div></div>
     </div>
     <figure class="viz rv"><div id="strip" role="img" aria-label="Cambio en la variabilidad de theta de cada una de las 68 personas"></div>
       <figcaption>Cada punto es una persona real (68). Cambio en la variabilidad de theta frontal tras la privación de sueño: <b id="stripcap"></b></figcaption></figure>
@@ -76,8 +76,8 @@
     <div class="txt">
       <p class="eyebrow rv">Motivación</p>
       <h2 class="rv">Una correlación publicada con <em>28 personas</em></h2>
-      <p class="lead rv">Cui et al. (2026) informaron, con el conjunto público ds004902, que quienes aumentan la variabilidad de theta se vuelven más lentos en una prueba de vigilancia.</p>
-      <p class="lead rv">Con tan pocas personas y un solo camino de análisis, el resultado es frágil.</p>
+      <p class="lead rv">Cui et al. (2026): quienes aumentan la variabilidad de theta se vuelven más lentos en una prueba de vigilancia.</p>
+      <p class="lead rv">Pero con 28 personas y un solo análisis, es un resultado frágil.</p>
       <blockquote class="rv">¿Se sostiene persona por persona, y si cambiamos las decisiones del análisis?</blockquote>
     </div>
     <div class="viz versus rv">
@@ -98,13 +98,13 @@
         <div><b>71</b><span>personas</span></div><div><b>68</b><span>con EEG en las 2 noches</span></div><div><b>61</b><span>electrodos</span></div>
         <div><b>5 min</b><span>reposo, ojos abiertos</span></div><div><b>30</b><span>con prueba de vigilancia</span></div><div><b>CC0</b><span>OpenNeuro ds004902</span></div>
       </div>
-      <div class="rigor rv"><svg><use href="#i-shield"/></svg><p><b>Decisión de rigor.</b> Detectamos y corregimos dos errores del procesamiento. Todas las cifras de hoy son las corregidas.</p></div>
+      <div class="rigor rv"><svg><use href="#i-shield"/></svg><p><b>Rigor.</b> Corregimos dos errores del procesamiento. Las cifras de hoy son las corregidas.</p></div>
     </div>
     <figure class="viz rv">
       <ol class="flow">
-        <li><i>1</i><div><b>EEG crudo</b><span>61 electrodos · 500 Hz · noche normal (NS) y privación (SD)</span></div></li>
-        <li><i>2</i><div><b>Limpieza e ICA</b><span>filtros, canales malos, referencia promedio; se eliminan los artefactos de ojos y músculos</span></div></li>
-        <li><i>3</i><div><b>θ relativa por época y electrodo</b><span>75 épocas de 4 s · σθ variabilidad · μθ nivel medio</span></div></li>
+        <li><i>1</i><div><b>EEG crudo</b><span>61 electrodos · dos noches: normal (NS) y privación (SD)</span></div></li>
+        <li><i>2</i><div><b>Limpieza e ICA</b><span>filtros y referencia promedio; se quitan ojos y músculos</span></div></li>
+        <li><i>3</i><div><b>θ relativa por época y electrodo</b><span>σθ = variabilidad · μθ = nivel medio</span></div></li>
         <li class="end"><i>4</i><div><b>Δ = SD − NS, por persona</b><span>lo que la herramienta pone en pantalla</span></div></li>
       </ol>
     </figure>
@@ -136,127 +136,7 @@
   </div>
 </section>
 
-<!-- gráficos: qué muestra, cómo está codificado, por qué este diseño, interacción -->
-<section class="slide demo chart" id="s8" data-part="2" data-title="Gráfico 1 · Vista de topografía" data-focus="topo" data-do="tab:explorer" data-img="topo"
-  data-notes="¿Dónde cambia theta? Qué muestra: Cuánto cambia theta en cada uno de los 61 electrodos, promediando a las 68 personas. Hay tres columnas (noche normal, privación y su diferencia) y dos filas (variabilidad σθ y nivel medio μθ). Cómo está codificado: Cada mapa es una cabeza vista desde arriba, con el color pintado entre electrodos. Para noche normal y privación se usa una escala de un solo color (de bajo a alto). Para la diferencia se usa una escala de dos colores con el cero al centro: rojo si subió y azul si bajó. Un anillo marca los electrodos con cambio significativo. Por qué este diseño: Los investigadores piensan en la cabeza (¿adelante o atrás?), así que el mapa conserva la posición real de los electrodos. Usamos dos tipos de escala para no confundir un nivel con un cambio, y cada fila usa la misma escala en todas sus columnas para poder compararlas. Descartamos una tabla de 61 números porque pierde la posición. (25 s)">
-  <div class="side"><p class="eyebrow rv">Gráfico 1 · Vista de topografía</p><div class="tags rv"><i class="where">T1</i><i class="where">T2</i></div><h2 class="rv">¿Dónde cambia theta?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Cuánto cambia theta en cada uno de los 61 electrodos, promediando a las 68 personas. Hay tres columnas (noche normal, privación y su diferencia) y dos filas (variabilidad σθ y nivel medio μθ).</p></div><div class="rv"><b>Cómo está codificado</b><p>Cada mapa es una cabeza vista desde arriba, con el color pintado entre electrodos. Para noche normal y privación se usa una escala de un solo color (de bajo a alto). Para la diferencia se usa una escala de dos colores con el cero al centro: <b>rojo</b> si subió y <b>azul</b> si bajó. Un anillo marca los electrodos con cambio significativo.</p></div><div class="rv"><b>Por qué este diseño</b><p>Los investigadores piensan en la cabeza (¿adelante o atrás?), así que el mapa conserva la posición real de los electrodos. Usamos dos tipos de escala para no confundir un nivel con un cambio, y cada fila usa la misma escala en todas sus columnas para poder compararlas. Descartamos una tabla de 61 números porque pierde la posición.</p></div><div class="rv"><b>Interacción</b><p>Pasa el cursor para ver el valor. Haz clic en un electrodo para verlo también en la dispersión y en la serie de tiempo. Puedes elegir qué marcas mostrar.</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s9" data-part="2" data-title="Gráfico 2 · Vista de vulnerabilidad" data-focus="scatter" data-do="tab:explorer" data-img="scatter"
-  data-notes="¿Quiénes la pasan peor? Qué muestra: Cada punto es una persona. En horizontal, cuánto cambió su variabilidad de theta; en vertical, cuánto empeoró en una prueba (reacción, somnolencia o ánimo). Cómo está codificado: La posición en los dos ejes es lo que mejor se lee en un gráfico (Cleveland y McGill). El cuadrante ámbar reúne a quienes están por encima de la mediana en ambos ejes. Un recuadro da la correlación de Spearman (ρ), su intervalo de confianza y el número de personas. Por qué este diseño: Una dispersión muestra a la vez la relación y a cada persona; un promedio solo muestra lo primero. Usamos Spearman porque con 30 personas los valores extremos pesan mucho. Dejar siempre visible el intervalo evita exagerar el resultado: si la nube es plana, no hay relación. (25 s)">
-  <div class="side"><p class="eyebrow rv">Gráfico 2 · Vista de vulnerabilidad</p><div class="tags rv"><i class="who">T3</i><i class="who">T5</i><i class="who">T7</i></div><h2 class="rv">¿Quiénes la pasan peor?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Cada punto es una persona. En horizontal, cuánto cambió su variabilidad de theta; en vertical, cuánto empeoró en una prueba (reacción, somnolencia o ánimo).</p></div><div class="rv"><b>Cómo está codificado</b><p>La <b>posición</b> en los dos ejes es lo que mejor se lee en un gráfico (Cleveland y McGill). El cuadrante ámbar reúne a quienes están por encima de la mediana en ambos ejes. Un recuadro da la correlación de Spearman (ρ), su intervalo de confianza y el número de personas.</p></div><div class="rv"><b>Por qué este diseño</b><p>Una dispersión muestra a la vez la relación y a cada persona; un promedio solo muestra lo primero. Usamos Spearman porque con 30 personas los valores extremos pesan mucho. Dejar siempre visible el intervalo evita exagerar el resultado: si la nube es plana, no hay relación.</p></div><div class="rv"><b>Interacción</b><p>Haz clic en un punto o dibuja un lazo para elegir un grupo. Con Mayús + clic fijas a dos personas, A y B. «Comparar» divide a todos en dos grupos y pinta todas las vistas con dos colores.</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s10" data-part="2" data-title="Gráfico 3 · Vista individual" data-focus="heat" data-do="tab:explorer" data-img="heat"
-  data-notes="¿Comparten un patrón? Qué muestra: Cada columna es una persona y cada fila un electrodo (de adelante hacia atrás). El color es el cambio de variabilidad. Las personas se separan en más y menos afectadas según su conducta. Cómo está codificado: Una matriz de celdas con la misma escala de dos colores que los mapas. Las filas se agrupan por región. La franja C(e) muestra, en cada electrodo, qué parte del grupo subió menos qué parte bajó. Por qué este diseño: Si las personas más afectadas compartieran un mismo patrón, sus columnas se verían parecidas, y una matriz persona × electrodo sirve justo para verlo. Separamos los grupos solo por conducta, nunca por theta, para que el resultado no sea circular. C(e) resume cada grupo sin esconder a nadie. (20 s)">
-  <div class="side"><p class="eyebrow rv">Gráfico 3 · Vista individual</p><div class="tags rv"><i class="who">T4</i></div><h2 class="rv">¿Comparten un patrón?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Cada columna es una persona y cada fila un electrodo (de adelante hacia atrás). El color es el cambio de variabilidad. Las personas se separan en más y menos afectadas según su conducta.</p></div><div class="rv"><b>Cómo está codificado</b><p>Una matriz de celdas con la misma escala de dos colores que los mapas. Las filas se agrupan por región. La franja C(e) muestra, en cada electrodo, qué parte del grupo subió menos qué parte bajó.</p></div><div class="rv"><b>Por qué este diseño</b><p>Si las personas más afectadas compartieran un mismo patrón, sus columnas se verían parecidas, y una matriz persona × electrodo sirve justo para verlo. Separamos los grupos solo por conducta, nunca por theta, para que el resultado no sea circular. C(e) resume cada grupo sin esconder a nadie.</p></div><div class="rv"><b>Interacción</b><p>Un clic en una columna elige a la persona. Un clic en una fila lleva ese electrodo al eje horizontal de la dispersión. Todo está enlazado con las otras vistas.</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s11" data-part="2" data-title="Gráfico 4 · Vista de tiempo y reproducción" data-focus="maps" data-do="tab:explorer play" data-img="maps"
-  data-notes="¿Cuándo, en los cinco minutos? Qué muestra: Cómo cambia theta durante los cinco minutos, noche normal frente a privación. Se muestra la variabilidad (en ventanas de 32, 60 o 100 segundos) o el nivel medio en cada época de 4 segundos. Cómo está codificado: Una línea por condición (azul: normal; rojo: privación; los mismos colores en toda la herramienta). La banda es el error estándar entre personas y la línea punteada es la tendencia. Una bolita marca el instante de la reproducción. Por qué este diseño: Una línea en el tiempo es la forma más natural de mostrar una evolución, y la banda deja ver la incertidumbre. La reproducción une todo: una ventana recorre la grabación y, para cada ventana, se recalculan los mapas, la dispersión, el mapa de calor y la red. (30 s)">
-  <div class="side"><p class="eyebrow rv">Gráfico 4 · Vista de tiempo y reproducción</p><div class="tags rv"><i class="when">T6</i></div><h2 class="rv">¿Cuándo, en los cinco minutos?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Cómo cambia theta durante los cinco minutos, noche normal frente a privación. Se muestra la variabilidad (en ventanas de 32, 60 o 100 segundos) o el nivel medio en cada época de 4 segundos.</p></div><div class="rv"><b>Cómo está codificado</b><p>Una línea por condición (<b>azul</b>: normal; <b>rojo</b>: privación; los mismos colores en toda la herramienta). La banda es el error estándar entre personas y la línea punteada es la tendencia. Una bolita marca el instante de la reproducción.</p></div><div class="rv"><b>Por qué este diseño</b><p>Una línea en el tiempo es la forma más natural de mostrar una evolución, y la banda deja ver la incertidumbre. La reproducción une todo: una ventana recorre la grabación y, para cada ventana, se recalculan los mapas, la dispersión, el mapa de calor y la red.</p></div><div class="rv"><b>Interacción</b><p>El botón ▶ reproduce, pausa y avanza de época en época. Haz clic en la serie para ver ese instante en los mapas, o arrastra para elegir tu propio intervalo.</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s12" data-part="2" data-title="Gráfico 5 · Validación" data-focus="valsum" data-do="tab:explorer" data-img="valid"
-  data-notes="¿Resiste otro análisis? Qué muestra: Cuatro pruebas que intentan echar abajo el hallazgo, cada una con su cifra principal: sin parpadeos, parte periódica, sincronía y similitud. Cómo está codificado: Una lista con la cifra al lado y un punto sobre una regla de 0 a 1. El símbolo ↗ abre el gráfico completo en una ventana flotante. Por qué este diseño: Primero el resumen y después el detalle (Shneiderman). Una lista siempre visible ocupa poco espacio y responde de un vistazo. Las ventanas flotantes permiten abrir varias y compararlas. (15 s)">
-  <div class="side"><p class="eyebrow rv">Gráfico 5 · Validación</p><div class="tags rv"><i class="trust">T8</i></div><h2 class="rv">¿Resiste otro análisis?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Cuatro pruebas que intentan echar abajo el hallazgo, cada una con su cifra principal: sin parpadeos, parte periódica, sincronía y similitud.</p></div><div class="rv"><b>Cómo está codificado</b><p>Una lista con la cifra al lado y un punto sobre una regla de 0 a 1. El símbolo ↗ abre el gráfico completo en una ventana flotante.</p></div><div class="rv"><b>Por qué este diseño</b><p>Primero el resumen y después el detalle (Shneiderman). Una lista siempre visible ocupa poco espacio y responde de un vistazo. Las ventanas flotantes permiten abrir varias y compararlas.</p></div><div class="rv"><b>Interacción</b><p>Haz clic en una fila para abrir su gráfico. Puedes moverlo, agrandarlo y cerrarlo con Esc.</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s13" data-part="2" data-title="Validación 1 · Parpadeos" data-focus="float" data-do="tab:explorer row:0" data-img="blinks"
-  data-notes="¿Son los parpadeos? Qué muestra: Arriba, cuánto cambió el número de parpadeos de cada persona (privación menos normal). Abajo, el cambio de variabilidad de theta con todas las ventanas, frente al cambio sin las ventanas que tienen parpadeos. Cómo está codificado: Arriba, un punto por persona sobre un eje de cambio, coloreado por su cambio de variabilidad de theta con la misma escala de los mapas. Abajo, una dispersión con una diagonal: un punto sobre la diagonal significa que quitar los parpadeos no cambia nada. Por qué este diseño: El gráfico de arriba muestra que casi todos parpadean más. Si eso explicara el cambio de theta, los puntos rojos estarían juntos de un lado, pero están mezclados. El de abajo lo confirma: los puntos caen sobre la diagonal (ρ = 0,95). (20 s)">
-  <div class="side"><p class="eyebrow rv">Validación 1 · Parpadeos</p><div class="tags rv"><i class="trust">T8</i></div><h2 class="rv">¿Son los parpadeos?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Arriba, cuánto cambió el número de parpadeos de cada persona (privación menos normal). Abajo, el cambio de variabilidad de theta con todas las ventanas, frente al cambio sin las ventanas que tienen parpadeos.</p></div><div class="rv"><b>Cómo está codificado</b><p>Arriba, un punto por persona sobre un eje de cambio, coloreado por su cambio de variabilidad de theta con la misma escala de los mapas. Abajo, una dispersión con una diagonal: un punto sobre la diagonal significa que quitar los parpadeos no cambia nada.</p></div><div class="rv"><b>Por qué este diseño</b><p>El gráfico de arriba muestra que casi todos parpadean más. Si eso explicara el cambio de theta, los puntos rojos estarían juntos de un lado, pero están mezclados. El de abajo lo confirma: los puntos caen sobre la diagonal (ρ = 0,95).</p></div><div class="rv"><b>Interacción</b><p>Pasa el cursor sobre una persona para ver sus datos. Un clic la elige en todas las vistas.</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s14" data-part="2" data-title="Validación 2 · Ritmo frente al fondo 1/f" data-focus="float" data-do="tab:explorer row:1" data-img="aper"
-  data-notes="¿Ritmo real o fondo 1/f? Qué muestra: El espectro de potencia (de 1 a 40 Hz) de las dos noches, con el ajuste del fondo 1/f; los mapas del cambio del fondo; y la relación entre el cambio de variabilidad y su parte periódica. Cómo está codificado: Líneas en escala logarítmica (azul: normal; rojo: privación). La línea punteada es el fondo 1/f y la banda gris marca theta (de 4 a 8 Hz). Los mapas usan la escala de dos colores. La dispersión muestra ρ y R². Por qué este diseño: Para saber si el efecto es un ritmo o solo el fondo hay que mirar el espectro: un ritmo aparece como un pico sobre el fondo. Los mapas muestran dónde cambia el fondo, y la dispersión mide cuánto del cambio explica la parte periódica (ρ = 0,78: es sobre todo un ritmo). (20 s)">
-  <div class="side"><p class="eyebrow rv">Validación 2 · Ritmo frente al fondo 1/f</p><div class="tags rv"><i class="trust">T8</i></div><h2 class="rv">¿Ritmo real o fondo 1/f?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>El espectro de potencia (de 1 a 40 Hz) de las dos noches, con el ajuste del fondo 1/f; los mapas del cambio del fondo; y la relación entre el cambio de variabilidad y su parte periódica.</p></div><div class="rv"><b>Cómo está codificado</b><p>Líneas en escala logarítmica (<b>azul</b>: normal; <b>rojo</b>: privación). La línea punteada es el fondo 1/f y la banda gris marca theta (de 4 a 8 Hz). Los mapas usan la escala de dos colores. La dispersión muestra ρ y R².</p></div><div class="rv"><b>Por qué este diseño</b><p>Para saber si el efecto es un ritmo o solo el fondo hay que mirar el espectro: un ritmo aparece como un pico sobre el fondo. Los mapas muestran dónde cambia el fondo, y la dispersión mide cuánto del cambio explica la parte periódica (ρ = 0,78: es sobre todo un ritmo).</p></div><div class="rv"><b>Interacción</b><p>Haz clic en la banda gris para ampliar theta (4 a 8 Hz).</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s15" data-part="2" data-title="Validación 3 · Sincronía de theta" data-focus="float" data-do="tab:explorer row:2" data-img="sync"
-  data-notes="¿Cambia la sincronía entre regiones? Qué muestra: Cuánto cambió la sincronía de fase de theta entre 10 regiones del cerebro (45 pares) y, debajo, el efecto de cada par con su intervalo de confianza. Cómo está codificado: Una red: cada nodo es una región, colocada como en la cabeza, y cada línea se colorea según el cambio. Debajo, cada par con su intervalo del 95 %, ordenados. Por qué este diseño: La red conserva la posición de las regiones y el gráfico de intervalos muestra cuánta incertidumbre hay. Es una comprobación exploratoria y honesta: la prueba conjunta por permutación (p = 0,58) no encuentra un cambio global. (15 s)">
-  <div class="side"><p class="eyebrow rv">Validación 3 · Sincronía de theta</p><div class="tags rv"><i class="trust">T8</i></div><h2 class="rv">¿Cambia la sincronía entre regiones?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Cuánto cambió la sincronía de fase de theta entre 10 regiones del cerebro (45 pares) y, debajo, el efecto de cada par con su intervalo de confianza.</p></div><div class="rv"><b>Cómo está codificado</b><p>Una red: cada nodo es una región, colocada como en la cabeza, y cada línea se colorea según el cambio. Debajo, cada par con su intervalo del 95 %, ordenados.</p></div><div class="rv"><b>Por qué este diseño</b><p>La red conserva la posición de las regiones y el gráfico de intervalos muestra cuánta incertidumbre hay. Es una comprobación exploratoria y honesta: la prueba conjunta por permutación (p = 0,58) no encuentra un cambio global.</p></div><div class="rv"><b>Interacción</b><p>Pasa el cursor sobre una región o un par para ver sus datos.</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s16" data-part="2" data-title="Validación 4 · Similitud entre personas" data-focus="float" data-do="tab:explorer row:3" data-img="graph"
-  data-notes="¿Se parecen entre sí los vulnerables? Qué muestra: Cada persona está unida a las tres con el patrón de cambio más parecido en los 61 electrodos. Los grupos se definen solo por conducta. Cómo está codificado: Hay dos vistas, con una transición animada: «On scatter» coloca a cada persona donde está en la vista de vulnerabilidad, y «Network» las ordena según su parecido. Se recalcula con la reproducción y con cualquier intervalo. Por qué este diseño: Si las personas vulnerables compartieran un patrón, quedarían unidas entre sí. Poner la red sobre la dispersión permite leerla junto al gráfico principal y no como algo aparte. (20 s)">
-  <div class="side"><p class="eyebrow rv">Validación 4 · Similitud entre personas</p><div class="tags rv"><i class="who">T4</i><i class="trust">T8</i></div><h2 class="rv">¿Se parecen entre sí los vulnerables?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Cada persona está unida a las tres con el patrón de cambio más parecido en los 61 electrodos. Los grupos se definen solo por conducta.</p></div><div class="rv"><b>Cómo está codificado</b><p>Hay dos vistas, con una transición animada: <b>«On scatter»</b> coloca a cada persona donde está en la vista de vulnerabilidad, y <b>«Network»</b> las ordena según su parecido. Se recalcula con la reproducción y con cualquier intervalo.</p></div><div class="rv"><b>Por qué este diseño</b><p>Si las personas vulnerables compartieran un patrón, quedarían unidas entre sí. Poner la red sobre la dispersión permite leerla junto al gráfico principal y no como algo aparte.</p></div><div class="rv"><b>Interacción</b><p>Al pasar el cursor sobre una persona se iluminan sus vecinas en todas las vistas. Un clic la elige. Puedes arrastrar los nodos y usar «Group».</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s17" data-part="2" data-title="Clasificador 1 · Resultado y validación" data-focus="mlsum" data-do="tab:classifier" data-img="mlsum"
-  data-notes="¿Se reconoce la noche sin dormir? Qué muestra: El AUC del modelo (0,88; 0,5 es azar y 1 es perfecto) y el acierto por pares (81 % de las 68 personas), más seis pruebas de validación: no es la visita, permutación, orden de visita, bandas y 1/f, fidelidad y estabilidad. Cómo está codificado: Tarjetas con las cifras grandes y una lista de validación. En cada fila, el punto lleno es el modelo, el punto vacío es la comparación y la línea punteada es el azar (0,50). Por qué este diseño: Hay que leer la validación antes que el puntaje: un AUC alto puede ser un truco, por ejemplo que el modelo reconozca la segunda visita y no la privación. Por eso las pruebas están siempre a la vista, con la misma escala y el azar marcado. (20 s)">
-  <div class="side"><p class="eyebrow rv">Clasificador 1 · Resultado y validación</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Se reconoce la noche sin dormir?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>El AUC del modelo (0,88; 0,5 es azar y 1 es perfecto) y el acierto por pares (81 % de las 68 personas), más seis pruebas de validación: no es la visita, permutación, orden de visita, bandas y 1/f, fidelidad y estabilidad.</p></div><div class="rv"><b>Cómo está codificado</b><p>Tarjetas con las cifras grandes y una lista de validación. En cada fila, el <b>punto lleno</b> es el modelo, el <b>punto vacío</b> es la comparación y la <b>línea punteada</b> es el azar (0,50).</p></div><div class="rv"><b>Por qué este diseño</b><p>Hay que leer la validación antes que el puntaje: un AUC alto puede ser un truco, por ejemplo que el modelo reconozca la segunda visita y no la privación. Por eso las pruebas están siempre a la vista, con la misma escala y el azar marcado.</p></div><div class="rv"><b>Interacción</b><p>Pasa el cursor sobre una fila para leerla completa. Los filtros de arriba actualizan todo.</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s18" data-part="2" data-title="Clasificador 2 · Vista de registros" data-focus="mlrec" data-do="tab:classifier" data-img="mlrec"
-  data-notes="¿Dónde se equivoca el modelo? Qué muestra: Las 136 grabaciones dibujadas en un plano que resume todos los rasgos del EEG, junto con lo que predijo el modelo para cada una. Cómo está codificado: Forma: círculo = noche normal, rombo = privación. Relleno: probabilidad de privación que dio el modelo. Línea: une las dos grabaciones de una persona. Anillo ámbar: el modelo se equivocó. Por qué este diseño: Forma y color dicen lo mismo de dos maneras, así que se entiende aunque no se distingan los colores. La línea muestra el paso de normal a privación en cada persona y deja ver si los errores se concentran en una zona o en ciertas personas. (20 s)">
-  <div class="side"><p class="eyebrow rv">Clasificador 2 · Vista de registros</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Dónde se equivoca el modelo?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Las 136 grabaciones dibujadas en un plano que resume todos los rasgos del EEG, junto con lo que predijo el modelo para cada una.</p></div><div class="rv"><b>Cómo está codificado</b><p><b>Forma</b>: círculo = noche normal, rombo = privación. <b>Relleno</b>: probabilidad de privación que dio el modelo. <b>Línea</b>: une las dos grabaciones de una persona. <b>Anillo ámbar</b>: el modelo se equivocó.</p></div><div class="rv"><b>Por qué este diseño</b><p>Forma y color dicen lo mismo de dos maneras, así que se entiende aunque no se distingan los colores. La línea muestra el paso de normal a privación en cada persona y deja ver si los errores se concentran en una zona o en ciertas personas.</p></div><div class="rv"><b>Interacción</b><p>Haz clic en un registro para abrir a la persona, o arrastra para elegir un grupo. El filtro «Errores» muestra solo las grabaciones donde falló.</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s19" data-part="2" data-title="Clasificador 3 · Rasgos" data-focus="mlfeat" data-do="tab:classifier" data-img="mlfeat"
-  data-notes="¿Qué rasgos empujan la decisión? Qué muestra: Qué rasgos del EEG empujan al modelo hacia «privación» y cuáles hacia «noche normal» (regresión logística con red elástica, con rasgos estandarizados). Cómo está codificado: El punto es el coeficiente promedio, la línea es el rango del 95 % entre 50 modelos y el porcentaje indica cuántas veces se conservó el rasgo. Rosa empuja hacia privación y azul hacia noche normal. Por qué este diseño: Un solo rasgo es inestable: los vecinos cambian de lugar de un modelo a otro. Por eso mostramos el rango y no solo un ranking: la incertidumbre también es información. (15 s)">
-  <div class="side"><p class="eyebrow rv">Clasificador 3 · Rasgos</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Qué rasgos empujan la decisión?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Qué rasgos del EEG empujan al modelo hacia «privación» y cuáles hacia «noche normal» (regresión logística con red elástica, con rasgos estandarizados).</p></div><div class="rv"><b>Cómo está codificado</b><p>El <b>punto</b> es el coeficiente promedio, la <b>línea</b> es el rango del 95 % entre 50 modelos y el <b>porcentaje</b> indica cuántas veces se conservó el rasgo. Rosa empuja hacia privación y azul hacia noche normal.</p></div><div class="rv"><b>Por qué este diseño</b><p>Un solo rasgo es inestable: los vecinos cambian de lugar de un modelo a otro. Por eso mostramos el rango y no solo un ranking: la incertidumbre también es información.</p></div><div class="rv"><b>Interacción</b><p>Haz clic en un rasgo para ver su efecto en la persona elegida.</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s20" data-part="2" data-title="Clasificador 4 · Grupos de rasgos" data-focus="mlimp" data-do="tab:classifier" data-img="mlimp"
-  data-notes="¿Qué familias de rasgos importan? Qué muestra: Cuánto necesita el modelo cada grupo de rasgos (por banda, región o tipo) para decidir. Cómo está codificado: Barras horizontales ordenadas, con el rango del 95 % entre las repeticiones y el número de rasgos de cada grupo. La importancia se mide mezclando al azar los valores del grupo y viendo cuánto empeora el modelo. Por qué este diseño: Los grupos son más estables que los rasgos sueltos, así que se leen primero. Una barra que parte de cero es la forma más fiel de comparar tamaños. (15 s)">
-  <div class="side"><p class="eyebrow rv">Clasificador 4 · Grupos de rasgos</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Qué familias de rasgos importan?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Cuánto necesita el modelo cada grupo de rasgos (por banda, región o tipo) para decidir.</p></div><div class="rv"><b>Cómo está codificado</b><p>Barras horizontales ordenadas, con el rango del 95 % entre las repeticiones y el número de rasgos de cada grupo. La importancia se mide mezclando al azar los valores del grupo y viendo cuánto empeora el modelo.</p></div><div class="rv"><b>Por qué este diseño</b><p>Los grupos son más estables que los rasgos sueltos, así que se leen primero. Una barra que parte de cero es la forma más fiel de comparar tamaños.</p></div><div class="rv"><b>Interacción</b><p>El filtro de rasgos de la cabecera resalta una familia.</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s21" data-part="2" data-title="Clasificador 5 · Métricas del modelo" data-focus="mlmet" data-do="tab:classifier" data-img="mlmet"
-  data-notes="¿Se equivoca por igual en las dos noches? Qué muestra: La matriz de confusión: cuántas grabaciones de cada noche acierta el modelo y cuántas confunde. Cómo está codificado: Una matriz de 2 × 2: las filas son la noche real y las columnas la noche que predijo el modelo. Mientras más oscura es la celda, mayor es la proporción de esa fila. Por qué este diseño: Calcular por fila permite comparar las dos noches aunque tengan distinto tamaño y muestra si el modelo favorece a una. Aquí los errores están equilibrados: acierta el 81 % de cada noche. (15 s)">
-  <div class="side"><p class="eyebrow rv">Clasificador 5 · Métricas del modelo</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Se equivoca por igual en las dos noches?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>La matriz de confusión: cuántas grabaciones de cada noche acierta el modelo y cuántas confunde.</p></div><div class="rv"><b>Cómo está codificado</b><p>Una matriz de 2 × 2: las filas son la noche real y las columnas la noche que predijo el modelo. Mientras más oscura es la celda, mayor es la proporción de esa fila.</p></div><div class="rv"><b>Por qué este diseño</b><p>Calcular por fila permite comparar las dos noches aunque tengan distinto tamaño y muestra si el modelo favorece a una. Aquí los errores están equilibrados: acierta el 81 % de cada noche.</p></div><div class="rv"><b>Interacción</b><p>El orden de visita, en la cabecera, filtra la matriz.</p></div></div></div>
-</section>
-
-<section class="slide demo chart" id="s22" data-part="2" data-title="Clasificador 6 · Persona" data-focus="mlperson" data-do="tab:classifier person:sub-13" data-img="mlperson"
-  data-notes="¿Por qué decidió así con esta persona? Qué muestra: Por qué el modelo decidió lo que decidió con una persona: cuánto aportó cada rasgo en sus dos grabaciones, la de noche normal y la de privación. Cómo está codificado: Barras por rasgo (azul empuja hacia normal, rosa hacia privación) para cada grabación. Los demás rasgos se suman en una sola barra al final. Por qué este diseño: Es una explicación individual: completa la importancia global y permite confiar, o desconfiar, de una decisión concreta. Ver las dos grabaciones juntas muestra qué rasgos cambian entre una noche y la otra. (15 s)">
-  <div class="side"><p class="eyebrow rv">Clasificador 6 · Persona</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Por qué decidió así con esta persona?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Por qué el modelo decidió lo que decidió con una persona: cuánto aportó cada rasgo en sus dos grabaciones, la de noche normal y la de privación.</p></div><div class="rv"><b>Cómo está codificado</b><p>Barras por rasgo (azul empuja hacia normal, rosa hacia privación) para cada grabación. Los demás rasgos se suman en una sola barra al final.</p></div><div class="rv"><b>Por qué este diseño</b><p>Es una explicación individual: completa la importancia global y permite confiar, o desconfiar, de una decisión concreta. Ver las dos grabaciones juntas muestra qué rasgos cambian entre una noche y la otra.</p></div><div class="rv"><b>Interacción</b><p>Se llena al hacer clic en un registro o en una línea de la vista de registros.</p></div></div></div>
-</section>
-
-<section class="slide alt" id="s23" data-part="2" data-title="Fundamentos de diseño"
-  data-notes="Los fundamentos de diseño, en seis ideas. Uno: personas antes que promedios. Dos: cada título de panel enuncia su hallazgo, no su tema. Tres: los grupos se definen solo por conducta. Cuatro: la incertidumbre siempre visible, con n, intervalos y bandas. Cinco: la exploración separada de la inferencia, con el multiverso. Seis: vistas coordinadas, con selección, hover y reproducción que actúan sobre todas a la vez. (50 s)">
-  <p class="eyebrow rv">Fundamentos de diseño</p>
-  <h2 class="rv">Seis decisiones <em>que sostienen la herramienta</em></h2>
-  <div class="dg">
-    <div class="rv"><svg><use href="#i-people"/></svg><b>Personas antes que promedios</b><span>Cada punto, columna o nodo es una persona.</span></div>
-    <div class="rv"><svg><use href="#i-bars"/></svg><b>El título es el hallazgo</b><span>Cada panel dice lo que encontró, no de qué trata.</span></div>
-    <div class="rv"><svg><use href="#i-target"/></svg><b>Grupos solo por conducta</b><span>Si se definieran por theta, el resultado sería circular.</span></div>
-    <div class="rv"><svg><use href="#i-eye"/></svg><b>Incertidumbre siempre visible</b><span>n, intervalos de confianza y bandas, en cada gráfico.</span></div>
-    <div class="rv"><svg><use href="#i-shield"/></svg><b>Explorar no es probar</b><span>El multiverso de 896 análisis se calcula aparte, con permutaciones.</span></div>
-    <div class="rv"><svg><use href="#i-link"/></svg><b>Vistas coordinadas</b><span>Elegir, pasar el cursor o reproducir actúa sobre todas las vistas a la vez.</span></div>
-  </div>
-  <p class="refs rv">Marcos: tipología de tareas de Brehmer y Munzner (2013) · «primero la vista general, luego filtrar y detalle a demanda», Shneiderman (1996) · percepción gráfica de Cleveland y McGill (1984) · análisis y diseño de visualización, Munzner (2014).</p>
-</section>
-
-<section class="slide" id="s24" data-part="2" data-title="Hallazgos"
-  data-notes="Los hallazgos, con los datos corregidos. Uno: theta se vuelve más inestable en 50 de 68 personas, pero 18 van en sentido contrario, así que no es universal. Dos: el cambio es generalizado, los 61 electrodos sobreviven a la corrección. Tres: la relación con la conducta es débil: rho 0.16 frontal y 0.37 centro-temporal, en la dirección de Cui pero más baja que 0.55, así que no replicamos la magnitud publicada. Cuatro: es un ritmo, no el fondo 1 sobre f, y no son los parpadeos. Cinco: el multiverso no supera el azar. Seis: un clasificador explicable reconoce la noche de privación. (50 s)">
-  <p class="eyebrow rv">Principales hallazgos · datos corregidos</p>
-  <h2 class="rv">El cambio es <em>generalizado, pero no universal</em></h2>
-  <div class="fg">
-    <div class="f hero rv"><b><span class="cnt" data-to="50">50</span><i> / </i><span class="cnt" data-to="18">18</span></b><h4>Más inestable en 50 personas, al revés en 18</h4><p>Variabilidad de theta frontal: t = 5,88 · d<sub>z</sub> = 0,71.</p></div>
-    <div class="f rv"><b><span class="cnt" data-to="61">61</span> / 61</b><h4>Electrodos con cambio</h4><p>Todos cambian de forma significativa, incluso tras corregir por comparaciones múltiples. No hay un foco frontal.</p></div>
-    <div class="f rv"><b>ρ +0,16 · +0,37</b><h4>Relación débil con la conducta</h4><p>En la zona frontal y la centro-temporal (30 personas). Va en la misma dirección que Cui et al., pero es más débil que 0,55.</p></div>
-    <div class="f rv"><b>ρ 0,78</b><h4>Es un ritmo, no el fondo 1/f</h4><p>Y quitar los parpadeos no cambia nada (ρ = 0,95).</p></div>
-    <div class="f rv"><b><span class="cnt" data-to="896">896</span></b><h4>Análisis distintos: ninguno supera al azar</h4><p>Multiverso con inferencia conjunta por 2000 permutaciones.</p></div>
-    <div class="f wide rv"><b>AUC 0,88</b><h4>Se reconoce la noche sin dormir</h4><p>Un clasificador explicable acierta en el 81 % de las personas.</p></div>
-  </div>
-</section>
-
-<section class="slide alt cristiano" id="s25" data-part="2" data-title="En cristiano"
+<section class="slide alt cristiano" id="s8" data-part="2" data-title="En cristiano"
   data-notes="Y ahora la comparación: a la izquierda, cada tarea con su nombre real; a la derecha, la misma tarea en cristiano, como se la explicaríamos a alguien que nunca vio el dataset. Leer las ocho con humor: dónde cambia, cuánto o qué tan inestable, quiénes la pasan mal, si se parecen o cada uno es distinto, si más cambio en el cerebro significa peor en la prueba, cuándo pasa, si depende de quién eres y si resiste otro análisis. Esa es toda la herramienta. (40 s)">
   <div class="cr-img rv"><img src="img/en-cristiano.png" alt="Ilustración de apoyo para En cristiano"></div>
   <div class="cr-txt">
@@ -268,6 +148,128 @@
   </div>
 </section>
 
+<!-- gráficos: qué muestra, cómo se lee, por qué así, interacción -->
+<section class="slide demo chart" id="s9" data-part="2" data-title="Gráfico 1 · Topografía" data-focus="topo" data-do="tab:explorer" data-img="topo"
+  data-notes="¿Dónde cambia theta? Qué muestra: El cambio de theta en 61 electrodos: noche normal, privación y su diferencia. Cómo se lee: Mapas de la cabeza. Rojo sube, azul baja. Un anillo marca el cambio significativo. Por qué así: Lo que importa es dónde: el mapa conserva la posición real. Dos escalas evitan confundir un nivel con un cambio. (25 s)">
+  <div class="side"><p class="eyebrow rv">Gráfico 1 · Topografía</p><div class="tags rv"><i class="where">T1</i><i class="where">T2</i></div><h2 class="rv">¿Dónde cambia theta?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>El cambio de theta en 61 electrodos: noche normal, privación y su diferencia.</p></div><div class="rv"><b>Cómo se lee</b><p>Mapas de la cabeza. <b>Rojo sube, azul baja.</b> Un anillo marca el cambio significativo.</p></div><div class="rv"><b>Por qué así</b><p>Lo que importa es <b>dónde</b>: el mapa conserva la posición real. Dos escalas evitan confundir un nivel con un cambio.</p></div><div class="rv inter"><b>Interacción</b><p>Clic en un electrodo: se sigue en todas las vistas.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s10" data-part="2" data-title="Gráfico 2 · Vulnerabilidad" data-focus="scatter" data-do="tab:explorer" data-img="scatter"
+  data-notes="¿Quiénes la pasan peor? Qué muestra: Una persona por punto: cambio en theta frente a cambio en la conducta. Cómo se lee: La posición dice el valor. Zona ámbar: peor en ambos. El recuadro da ρ con su intervalo. Por qué así: Muestra la relación y a cada persona. El intervalo evita exagerar con solo 30 personas. (25 s)">
+  <div class="side"><p class="eyebrow rv">Gráfico 2 · Vulnerabilidad</p><div class="tags rv"><i class="who">T3</i><i class="who">T5</i><i class="who">T7</i></div><h2 class="rv">¿Quiénes la pasan peor?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Una persona por punto: cambio en theta frente a cambio en la conducta.</p></div><div class="rv"><b>Cómo se lee</b><p>La posición dice el valor. <b>Zona ámbar: peor en ambos.</b> El recuadro da ρ con su intervalo.</p></div><div class="rv"><b>Por qué así</b><p>Muestra la relación y a cada persona. El intervalo evita exagerar con solo 30 personas.</p></div><div class="rv inter"><b>Interacción</b><p>Clic, lazo o «Comparar» para formar grupos.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s11" data-part="2" data-title="Gráfico 3 · Vista individual" data-focus="heat" data-do="tab:explorer" data-img="heat"
+  data-notes="¿Comparten un patrón? Qué muestra: Cada columna es una persona y cada fila un electrodo. Cómo se lee: El color es el cambio. Si los más afectados compartieran un patrón, sus columnas se parecerían. Por qué así: Los grupos se arman solo por conducta, nunca por theta: así el resultado no es circular. (20 s)">
+  <div class="side"><p class="eyebrow rv">Gráfico 3 · Vista individual</p><div class="tags rv"><i class="who">T4</i></div><h2 class="rv">¿Comparten un patrón?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Cada columna es una persona y cada fila un electrodo.</p></div><div class="rv"><b>Cómo se lee</b><p>El color es el cambio. Si los más afectados compartieran un patrón, <b>sus columnas se parecerían</b>.</p></div><div class="rv"><b>Por qué así</b><p>Los grupos se arman solo por conducta, nunca por theta: así el resultado no es circular.</p></div><div class="rv inter"><b>Interacción</b><p>Clic en una columna o en una fila para seguirla.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s12" data-part="2" data-title="Gráfico 4 · Tiempo y reproducción" data-focus="maps" data-do="tab:explorer play" data-img="maps"
+  data-notes="¿Cuándo, en los cinco minutos? Qué muestra: Theta durante los cinco minutos: noche normal frente a privación. Cómo se lee: Una línea por noche, con su error estándar. La bolita marca el instante. Por qué así: El tiempo se lee mejor como línea. ▶ une todo: una ventana móvil recalcula todas las vistas. (30 s)">
+  <div class="side"><p class="eyebrow rv">Gráfico 4 · Tiempo y reproducción</p><div class="tags rv"><i class="when">T6</i></div><h2 class="rv">¿Cuándo, en los cinco minutos?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Theta durante los cinco minutos: noche normal frente a privación.</p></div><div class="rv"><b>Cómo se lee</b><p>Una línea por noche, con su error estándar. <b>La bolita marca el instante.</b></p></div><div class="rv"><b>Por qué así</b><p>El tiempo se lee mejor como línea. ▶ une todo: una ventana móvil recalcula todas las vistas.</p></div><div class="rv inter"><b>Interacción</b><p>▶ reproduce; arrastra para elegir un intervalo.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s13" data-part="2" data-title="Gráfico 5 · Validación" data-focus="valsum" data-do="tab:explorer" data-img="valid"
+  data-notes="¿Resiste otro análisis? Qué muestra: Cuatro pruebas que intentan romper el hallazgo. Cómo se lee: Cada fila trae su cifra clave. El ↗ abre el gráfico. Por qué así: Primero el veredicto, después el detalle. (15 s)">
+  <div class="side"><p class="eyebrow rv">Gráfico 5 · Validación</p><div class="tags rv"><i class="trust">T8</i></div><h2 class="rv">¿Resiste otro análisis?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Cuatro pruebas que intentan romper el hallazgo.</p></div><div class="rv"><b>Cómo se lee</b><p>Cada fila trae su cifra clave. El ↗ abre el gráfico.</p></div><div class="rv"><b>Por qué así</b><p>Primero el veredicto, después el detalle.</p></div><div class="rv inter"><b>Interacción</b><p>Clic en una fila.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s14" data-part="2" data-title="Validación 1 · Parpadeos" data-focus="float" data-do="tab:explorer row:0" data-img="blinks"
+  data-notes="¿Son los parpadeos? Qué muestra: Si los parpadeos explican el cambio de theta. Cómo se lee: Un punto sobre la diagonal: quitar los parpadeos no cambia nada (ρ = 0,95). Por qué así: Los puntos de distinto color están mezclados: el cambio no sigue a los parpadeos. (20 s)">
+  <div class="side"><p class="eyebrow rv">Validación 1 · Parpadeos</p><div class="tags rv"><i class="trust">T8</i></div><h2 class="rv">¿Son los parpadeos?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Si los parpadeos explican el cambio de theta.</p></div><div class="rv"><b>Cómo se lee</b><p>Un punto sobre la diagonal: <b>quitar los parpadeos no cambia nada</b> (ρ = 0,95).</p></div><div class="rv"><b>Por qué así</b><p>Los puntos de distinto color están mezclados: el cambio no sigue a los parpadeos.</p></div><div class="rv inter"><b>Interacción</b><p>Cursor sobre una persona: ver sus datos.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s15" data-part="2" data-title="Validación 2 · Ritmo o fondo 1/f" data-focus="float" data-do="tab:explorer row:1" data-img="aper"
+  data-notes="¿Ritmo real o fondo 1/f? Qué muestra: El espectro de las dos noches y su fondo 1/f. Cómo se lee: Un pico en theta sobre el fondo es un ritmo. ρ = 0,78 con la parte periódica. Por qué así: Solo el espectro permite separar un ritmo del fondo. (20 s)">
+  <div class="side"><p class="eyebrow rv">Validación 2 · Ritmo o fondo 1/f</p><div class="tags rv"><i class="trust">T8</i></div><h2 class="rv">¿Ritmo real o fondo 1/f?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>El espectro de las dos noches y su fondo 1/f.</p></div><div class="rv"><b>Cómo se lee</b><p>Un pico en theta sobre el fondo es un ritmo. <b>ρ = 0,78</b> con la parte periódica.</p></div><div class="rv"><b>Por qué así</b><p>Solo el espectro permite separar un ritmo del fondo.</p></div><div class="rv inter"><b>Interacción</b><p>Clic en la banda gris: amplía theta.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s16" data-part="2" data-title="Validación 3 · Sincronía" data-focus="float" data-do="tab:explorer row:2" data-img="sync"
+  data-notes="¿Cambia la sincronía entre regiones? Qué muestra: Sincronía de theta entre 10 regiones del cerebro. Cómo se lee: Una red de regiones y, abajo, el efecto de cada par con su intervalo. Por qué así: Los intervalos muestran la incertidumbre: no hay cambio global (p = 0,58). (15 s)">
+  <div class="side"><p class="eyebrow rv">Validación 3 · Sincronía</p><div class="tags rv"><i class="trust">T8</i></div><h2 class="rv">¿Cambia la sincronía entre regiones?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Sincronía de theta entre 10 regiones del cerebro.</p></div><div class="rv"><b>Cómo se lee</b><p>Una red de regiones y, abajo, el efecto de cada par con su intervalo.</p></div><div class="rv"><b>Por qué así</b><p>Los intervalos muestran la incertidumbre: no hay cambio global (p = 0,58).</p></div><div class="rv inter"><b>Interacción</b><p>Cursor sobre una región o un par.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s17" data-part="2" data-title="Validación 4 · Similitud" data-focus="float" data-do="tab:explorer row:3" data-img="graph"
+  data-notes="¿Se parecen entre sí los vulnerables? Qué muestra: Cada persona unida a las tres más parecidas. Cómo se lee: On scatter: cada una en su lugar de la dispersión. Network: ordenadas por parecido. Por qué así: Si los vulnerables compartieran un patrón, estarían unidos entre sí. (20 s)">
+  <div class="side"><p class="eyebrow rv">Validación 4 · Similitud</p><div class="tags rv"><i class="who">T4</i><i class="trust">T8</i></div><h2 class="rv">¿Se parecen entre sí los vulnerables?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Cada persona unida a las tres más parecidas.</p></div><div class="rv"><b>Cómo se lee</b><p><b>On scatter</b>: cada una en su lugar de la dispersión. <b>Network</b>: ordenadas por parecido.</p></div><div class="rv"><b>Por qué así</b><p>Si los vulnerables compartieran un patrón, estarían unidos entre sí.</p></div><div class="rv inter"><b>Interacción</b><p>Cursor ilumina a las vecinas; clic elige.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s18" data-part="2" data-title="Clasificador 1 · Resultado" data-focus="mlsum" data-do="tab:classifier" data-img="mlsum"
+  data-notes="¿Se reconoce la noche sin dormir? Qué muestra: AUC 0,88 (0,5 es azar) y 81 % de acierto por persona. Cómo se lee: Punto lleno: el modelo. Vacío: la comparación. Línea punteada: azar. Por qué así: Se lee la validación antes que el puntaje: un AUC alto puede ser un truco. (20 s)">
+  <div class="side"><p class="eyebrow rv">Clasificador 1 · Resultado</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Se reconoce la noche sin dormir?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>AUC 0,88 (0,5 es azar) y 81 % de acierto por persona.</p></div><div class="rv"><b>Cómo se lee</b><p>Punto lleno: el modelo. Vacío: la comparación. <b>Línea punteada: azar.</b></p></div><div class="rv"><b>Por qué así</b><p>Se lee la validación antes que el puntaje: un AUC alto puede ser un truco.</p></div><div class="rv inter"><b>Interacción</b><p>Cursor sobre una fila: ver la prueba completa.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s19" data-part="2" data-title="Clasificador 2 · Registros" data-focus="mlrec" data-do="tab:classifier" data-img="mlrec"
+  data-notes="¿Dónde se equivoca el modelo? Qué muestra: Las 136 grabaciones en un plano que resume todos los rasgos. Cómo se lee: Círculo: normal. Rombo: privación. Anillo ámbar: error. Línea: misma persona. Por qué así: Forma y color repiten lo mismo. La línea muestra el paso de normal a privación. (20 s)">
+  <div class="side"><p class="eyebrow rv">Clasificador 2 · Registros</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Dónde se equivoca el modelo?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Las 136 grabaciones en un plano que resume todos los rasgos.</p></div><div class="rv"><b>Cómo se lee</b><p>Círculo: normal. Rombo: privación. <b>Anillo ámbar: error.</b> Línea: misma persona.</p></div><div class="rv"><b>Por qué así</b><p>Forma y color repiten lo mismo. La línea muestra el paso de normal a privación.</p></div><div class="rv inter"><b>Interacción</b><p>Clic en un registro: abre a la persona.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s20" data-part="2" data-title="Clasificador 3 · Rasgos" data-focus="mlfeat" data-do="tab:classifier" data-img="mlfeat"
+  data-notes="¿Qué rasgos empujan la decisión? Qué muestra: Qué rasgos empujan hacia privación y cuáles hacia noche normal. Cómo se lee: Punto: efecto promedio. Línea: rango entre 50 modelos. %: cuántas veces se usó. Por qué así: Un rasgo suelto es inestable: por eso se muestra el rango. (15 s)">
+  <div class="side"><p class="eyebrow rv">Clasificador 3 · Rasgos</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Qué rasgos empujan la decisión?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Qué rasgos empujan hacia privación y cuáles hacia noche normal.</p></div><div class="rv"><b>Cómo se lee</b><p>Punto: efecto promedio. Línea: rango entre 50 modelos. %: cuántas veces se usó.</p></div><div class="rv"><b>Por qué así</b><p>Un rasgo suelto es inestable: por eso se muestra el rango.</p></div><div class="rv inter"><b>Interacción</b><p>Clic en un rasgo: ver su efecto en la persona.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s21" data-part="2" data-title="Clasificador 4 · Grupos de rasgos" data-focus="mlimp" data-do="tab:classifier" data-img="mlimp"
+  data-notes="¿Qué familias de rasgos importan? Qué muestra: Cuánto necesita el modelo cada familia de rasgos. Cómo se lee: Barras desde cero, con su rango de confianza. Por qué así: Los grupos son más estables que los rasgos sueltos: se leen primero. (15 s)">
+  <div class="side"><p class="eyebrow rv">Clasificador 4 · Grupos de rasgos</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Qué familias de rasgos importan?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Cuánto necesita el modelo cada familia de rasgos.</p></div><div class="rv"><b>Cómo se lee</b><p>Barras desde cero, con su rango de confianza.</p></div><div class="rv"><b>Por qué así</b><p>Los grupos son más estables que los rasgos sueltos: se leen primero.</p></div><div class="rv inter"><b>Interacción</b><p>El filtro de rasgos resalta una familia.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s22" data-part="2" data-title="Clasificador 5 · Aciertos y errores" data-focus="mlmet" data-do="tab:classifier" data-img="mlmet"
+  data-notes="¿Se equivoca igual en las dos noches? Qué muestra: Los aciertos y errores del modelo en cada noche. Cómo se lee: Más oscuro: mayor proporción de esa fila. Por qué así: Se calcula por fila para comparar las noches: acierta 81 % en ambas. (15 s)">
+  <div class="side"><p class="eyebrow rv">Clasificador 5 · Aciertos y errores</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Se equivoca igual en las dos noches?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Los aciertos y errores del modelo en cada noche.</p></div><div class="rv"><b>Cómo se lee</b><p>Más oscuro: mayor proporción de esa fila.</p></div><div class="rv"><b>Por qué así</b><p>Se calcula por fila para comparar las noches: acierta 81 % en ambas.</p></div><div class="rv inter"><b>Interacción</b><p>El filtro de orden cambia la matriz.</p></div></div></div>
+</section>
+
+<section class="slide demo chart" id="s23" data-part="2" data-title="Clasificador 6 · Persona" data-focus="mlperson" data-do="tab:classifier person:sub-13" data-img="mlperson"
+  data-notes="¿Por qué decidió así con esta persona? Qué muestra: Qué rasgos pesaron en la decisión para una persona. Cómo se lee: Azul empuja a normal, rosa a privación, en sus dos grabaciones. Por qué así: Así se puede confiar, o dudar, de una decisión concreta. (15 s)">
+  <div class="side"><p class="eyebrow rv">Clasificador 6 · Persona</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Por qué decidió así con esta persona?</h2>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Qué rasgos pesaron en la decisión para una persona.</p></div><div class="rv"><b>Cómo se lee</b><p>Azul empuja a normal, rosa a privación, en sus dos grabaciones.</p></div><div class="rv"><b>Por qué así</b><p>Así se puede confiar, o dudar, de una decisión concreta.</p></div><div class="rv inter"><b>Interacción</b><p>Clic en un registro: llena este panel.</p></div></div></div>
+</section>
+
+<section class="slide alt" id="s24" data-part="2" data-title="Fundamentos de diseño"
+  data-notes="Los fundamentos de diseño, en seis ideas. Uno: personas antes que promedios. Dos: cada título de panel enuncia su hallazgo, no su tema. Tres: los grupos se definen solo por conducta. Cuatro: la incertidumbre siempre visible, con n, intervalos y bandas. Cinco: la exploración separada de la inferencia, con el multiverso. Seis: vistas coordinadas, con selección, hover y reproducción que actúan sobre todas a la vez. (50 s)">
+  <p class="eyebrow rv">Fundamentos de diseño</p>
+  <h2 class="rv">Seis decisiones <em>que sostienen la herramienta</em></h2>
+  <div class="dg">
+    <div class="rv"><svg><use href="#i-people"/></svg><b>Personas antes que promedios</b><span>Cada punto o columna es una persona.</span></div>
+    <div class="rv"><svg><use href="#i-bars"/></svg><b>El título es el hallazgo</b><span>Cada panel dice lo que encontró.</span></div>
+    <div class="rv"><svg><use href="#i-target"/></svg><b>Grupos solo por conducta</b><span>Por theta sería circular.</span></div>
+    <div class="rv"><svg><use href="#i-eye"/></svg><b>Incertidumbre siempre visible</b><span>n, intervalos y bandas en cada gráfico.</span></div>
+    <div class="rv"><svg><use href="#i-shield"/></svg><b>Explorar no es probar</b><span>896 análisis, calculados aparte.</span></div>
+    <div class="rv"><svg><use href="#i-link"/></svg><b>Vistas coordinadas</b><span>Una acción mueve todas las vistas.</span></div>
+  </div>
+  <p class="refs rv">Marcos teóricos: Brehmer y Munzner (2013) · Shneiderman (1996) · Cleveland y McGill (1984) · Munzner (2014)</p>
+</section>
+
+<section class="slide" id="s25" data-part="2" data-title="Hallazgos"
+  data-notes="Los hallazgos, con los datos corregidos. Uno: theta se vuelve más inestable en 50 de 68 personas, pero 18 van en sentido contrario, así que no es universal. Dos: el cambio es generalizado, los 61 electrodos sobreviven a la corrección. Tres: la relación con la conducta es débil: rho 0.16 frontal y 0.37 centro-temporal, en la dirección de Cui pero más baja que 0.55, así que no replicamos la magnitud publicada. Cuatro: es un ritmo, no el fondo 1 sobre f, y no son los parpadeos. Cinco: el multiverso no supera el azar. Seis: un clasificador explicable reconoce la noche de privación. (50 s)">
+  <p class="eyebrow rv">Principales hallazgos · datos corregidos</p>
+  <h2 class="rv">El cambio es <em>generalizado, pero no universal</em></h2>
+  <div class="fg">
+    <div class="f hero rv"><b><span class="cnt" data-to="50">50</span><i> / </i><span class="cnt" data-to="18">18</span></b><h4>Más inestable en 50 personas; al revés en 18</h4><p>t = 5,88 · d<sub>z</sub> = 0,71</p></div>
+    <div class="f rv"><b><span class="cnt" data-to="61">61</span> / 61</b><h4>Electrodos con cambio</h4><p>Todos, y sin foco frontal.</p></div>
+    <div class="f rv"><b>ρ +0,16 · +0,37</b><h4>Relación débil con la conducta</h4><p>Misma dirección que Cui et al., pero más débil que 0,55.</p></div>
+    <div class="f rv"><b>ρ 0,78</b><h4>Es un ritmo, no el fondo 1/f</h4><p>Y no son los parpadeos (ρ = 0,95).</p></div>
+    <div class="f rv"><b><span class="cnt" data-to="896">896</span></b><h4>Análisis distintos: ninguno supera al azar</h4><p>Multiverso con 2000 permutaciones.</p></div>
+    <div class="f wide rv"><b>AUC 0,88</b><h4>Se reconoce la noche sin dormir</h4><p>Acierta en el 81 % de las personas.</p></div>
+  </div>
+</section>
+
+
+
 <!-- ======================= 03 · CIERRE ======================= -->
 <section class="slide dark divider" id="s26" data-part="3" data-title="03 · Cierre" data-notes="Tercera parte: conclusiones, limitaciones y trabajo futuro.">
   <div class="dv"><span class="num rv">03</span><h2 class="rv">Cierre</h2><p class="rv">Qué nos llevamos, qué todavía no podemos afirmar y qué sigue.</p></div>
@@ -278,9 +280,9 @@
   <p class="eyebrow rv">Conclusiones</p>
   <h2 class="rv">Qué nos llevamos</h2>
   <ol class="concl">
-    <li class="rv"><div><b>Sí cambia, pero no a todos por igual.</b> Theta se vuelve más inestable en casi toda la cabeza: 50 personas suben y 18 bajan.</div></li>
-    <li class="rv"><div><b>La relación con la conducta es débil.</b> En la dirección de lo publicado, pero lejos de ρ ≈ 0,55: no replicamos la magnitud.</div></li>
-    <li class="rv"><div><b>Mostrar a las personas y todo el espacio de análisis</b> permite contarlo con honestidad. BATIMIX está hecha para eso.</div></li>
+    <li class="rv"><div><b>Sí cambia, pero no a todos por igual.</b> 50 personas suben y 18 bajan.</div></li>
+    <li class="rv"><div><b>La relación con la conducta es débil.</b> No replicamos el ρ ≈ 0,55 publicado.</div></li>
+    <li class="rv"><div><b>Ver a las personas y todo el análisis</b> permite contarlo con honestidad.</div></li>
   </ol>
 </section>
 
@@ -305,9 +307,9 @@
       <p class="eyebrow rv">Trabajo futuro</p>
       <h2 class="rv">Lo que sigue</h2>
       <ul class="next">
-        <li class="rv"><b>Probar con 3 a 5 usuarios</b> que resuelvan las ocho tareas pensando en voz alta.</li>
-        <li class="rv"><b>Otras bandas</b> (δ, α, β) y otros conjuntos de datos.</li>
-        <li class="rv"><b>Recalcular el tiempo de reacción</b> desde los ensayos del PVT.</li>
+        <li class="rv"><b>Probar la herramienta con usuarios reales:</b> 3 a 5 investigadores resolviendo las ocho tareas.</li>
+        <li class="rv"><b>Validar fuera de este conjunto:</b> otra cohorte, con más personas con prueba de vigilancia.</li>
+        <li class="rv"><b>Del laboratorio al campo:</b> ¿se puede avisar de la fatiga individual con EEG portátil?</li>
       </ul>
       <p class="thanks rv">Gracias</p>
       <p class="links rv">andrea-coa.github.io/data-visualization-project<br>github.com/Andrea-Coa/data-visualization-project</p>

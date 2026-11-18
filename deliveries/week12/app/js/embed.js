@@ -27,6 +27,7 @@
   const openSec = id => { const b = $(id); if(b && b.closest(".sec").dataset.open !== "true") b.click(); };
   function apply(m){
     dyn.stop();
+    document.querySelectorAll(".sidebox .sec[data-open=true] .secx").forEach(b => b.click());   // cierra las ventanas flotantes abiertas
     if(m.focus) document.body.dataset.focus = m.focus; else delete document.body.dataset.focus;
     (m.do || []).forEach(a => {
       if(a.startsWith("sec:")) openSec(a.slice(4));
