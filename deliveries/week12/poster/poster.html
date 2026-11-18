@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>BATIMIX · póster</title>
+<!-- Póster de 594 mm de ancho (ancho de A1) y alto ajustado al contenido; se imprime a PDF con Chrome (tamaño desde @page).
+     Figuras de ../paper; teaser-topo.png y teaser-records.png son recortes de las capturas de la app; QR con segno. -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+<style>
+@page { size: 594mm 1194mm; margin: 0; }
+* { box-sizing: border-box; }
+:root { --ink: #14181F; --ink2: #4a5260; --bar: #24466e; --ns: #2166AC; --sd: #B2182B; --gold: #ffd479; --bg: #f4f5f7; --line: #d6dae1; }
+html, body { margin: 0; background: #fff; }
+body { width: 594mm; font: 20pt/1.32 Roboto, Arial, sans-serif; color: var(--ink); }
+b { font-weight: 700; }
+.ns { color: var(--ns); font-weight: 700; } .sd { color: var(--sd); font-weight: 700; }
+
+/* cabecera */
+.head { background: var(--ink); color: #fff; padding: 11mm 18mm 8mm; display: grid; grid-template-columns: 52mm 1fr 44mm; gap: 12mm; align-items: center; }
+.head img.logo { width: 52mm; }
+.head h1 { margin: 0; font: 700 52pt/1.05 "Roboto Condensed", Arial, sans-serif; letter-spacing: .5pt; }
+.head .sub { font-size: 25pt; margin-top: 2.5mm; color: #dfe4ec; }
+.head .who { font-size: 17pt; margin-top: 3.5mm; color: #b8c0cc; }
+.head .qr { background: #fff; padding: 2mm; border-radius: 3mm; text-align: center; }
+.head .qr img { width: 100%; display: block; }
+.head .qr span { display: block; color: var(--ink); font: 700 13pt Roboto, Arial, sans-serif; margin-top: .5mm; }
+
+/* teaser: franja oscura con dos tarjetas */
+.tz { background: var(--ink); padding: 4mm 18mm 11mm; color: #fff; }
+.tz-grid { display: grid; grid-template-columns: 3.46fr 1.74fr; gap: 9mm; }
+.card { background: #fff; color: var(--ink); border-radius: 4mm; padding: 6mm 6mm 5mm; display: flex; flex-direction: column; }
+.card .q { font: 700 17pt Roboto, Arial, sans-serif; color: var(--ink2); text-transform: uppercase; letter-spacing: .6pt; }
+.card .a { display: flex; align-items: baseline; gap: 5mm; margin: 1mm 0 4mm; }
+.card .big { font: 700 66pt/1 "Roboto Condensed", Arial, sans-serif; color: var(--sd); white-space: nowrap; }
+.card .a span:last-child { font-size: 22pt; line-height: 1.22; }
+.card img { width: 100%; display: block; margin-top: auto; }
+.tz .punch { margin: 8mm 0 0; font: 700 31pt/1.25 Roboto, Arial, sans-serif; text-align: center; }
+.tz .punch b { color: var(--gold); }
+
+/* cuerpo */
+main { padding: 10mm 18mm 0; display: grid; gap: 9mm; grid-template-columns: 1fr 1fr 1fr; grid-auto-rows: min-content; }
+.box h2 { margin: 0 0 4mm; background: var(--bar); color: #fff; font: 700 24pt "Roboto Condensed", Arial, sans-serif; font-variant: small-caps; letter-spacing: .8pt; padding: 1.6mm 4mm 2mm; border-radius: 1.5mm; }
+.box p { margin: 0 0 3mm; }
+.box ul { margin: 0; padding-left: 6mm; }
+.box li { margin: 0 0 2mm; }
+.span2 { grid-column: span 2; } .span3 { grid-column: span 3; }
+.q9 { display: grid; grid-template-columns: 14mm 1fr; row-gap: 1.8mm; font-size: 18.5pt; }
+.q9 i { font-style: normal; font-weight: 700; color: var(--bar); }
+figure { margin: 0; }
+figure img { width: 100%; display: block; border: .4mm solid var(--line); }
+figcaption { font-size: 15pt; color: var(--ink2); margin-top: 2mm; line-height: 1.3; }
+.keys { display: grid; grid-template-columns: 1fr 1fr; gap: 1.8mm 6mm; margin-top: 3mm; font-size: 17.5pt; line-height: 1.27; }
+.keys div { display: grid; grid-template-columns: 9mm 1fr; align-items: start; }
+.k { display: inline-grid; place-items: center; width: 7.4mm; height: 7.4mm; border-radius: 50%; background: var(--ink); color: #fff; font: 700 13pt Arial, sans-serif; }
+.find { display: grid; gap: 3mm; }
+.find div { display: grid; grid-template-columns: 46mm 1fr; align-items: center; background: var(--bg); border-radius: 2mm; padding: 2.4mm 3.5mm; font-size: 18pt; line-height: 1.25; }
+.find .n { font: 700 29pt/1 "Roboto Condensed", Arial, sans-serif; color: var(--sd); }
+.find .n.gray { color: var(--ink2); }
+.bars { display: grid; grid-template-columns: 38mm 1fr 12mm; gap: 2.5mm 3mm; align-items: center; font-size: 18pt; margin: 2mm 0 3mm; }
+.bars .t { height: 9mm; background: var(--bg); border-radius: 1.5mm; overflow: hidden; }
+.bars .t i { display: block; height: 100%; background: var(--sd); }
+.bars .v { font-weight: 700; text-align: right; }
+.note { font-size: 15.5pt; color: var(--ink2); }
+.access2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; text-align: center; font-size: 17pt; }
+.access2 img { width: 100%; display: block; margin-bottom: 2mm; }
+.access2 .url { font: 11.5pt Consolas, "Courier New", monospace; color: var(--ink2); word-break: break-all; display: block; margin-top: 1mm; }
+footer { padding: 6mm 18mm 9mm; font-size: 13pt; color: var(--ink2); line-height: 1.35; display: grid; grid-template-columns: 2fr 1fr; gap: 10mm; border-top: .5mm solid var(--line); margin-top: 9mm; }
+</style>
+</head>
+<body>
+
+<header class="head">
+  <img class="logo" src="../app/assets/logo.png" alt="Logo de BATIMIX">
+  <div>
+    <h1>BATIMIX: una noche sin dormir no le pasa igual a todos</h1>
+    <div class="sub">Un sistema de analítica visual para ver qué cambia en el EEG tras la privación de sueño, y en quién</div>
+    <div class="who">Jimena Gurbillon · Andrea Coa · Paolo Medrano — DS5343 Visualización de Datos, UTEC 2026-2</div>
+  </div>
+  <div class="qr"><img src="qr-app.svg" alt="Código QR de la aplicación"><span>Pruébalo</span></div>
+</header>
+
+<section class="tz">
+  <div class="tz-grid">
+    <div class="card">
+      <div class="q">¿Dónde cambia el cerebro tras no dormir?</div>
+      <div class="a"><span class="big">61 de 61</span><span>electrodos: theta se vuelve <b>más irregular en toda la cabeza</b> (σθ: sueño normal, sin dormir y diferencia)</span></div>
+      <img src="teaser-topo.png" alt="Mapas de σθ tras sueño normal, tras privación y su diferencia, con aros en los 61 electrodos significativos">
+    </div>
+    <div class="card">
+      <div class="q">¿Se reconoce la noche sin dormir?</div>
+      <div class="a"><span class="big">AUC 0.89</span><span>en <b>4 de cada 5</b> personas</span></div>
+      <img src="teaser-records.png" alt="Los 136 registros del clasificador: círculos sueño normal y rombos privación, coloreados por la probabilidad predicha">
+    </div>
+  </div>
+  <p class="punch">Pero cuánto cambia <b>no predice quién rinde peor</b> (ρ = +0.18 con el tiempo de reacción).</p>
+</section>
+
+<main>
+
+  <section class="box">
+    <h2>Problema</h2>
+    <p>Tras una noche sin dormir, unas personas rinden mucho peor y otras casi igual. El promedio del grupo oculta esa diferencia.</p>
+    <p>Cui et al. (2026) propusieron un marcador en el EEG de reposo: cuánto se vuelve <b>más irregular el ritmo theta</b> (4–8 Hz).</p>
+    <p><b>Pregunta:</b> ¿qué cambia en el cerebro tras no dormir, y sirve para saber quién se deteriora?</p>
+    <p><b>Para quién:</b> investigadores del sueño que exploran datos públicos antes de una prueba formal.</p>
+  </section>
+
+  <section class="box">
+    <h2>Datos</h2>
+    <ul>
+      <li><b>OpenNeuro ds004902</b> (Xiang et al., 2024, CC0).</li>
+      <li><b>68 personas</b> con EEG en dos noches: tras dormir normal (<span class="ns">NS</span>) y tras 24–30 h sin dormir (<span class="sd">SD</span>).</li>
+      <li>61 electrodos, 5 min en reposo con ojos abiertos.</li>
+      <li>Conducta: reacción (PVT, 30 personas), somnolencia (KSS, SSS) y ánimo (PANAS).</li>
+    </ul>
+    <p style="margin-top:3mm"><b>Qué medimos</b>, en épocas de 4 s: <b>σθ</b> = qué tan irregular es theta; <b>μθ</b> = su nivel medio; <b>Δ</b> = SD − NS.</p>
+  </section>
+
+  <section class="box">
+    <h2>Preguntas</h2>
+    <div class="q9">
+      <i>T1</i><span>¿En qué parte de la cabeza cambia?</span>
+      <i>T2</i><span>¿Cambia cuánto hay, o qué tan inestable es?</span>
+      <i>T3</i><span>¿Quiénes la pasan peor?</span>
+      <i>T4</i><span>¿Los que la pasan mal se parecen?</span>
+      <i>T5</i><span>Más cambio en el cerebro, ¿es peor en la prueba?</span>
+      <i>T6</i><span>¿Cuándo pasa, y se va acumulando?</span>
+      <i>T7</i><span>¿Depende de si eres hombre o mujer, o de cómo duermes?</span>
+      <i>T8</i><span>Si analizo distinto, ¿sigue saliendo lo mismo?</span>
+      <i>T9</i><span>¿Se reconoce la noche sin dormir, y con qué pistas?</span>
+    </div>
+  </section>
+
+  <section class="box span2">
+    <h2>Método</h2>
+    <figure>
+      <img src="../paper/fig1-resumen-grafico.svg" alt="Resumen gráfico del procesamiento: del EEG crudo a las dos pestañas" style="border:0">
+      <figcaption>EEG limpio con referencia promedio e ICA (quita ojos y músculo) → theta relativa por época y electrodo → σθ, μθ y Δ por persona. Abajo: Δ junto a la conducta alimenta Explorer, y 147 rasgos por registro alimentan el clasificador de Classifier.</figcaption>
+    </figure>
+  </section>
+
+  <section class="box">
+    <h2>Hallazgos</h2>
+    <div class="find">
+      <div><span class="n">46 de 68</span><span>personas: theta se vuelve <b>más irregular</b>; 22 van al revés</span></div>
+      <div><span class="n">61 de 61</span><span>electrodos: el cambio está en <b>toda la cabeza</b></span></div>
+      <div><span class="n">5 min</span><span>el efecto está desde el inicio y no desaparece</span></div>
+      <div><span class="n">AUC 0.89</span><span>un modelo reconoce la noche sin dormir; <b>θ</b> es lo que más pesa</span></div>
+      <div><span class="n gray">ρ = +0.18</span><span>cuánto cambia <b>no predice</b> quién reacciona más lento (n = 30)</span></div>
+    </div>
+  </section>
+
+  <section class="box span3" style="display:grid; grid-template-columns: 1fr 1fr; gap: 9mm;">
+    <div>
+      <h2>Explorer: qué cambia, dónde, cuándo y en quién</h2>
+      <figure><img src="../paper/fig2-explorer.png" alt="Pestaña Explorer con vistas A a E"></figure>
+      <div class="keys">
+        <div><span class="k">A</span><span><b>Topografía:</b> mapas NS, SD y Δ; aros = cambio significativo</span></div>
+        <div><span class="k">B</span><span><b>Tiempo:</b> σθ a lo largo de los 5 min</span></div>
+        <div><span class="k">C</span><span><b>Vulnerabilidad:</b> cada punto es una persona; esquina ámbar = más afectados</span></div>
+        <div><span class="k">D</span><span><b>Individual:</b> persona × electrodo, por grupo de conducta</span></div>
+        <div><span class="k">E</span><span><b>Validación:</b> controles de 1/f, parpadeos, sincronía y similitud</span></div>
+      </div>
+    </div>
+    <div>
+      <h2>Classifier: qué rasgos delatan la noche sin dormir</h2>
+      <figure><img src="../paper/fig3-classifier.png" alt="Pestaña Classifier con vistas F a K"></figure>
+      <div class="keys">
+        <div><span class="k">F</span><span><b>Resultado:</b> AUC y seis controles de validez</span></div>
+        <div><span class="k">G</span><span><b>Registros:</b> los 136, con errores en naranja</span></div>
+        <div><span class="k">H</span><span><b>Rasgos:</b> cuáles empujan hacia SD o NS</span></div>
+        <div><span class="k">I</span><span><b>Grupos:</b> importancia por banda, región y tipo</span></div>
+        <div><span class="k">J</span><span><b>Métricas:</b> matriz de confusión</span></div>
+        <div><span class="k">K</span><span><b>Persona:</b> por qué decidió así con sus dos registros</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="box span2">
+    <h2>Interacciones clave</h2>
+    <ul>
+      <li><b>Clic o lazo</b> sobre personas: todas las vistas pasan a mostrarlas, también en la otra pestaña.</li>
+      <li><b>Clic en un electrodo</b> (mapa o mapa de calor): pasa a ser el eje x y la serie de tiempo.</li>
+      <li><b>Clic o arrastre en la vista de tiempo</b>: mapas y personas se recalculan para esa ventana; <b>Series</b> muestra mapas por bloque y <b>▶</b> recorre los 5 minutos.</li>
+      <li><b>Compare</b>: divide a todos en dos grupos (sexo, sueño habitual, orden de sesión) y repinta todo con dos colores.</li>
+      <li><b>Band</b>: repite todo para δ, α o β.</li>
+      <li><b>ⓘ</b> en cada vista: cómo leerla y sus cifras. Un enlace guarda la vista exacta.</li>
+    </ul>
+  </section>
+
+  <section class="box">
+    <h2>¿Solo theta?</h2>
+    <p class="note" style="margin-bottom:1mm">Electrodos donde σ sube tras la privación (FDR, de 61):</p>
+    <div class="bars">
+      <span><b>θ</b> 4–8 Hz</span><div class="t"><i style="width:100%"></i></div><span class="v">61</span>
+      <span><b>δ</b> 1–4 Hz</span><div class="t"><i style="width:59%"></i></div><span class="v">36</span>
+      <span><b>β</b> 13–30 Hz</span><div class="t"><i style="width:25%"></i></div><span class="v">15</span>
+      <span><b>α</b> 8–13 Hz</span><div class="t"><i style="width:0%"></i></div><span class="v">0</span>
+    </div>
+    <p class="note">Theta es la banda que más cambia. En delta, el aumento es sobre todo fondo 1/f, no un ritmo.</p>
+  </section>
+
+  <section class="box">
+    <h2>¿Podemos confiar?</h2>
+    <ul>
+      <li><b>Es un ritmo real:</b> el cambio sigue a la parte rítmica de theta (ρ = 0.81), no al fondo 1/f.</li>
+      <li><b>No son parpadeos:</b> sin ellos, el cambio casi no varía (ρ = 0.94).</li>
+      <li><b>No es la segunda visita:</b> ajustado por el orden de sesión, el efecto sigue en 61 de 61 electrodos; el de la visita, en ninguno.</li>
+    </ul>
+  </section>
+
+  <section class="box">
+    <h2>Lo que aprendimos</h2>
+    <ul>
+      <li>Un efecto claro en el grupo <b>no es</b> un marcador individual.</li>
+      <li>Explorer y Classifier llegan a lo mismo por caminos distintos: <b>σθ</b> es la señal más fuerte.</li>
+      <li>Mostrar los controles junto al resultado evita leer un AUC alto como una explicación fiable.</li>
+    </ul>
+  </section>
+
+  <section class="box">
+    <h2>Limitaciones</h2>
+    <ul>
+      <li>Solo 30 personas tienen PVT en las dos noches.</li>
+      <li>El vínculo con la reacción es frágil: un cambio pequeño en la limpieza lo mueve.</li>
+      <li>No hay un marcador de vigilancia durante el registro.</li>
+      <li>Falta una prueba con usuarios.</li>
+    </ul>
+  </section>
+
+  <section class="box span3" style="display:grid; grid-template-columns: 2fr 1fr; gap: 9mm; align-items: start;">
+    <div>
+      <h2>Acceso</h2>
+      <p>La aplicación funciona en el navegador, sin instalar nada. La página del proyecto tiene el video, el paper y los datos procesados.</p>
+      <p class="note">Implementación: D3.js en el navegador; procesamiento en Python con MNE, specparam, TSFEL, scikit-learn e InterpretML.</p>
+    </div>
+    <div class="access2">
+      <div><img src="qr-app.svg" alt="QR de la aplicación"><b>Aplicación</b><span class="url">…/deliveries/week12/app</span></div>
+      <div><img src="qr-project.svg" alt="QR de la página del proyecto"><b>Proyecto</b><span class="url">…/deliveries/week12/project</span></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div><b>Referencias.</b> Z. Cui et al., "Exploring the differences in neural oscillation mechanisms before and after sleep deprivation," <i>Front. Neurosci.</i>, 2026. · C. Xiang et al., "A resting-state EEG dataset for sleep deprivation," <i>Sci. Data</i>, 2024. · M. Brehmer y T. Munzner, "A multi-level typology of abstract visualization tasks," <i>IEEE TVCG</i>, 2013. · X. Xuan et al., "VISTA," arXiv:2507.09008, 2025.</div>
+  <div><b>Enlaces:</b> andrea-coa.github.io/data-visualization-project/deliveries/week12/app y …/project</div>
+</footer>
+
+</body>
+</html>
