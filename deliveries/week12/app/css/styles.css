@@ -623,7 +623,9 @@ body[data-focus="compare"] .bar .fld:not(:has(#cmpsel)){opacity:.35}
   .board.swap .col-s{order:5}
   .board.swap .col-l{order:-1}
   .col-l{grid-template-rows:auto minmax(0,1fr)}
-  .p-scatter .view{height:min(calc(100cqw + 2px), calc(50vh - 70px), calc(50svh - 70px))}
+  /* dispersión chica (17 nov 2026): un cuadrado de ~70 % del ancho de la columna, como mucho un 38 % del alto de la
+     ventana; el mapa de calor (68 personas × 61 electrodos) se queda con el resto del alto, que es lo que más necesita */
+  .p-scatter .view{height:min(calc(72cqw + 2px), calc(38vh - 40px), calc(38svh - 40px))}
 }
 /* ventanas bajas: sin el subtítulo y con la dispersión más chica, para que la Individual View quepa */
 @media (min-width:1101px) and (max-height:800px){
