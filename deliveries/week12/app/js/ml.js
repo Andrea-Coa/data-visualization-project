@@ -278,6 +278,13 @@
   }
 
   // ---------------------------------------------------------------- persona: contribuciones locales y la feature elegida
+  function qualLine(id){
+    const q = typeof QUAL !== "undefined" && QUAL && QUAL.persons[id]; if(!q) return "";
+    const one = (c, nm) => { const r = q[c]; if(!r) return `<span><b>${nm}</b> excluded</span>`;
+      const t = `${r.epochs ?? "?"}/75 epochs · ${r.interpolated.length ? `${r.interpolated.length} interp.` : "no interp."}${r.blinks_per_min != null ? ` · ${r.blinks_per_min} blinks/min` : ""}`;
+      return `<span title="${nm === "NS" ? "Normal Sleep" : "Sleep Deprivation"}: ${t}${r.interpolated.length ? ` (${r.interpolated.join(", ")})` : ""}${r.ica_removed != null ? `; ${r.ica_removed} ICA components removed` : ""}"><b>${nm}</b> ${t}</span>`; };
+    return `<div class="pqual">${one("NS", "NS")}${one("SD", "SD")}</div>`;
+  }
   function drawPerson(){
     const el = $("person"); d3.select(el).selectAll("*").remove(); d3.select("#k-person").html("");
     if(!ST.person){
@@ -286,13 +293,13 @@
       return;
     }
     const idx = personIdx(ST.person).sort((a, b) => isSD(a) - isSD(b)), r0 = M.records[idx[0]], ok = idx.filter(correct).length;
-    // título y enlace primero: ocupan alto, y el gráfico se mide después
-    d3.select("#k-person").html(`<button type="button" class="plink">Open in Explorer →</button>`).select("button")
-      .on("click", () => { const id = ST.person; showTab("explorer"); if(typeof setSelected === "function") setSelected([id]); });
+    // título y calidad del EEG primero: ocupan alto, y el gráfico se mide después. La calidad (data/quality.json, la
+    // misma del tooltip de Explorer) va aquí porque ante un error lo primero es descartar un mal registro
+    d3.select("#k-person").html(qualLine(ST.person));
     setTitle("t-person", ST.person, `${r0.order.replace("->", "→")} · ${ok === 2 ? "both right" : ok === 1 ? "one wrong" : "both wrong"}`,
       notes(`Waterfalls: each bar is how much one feature moved this recording's score (log-odds of deprivation) from the start (${MDN[ST.md]} intercept) to its final value; pink pushes toward deprivation, blue toward normal sleep. The largest ones that fit are shown (up to 8) and the rest summed. Model: the one trained without this person (out of fold, repetition 1).`,
         "Bottom (when there is room): the chosen feature for all 136 recordings, split by condition, with this person's two recordings ringed. Click a bar or a feature to change it.",
-        "Open in Explorer: the Explorer tab with this person selected (maps, time and Individual View)."));
+        "EEG quality under the name: epochs kept of 75, channels interpolated and blinks per minute in each recording. Many rejected epochs or blinks point to a noisy recording rather than to the physiology."));
     const W = el.clientWidth || 400, Hv = Math.max(150, el.clientHeight || 600);
     const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${Hv}`).attr("height", Hv).attr("role", "img").attr("aria-label", `Contributions for ${ST.person}`);
     // cascada por registro: del intercepto a la puntuación final (log-odds), top 8 y el resto
@@ -320,8 +327,8 @@
             (d.c && S().values[d.c] ? trow("Value", fr(S().values[d.c][i]) + " " + F(d.c).unit) : "")))
           .on("pointermove", ev => moveTip(ev)).on("pointerleave", hideTip);
       });
-      svg.append("g").attr("class", "axis").attr("transform", `translate(0,${oy+half-22})`).call(d3.axisBottom(x).ticks(4).tickSizeOuter(0).tickFormat(fTick(L.format("+.1f"))));
-      svg.append("text").attr("class", "sub").attr("x", lw-6).attr("y", oy+half-8).attr("text-anchor", "end").text("log-odds of deprivation →");
+      svg.append("g").attr("class", "axis").attr("transform", `translate(0,${oy+half-22})`).call(d3.axisBottom(x).ticks(W < 420 ? 3 : 5).tickSizeOuter(0).tickFormat(fTick(L.format("+~g"))));
+      svg.append("text").attr("class", "sub").attr("x", lw-14).attr("y", oy+half-22+15).attr("text-anchor", "end").text("log-odds of SD →");
     });
     // feature elegida: valores de los 136 registros por condición, con los dos de esta persona
     const c = ST.feat && S().values[ST.feat] ? ST.feat : (loc[0].top[0] || [null])[0];
@@ -342,12 +349,13 @@
         const k = isSD(i) ? 1 : 0, cy = oy + 30 + k*rh + rh/2;
         svg.append("circle").attr("cx", sx(vals[i])).attr("cy", cy).attr("r", 5.5).attr("fill", "none").attr("stroke", C.ink).attr("stroke-width", 2);
       });
-      svg.append("g").attr("class", "axis").attr("transform", `translate(0,${oy+30+2*rh+4})`).call(d3.axisBottom(sx).ticks(4).tickSizeOuter(0).tickFormat(axf(sx.domain())));
+      svg.append("g").attr("class", "axis").attr("transform", `translate(0,${oy+30+2*rh+4})`).call(d3.axisBottom(sx).ticks(W < 420 ? 3 : 4).tickSizeOuter(0).tickFormat(axf(sx.domain())));
       if(shp) svg.append("text").attr("class", "sub").attr("x", lw).attr("y", oy+24).text("its EBM shape curve is in Features");
     }
   }
 
   // ---------------------------------------------------------------- estado y controles
+  // cada pestaña tiene su propia selección: elegir a alguien aquí no cambia la de Explorer (ni al revés)
   function pick(id){ ST.person = ST.person === id ? null : id; ST.feat = null; drawRec(); drawPerson(); }
   function drawAll(){ if(!M || !document.body.classList.contains("tab-ml")) return; readPalette(); drawCards(); drawMlVal(); drawRec(); drawImp(); drawFeat(); drawMet(); drawPerson(); }
   function load(){
