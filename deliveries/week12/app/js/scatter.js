@@ -169,7 +169,7 @@ const scatter = (() => {
     const head = "Δθ vs. Δ behavior", G = cmpGroups(), xk = S.xKey(), yk = yK();
     const inf = info("Does a larger θ change go with a larger behavioral change? A flat cloud means no.",
       "One dot per person. Shaded: above the median on both (vulnerable). Click to select, drag a lasso for a group.",
-      "Spearman ρ with bootstrap 95% CI.");
+      "Spearman ρ; 95% CI by Fisher z.");
     const rho = rows => { const r = spearman(rows, xk, yk); return isNaN(r.rho) ? `n = ${r.n}` : `Spearman ρ = ${f2(r.rho)} [${f2(r.lo)}, ${f2(r.hi)}], n = ${r.n}`; };
     const sub = G ? G.map(g => `${g.name}: ${rho(EEG.filter(d => g.set.has(d.id)))}`).join("; ")
       : rho(S.selected ? EEG.filter(d => S.selected.includes(d.id)) : EEG);
