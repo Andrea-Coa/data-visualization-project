@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BATIMIX: A Visual Analytics System for Individual Vulnerability to Sleep Deprivation</title>
-<meta name="description" content="BATIMIX: a visual analytics system for individual vulnerability to sleep deprivation. How each person's resting-EEG theta rhythm changes after a sleepless night. DS5343, UTEC 2026-2.">
+<meta name="description" content="BATIMIX: a visual analytics system for individual vulnerability to sleep deprivation. How each person's resting-EEG theta rhythm changes after a sleepless night, and whether an explainable model can tell the nights apart. DS5343, UTEC 2026-2.">
 <meta name="color-scheme" content="light">
 <link rel="icon" href="../app/assets/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,9 +12,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<a class="skip" href="#content">Skip to content</a>
-
 <body>
 <a class="skip" href="#story">Skip to the tour</a>
 
@@ -36,13 +33,13 @@
   <div class="wrap">
     <p class="kicker">Data visualization project · DS5343</p>
     <h1>BATIMIX <span class="h1sub">A Visual Analytics System for Individual Vulnerability to <em>Sleep Deprivation</em></span></h1>
-    <p class="team"><b>Jimena Gurbillon</b>, <b>Andrea Coa</b> and <b>Paolo Medrano</b></p>
     <p class="course">DS5343 Data Visualization · UTEC 2026-2 · Prof. Germain García-Zanabria</p>
-    <p class="lead intro">One screen, read in eight steps. Scroll to walk through the tool and see what each part answers.</p>
+    <p class="lead intro">One screen, read in twelve steps: scroll to walk through the tool and see what each part answers</p>
     <ul class="actions">
       <li><a class="btn primary" href="#story">Start the tour</a></li>
       <li><a class="btn" href="../app/index.html">Open the application</a></li>
       <li><a class="btn" href="../paper/FinalPaper.pdf">Paper (PDF)</a></li>
+      <li><a class="btn" href="../poster/poster.pdf">Poster (PDF)</a></li>
       <li><a class="btn" href="https://github.com/Andrea-Coa/data-visualization-project">GitHub repository</a></li>
     </ul>
     <p class="legend" aria-label="Color code">
@@ -60,7 +57,7 @@
         <div class="card">
           <p class="num" aria-hidden="true">01</p>
           <h3>One night without sleep, 68 brains</h3>
-          <p>Each person was recorded resting for five minutes twice: after a normal night (<b class="ns">NS</b>) and after 24 to 30 hours awake (<b class="sd">SD</b>). We look at theta, a slow rhythm that tends to rise when we are sleepy, and ask who changes and how.</p><p>Everything lives on one screen. Follow it in this order.</p>
+          <p>Each person was recorded resting for five minutes twice: after a normal night (<b class="ns">NS</b>) and after 24 to 30 hours awake (<b class="sd">SD</b>). We look at theta, a slow rhythm that tends to rise when we are sleepy, and ask who changes and how</p><p>Everything lives on one screen. Follow it in this order</p>
           <p class="ans">The whole tool</p>
         </div>
       </article>
@@ -68,7 +65,7 @@
         <div class="card">
           <p class="num" aria-hidden="true">02</p>
           <h3>Where does the rhythm change?</h3>
-          <p>Each head is the scalp seen from above. Warm colors mean theta went up after the sleepless night, cool colors that it went down. A ring marks places where the change is unlikely to be chance.</p><p>The two rows separate two things: how much theta changed (<i>amount</i>) and how irregular it became (<i>variability</i>).</p>
+          <p>Each head is the scalp seen from above. Warm colors mean theta went up after the sleepless night, cool colors that it went down. A ring marks places where the change is unlikely to be chance</p><p>The two rows separate two things: how much theta changed (<i>amount</i>) and how irregular it became (<i>variability</i>).</p>
           <p class="ans">Where · what kind of change</p>
         </div>
       </article>
@@ -76,7 +73,7 @@
         <div class="card">
           <p class="num" aria-hidden="true">03</p>
           <h3>Who gets hit, and does it show in behavior?</h3>
-          <p>Every dot is a person. Left to right, theta became more unstable; bottom to top, they got slower on the reaction test. The amber corner holds people who got worse on both.</p><p>If instability went with slowness, the dots would line up along a diagonal. Here the trend is weak and not significant: centrotemporal ρ = +0.30, frontal ρ = +0.18.</p>
+          <p>Every dot is a person. Left to right, theta became more unstable; bottom to top, they got slower on the reaction test. The amber corner holds people who got worse on both</p><p>If instability went with slowness, the dots would line up along a diagonal. Here the trend is weak and not significant: centrotemporal ρ = +0.30, frontal ρ = +0.18.</p>
           <p class="ans">Who · does it go together</p>
         </div>
       </article>
@@ -84,7 +81,7 @@
         <div class="card">
           <p class="num" aria-hidden="true">04</p>
           <h3>Is it the same pattern in everyone?</h3>
-          <p>Now one column per person and one row per electrode. If the vulnerable people shared a signature, their columns would look alike. Instead, red and blue are mixed: each person changes differently.</p>
+          <p>Now one column per person and one row per electrode. If the vulnerable people shared a signature, their columns would look alike. Instead, red and blue are mixed: each person changes differently</p>
           <p class="ans">Same pattern, or one each</p>
         </div>
       </article>
@@ -92,7 +89,7 @@
         <div class="card">
           <p class="num" aria-hidden="true">05</p>
           <h3>When, within the five minutes?</h3>
-          <p>Press play in the Topography View and the whole tool moves through time: the maps evolve, a dot travels along this chart, the scatter and the heatmap recompute for the same 40-second window, and the similarity graph regroups.</p>
+          <p>Press play in the Topography View and the whole tool moves through time: the maps evolve, a dot travels along this chart, the scatter and the heatmap recompute for the same 40-second window, and the similarity graph regroups</p>
           <p class="ans">When · does it build up</p>
         </div>
       </article>
@@ -100,7 +97,7 @@
         <div class="card">
           <p class="num" aria-hidden="true">06</p>
           <h3>Does it depend on who the person is?</h3>
-          <p>One control splits everyone in two: women and men, which night came first, good or poor sleepers. Every view repaints with two colors, so any difference shows up everywhere at once.</p>
+          <p>One control splits everyone in two: women and men, which night came first, good or poor sleepers. Every view repaints with two colors, so any difference shows up everywhere at once</p>
           <p class="ans">Who it depends on</p>
         </div>
       </article>
@@ -108,15 +105,47 @@
         <div class="card">
           <p class="num" aria-hidden="true">07</p>
           <h3>Can we trust what we just saw?</h3>
-          <p>The right-hand panel tries to break the finding: is it a real rhythm or background noise, could blinks explain it, do regions synchronize differently? Below them, a network links each person to the three whose pattern of change is most alike. The vulnerable people do not form a cluster.</p>
+          <p>The right-hand panel tries to break the finding: is it a real rhythm or background noise, could blinks explain it, do regions synchronize differently? Below them, a network links each person to the three whose pattern of change is most alike. The vulnerable people do not form a cluster</p>
           <p class="ans">Would it survive another analysis</p>
         </div>
       </article>
-      <article class="step" data-focus="" data-n="8">
+      <article class="step" data-focus="mlsum" data-do="tab:classifier" data-n="8">
         <div class="card">
           <p class="num" aria-hidden="true">08</p>
+          <h3>Can a model tell the two nights apart?</h3>
+          <p>Beyond looking, we asked a simple and explainable model (logistic regression) to recognize the sleepless night from the theta features alone. It reaches an AUC of 0.89 and picks the right night for 80% of the 68 people, and a permutation test gives p ≤ 0.001.</p>
+          <p class="ans">Can a model tell them apart</p>
+        </div>
+      </article>
+      <article class="step" data-focus="mlrec" data-do="tab:classifier" data-n="9">
+        <div class="card">
+          <p class="num" aria-hidden="true">09</p>
+          <h3>Where does the model go wrong?</h3>
+          <p>Each of the 136 recordings is a point in a plane that summarizes all the features. Circles are normal sleep, diamonds are sleep deprivation, and an amber ring marks a mistake. A line joins the two nights of the same person</p>
+          <p class="ans">Where it errs</p>
+        </div>
+      </article>
+      <article class="step" data-focus="mlfeat" data-do="tab:classifier" data-n="10">
+        <div class="card">
+          <p class="num" aria-hidden="true">10</p>
+          <h3>Which features push the decision?</h3>
+          <p>Each dot is how strongly a feature pushes toward sleep deprivation (red) or toward normal sleep (blue), with its range across 50 models. Next to it, shuffling a whole family of features shows how much the model needs it</p>
+          <p class="ans">Why the model decides</p>
+        </div>
+      </article>
+      <article class="step" data-focus="mlperson" data-do="tab:classifier person:sub-13" data-n="11">
+        <div class="card">
+          <p class="num" aria-hidden="true">11</p>
+          <h3>Why did it decide that for this person?</h3>
+          <p>Click a record and the panel shows what each feature contributed for that person on each night. Blue pulls toward normal sleep and red toward deprivation, so every decision can be inspected instead of trusted</p>
+          <p class="ans">One decision, explained</p>
+        </div>
+      </article>
+      <article class="step" data-focus="" data-do="tab:explorer" data-n="12">
+        <div class="card">
+          <p class="num" aria-hidden="true">12</p>
           <h3>So, what do we take home?</h3>
-          <p>A sleepless night moves theta in different directions in different people, and that movement does not reliably tell who deteriorates. Close to 900 alternative analyses point the same way: none does better than chance. So the result asks for caution, and it points to where to look next.</p>
+          <p>A sleepless night moves theta in different directions in different people, and that movement does not reliably tell who deteriorates. Close to 900 alternative analyses point the same way: none does better than chance. A model still recognizes the sleepless night, so the nights do differ, but who deteriorates is hard to predict. So the result asks for caution, and it points to where to look next</p>
           <p class="ans">The answer</p>
         </div>
       </article>
@@ -126,7 +155,7 @@
         <iframe id="appframe" title="BATIMIX application" src="../app/index.html?embed=1&amp;theme=light"></iframe>
       </div>
       <div class="stage-foot">
-        <ol class="dots" id="dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ol>
+        <ol class="dots" id="dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ol>
         <div class="stage-tools">
           <button class="btn" id="explore" type="button" aria-pressed="false">Try it yourself</button>
           <a class="btn" href="../app/index.html" target="_blank" rel="noopener">Open full screen</a>
@@ -142,19 +171,20 @@
     <section aria-labelledby="h-findings">
       <h2 id="h-findings">Preliminary findings</h2>
       <ul class="facts">
-        <li><span class="q">Does everyone change the same way?</span><span class="n">46 and 22</span><span class="r">people more unstable and more stable without sleep; most rise (mean +0.0135, d<sub>z</sub> = 0.74), but not everyone.</span></li>
-        <li><span class="q">Where does it change?</span><span class="n">61 of 61</span><span class="r">electrodes after FDR for σθ (42 of 61 for μθ): a widespread change, across the whole scalp.</span></li>
-        <li><span class="q">When, within five minutes?</span><span class="n">61 of 61</span><span class="r">60-s windows with moving σθ in SD above NS (frontal): the rise holds throughout the five minutes.</span></li>
-        <li><span class="q">Is more unstable slower?</span><span class="n">ρ = +0.30</span><span class="r">[−0.07, +0.59], n = 30, p = 0.11, centrotemporal (frontal +0.18): the direction of Cui et al. (2026), weaker than their 0.54–0.56 and not significant.</span></li>
-        <li><span class="q">Oscillation or 1/f?</span><span class="n">ρ = 0.81–0.82</span><span class="r">between the change in σθ and in periodic theta: the effect is mostly oscillatory.</span></li>
-        <li><span class="q">Does it depend on the analysis?</span><span class="n">p ≥ 0.28</span><span class="r">896 analyses, two preprocessing pipelines: no joint statistic exceeds chance; PVT reaction time is the most consistent marker.</span></li>
+        <li><span class="q">Does everyone change the same way?</span><span class="n">46 and 22</span><span class="r">people more unstable and more stable without sleep; most rise (mean +0.0135, d<sub>z</sub> = 0.74), but not everyone</span></li>
+        <li><span class="q">Where does it change?</span><span class="n">61 of 61</span><span class="r">electrodes after FDR for σθ (42 of 61 for μθ): a widespread change, across the whole scalp</span></li>
+        <li><span class="q">When, within five minutes?</span><span class="n">61 of 61</span><span class="r">60-s windows with moving σθ in SD above NS (frontal): the rise holds throughout the five minutes</span></li>
+        <li><span class="q">Is more unstable slower?</span><span class="n">ρ = +0.30</span><span class="r">[−0.07, +0.59], n = 30, p = 0.11, centrotemporal (frontal +0.18): the direction of Cui et al. (2026), weaker than their 0.54–0.56 and not significant</span></li>
+        <li><span class="q">Oscillation or 1/f?</span><span class="n">ρ = 0.81–0.82</span><span class="r">between the change in σθ and in periodic theta: the effect is mostly oscillatory</span></li>
+        <li><span class="q">Does it depend on the analysis?</span><span class="n">p ≥ 0.28</span><span class="r">896 analyses, two preprocessing pipelines: no joint statistic exceeds chance; PVT reaction time is the most consistent marker</span></li>
+        <li><span class="q">Can a model recognize the night?</span><span class="n">AUC 0.89</span><span class="r">an explainable logistic model picks the sleepless night for 80% of the 68 people (permutation p ≤ 0.001), and every decision can be traced to its features</span></li>
       </ul>
       <p class="muted" style="margin-top:16px">Preliminary conclusion: without sleep, theta becomes more unstable across the whole scalp in most people (about one in four goes the other way). How much it rises tracks slower reaction times only weakly: a group marker of sleep loss more than an individual marker of who deteriorates. (Figures recomputed on 15 November 2026 after correcting which session is normal sleep and which is deprivation.)</p>
     </section>
 
     <section aria-labelledby="h-gloss">
       <h2 id="h-gloss">What each view lets you do, in plain words</h2>
-      <p class="muted">The course vocabulary (Brehmer and Munzner, 2013) next to what it means for someone who has never seen the data.</p>
+      <p class="muted">The course vocabulary (Brehmer and Munzner, 2013) next to what it means for someone who has never seen the data</p>
       <div class="tscroll"><table class="gloss">
         <thead><tr><th>Task</th><th>In plain words</th><th>Where in the tool</th></tr></thead>
         <tbody>
@@ -175,11 +205,11 @@
       <div class="videos">
         <figure class="slot">
           <video class="frame" controls preload="metadata" aria-label="Project teaser (1 min, Spanish narration)"><source src="videos/BATIMIX_teaser.mp4" type="video/mp4"></video>
-          <figcaption>Teaser (1 min, Spanish narration).</figcaption>
+          <figcaption>Teaser (1 min, Spanish narration)</figcaption>
         </figure>
         <figure class="slot">
           <video class="frame" controls preload="metadata" aria-label="Presentation video (3.5 min, Spanish narration)"><source src="videos/BATIMIX_presentacion_5min.mp4" type="video/mp4"></video>
-          <figcaption>Guided tour of the application (3.5 min, Spanish narration).</figcaption>
+          <figcaption>Guided tour of the application (3.5 min, Spanish narration)</figcaption>
         </figure>
       </div>
     </section>
@@ -188,6 +218,12 @@
       <h2 id="h-docs">Paper and reports</h2>
       <ul class="docs">
         <li><a href="../paper/FinalPaper.pdf">Paper (PDF)</a><span class="d">two-column, IEEE VIS style</span></li>
+        <li><a href="../poster/poster.pdf">Poster (PDF)</a><span class="d">with QR code to this page</span></li>
+        <li><a href="../expo/BATIMIX_Expo.pdf">Final presentation slides (PDF)</a><span class="d">29 slides</span></li>
+        <li><a href="../expo/index.html">Final presentation, live version</a><span class="d">with the application inside</span></li>
+        <li><a href="#h-videos">Teaser and presentation video</a><span class="d">1 min and 3.5 min</span></li>
+        <li><a href="../app/index.html">Application</a><span class="d">Explorer and Classifier</span></li>
+        <li><a href="https://github.com/Andrea-Coa/data-visualization-project">Source code and README</a><span class="d">GitHub repository</span></li>
         <li><a href="../PresentationWeek12.pptx">Week 12 presentation (PPTX)</a><span class="d">11 slides with notes</span></li>
         <li><a href="../RefinedDraftReport.md">Week 12 report</a><span class="alt">also on <a href="https://github.com/Andrea-Coa/data-visualization-project/blob/HEAD/deliveries/week12/RefinedDraftReport.md">GitHub</a></span></li>
         <li><a href="../PeerCritiqueResponse.html">Response to the design critique</a><span class="d">24 suggestions and what we did with each</span></li>
@@ -203,17 +239,17 @@
         <div>
           <h3>With a local server (recommended)</h3>
           <ol class="steps">
-            <li>Clone the repository or download it as a ZIP.</li>
+            <li>Clone the repository or download it as a ZIP</li>
             <li>From the repository root, serve the app folder:
 <pre><code>cd deliveries/week12/app
 python -m http.server 8000</code></pre></li>
-            <li>Open <code>http://localhost:8000/</code> in the browser.</li>
+            <li>Open <code>http://localhost:8000/</code> in the browser</li>
           </ol>
         </div>
         <div>
           <h3>Without a server</h3>
-          <p>Open <code>deliveries/week12/app/index.html</code> by double-click. The data are also bundled in <code>data/data.js</code>, so the app loads from disk.</p>
-          <p class="muted">Requirements: a current browser. Python (3.x) is only needed for the server option; there are no dependencies to install. Fonts load from Google Fonts and, offline, the system fonts are used.</p>
+          <p>Open <code>deliveries/week12/app/index.html</code> by double-click. The data are also bundled in <code>data/data.js</code>, so the app loads from disk</p>
+          <p class="muted">Requirements: a current browser. Python (3.x) is only needed for the server option; there are no dependencies to install. Fonts load from Google Fonts and, offline, the system fonts are used</p>
         </div>
       </div>
     </section>
@@ -230,7 +266,7 @@ python -m http.server 8000</code></pre></li>
           <h3 style="margin-top:18px">Software and fonts</h3>
           <ul class="refs">
             <li><b>D3.js</b>, by Mike Bostock and contributors, ISC license. <a href="https://d3js.org/">d3js.org</a></li>
-            <li><b>MNE-Python</b>, <b>mne-connectivity</b> and <b>specparam (FOOOF)</b> for the analyses behind the secondary views.</li>
+            <li><b>MNE-Python</b>, <b>mne-connectivity</b> and <b>specparam (FOOOF)</b> for the analyses behind the secondary views</li>
             <li><b>Geist and Geist Mono</b>, by Vercel, served by Google Fonts under the SIL Open Font License 1.1. <a href="https://openfontlicense.org/">openfontlicense.org</a></li>
           </ul>
         </div>
@@ -239,13 +275,13 @@ python -m http.server 8000</code></pre></li>
           <ul class="refs">
             <li><b>Cui et al. (2026)</b>, <i>Frontiers in Neuroscience</i>: the theta-variability metric and the correlation we tried to replicate. <a href="https://doi.org/10.3389/fnins.2026.1910878">doi:10.3389/fnins.2026.1910878</a></li>
             <li><b>Van Dongen et al. (2004)</b>, <i>Sleep</i>: vulnerability to sleep deprivation as an individual trait. <a href="https://doi.org/10.1093/sleep/27.3.423">doi:10.1093/sleep/27.3.423</a></li>
-            <li><b>Bai et al. (2024)</b> and <b>Monchy et al.</b>: aperiodic activity after sleep deprivation in this dataset, and aperiodic contributions to functional connectivity.</li>
+            <li><b>Bai et al. (2024)</b> and <b>Monchy et al.</b>: aperiodic activity after sleep deprivation in this dataset, and aperiodic contributions to functional connectivity</li>
             <li><b>Steegen et al. (2016)</b> and <b>Simonsohn, Simmons and Nelson (2020)</b>: multiverse analysis and specification curves with joint inference. <a href="https://doi.org/10.1177/1745691616658637">doi:10.1177/1745691616658637</a> · <a href="https://doi.org/10.1038/s41562-020-0912-z">doi:10.1038/s41562-020-0912-z</a></li>
             <li><b>Dragicevic et al. (2019)</b> and <b>Liu, Kale, Althoff and Heer (2021)</b>: explorable multiverses and their views. <a href="https://doi.org/10.1145/3290605.3300295">doi:10.1145/3290605.3300295</a> · <a href="https://doi.org/10.1109/TVCG.2020.3028985">doi:10.1109/TVCG.2020.3028985</a></li>
             <li><b>Brehmer and Munzner (2013)</b>: a task typology to relate questions and views. <a href="https://doi.org/10.1109/TVCG.2013.124">doi:10.1109/TVCG.2013.124</a></li>
           </ul>
           <h3 style="margin-top:18px">Acknowledgments</h3>
-          <p>To Prof. Germain García-Zanabria and the DS5343 classmates for the Week 10 design review, and to the authors of ds004902 for publishing their data openly.</p>
+          <p>To Prof. Germain García-Zanabria and the DS5343 classmates for the Week 10 design review, and to the authors of ds004902 for publishing their data openly</p>
           <p><b>AI assistance.</b> We used generative AI assistants (Claude, by Anthropic) to support programming, literature search and writing. The team reviewed and verified the code, figures and references, and takes responsibility for the content.</p>
         </div>
       </div>
@@ -265,7 +301,7 @@ python -m http.server 8000</code></pre></li>
 
 <footer class="foot">
   <div class="wrap">
-    <p>BATIMIX · DS5343 Data Visualization, UTEC 2026-2 · Initial project page, Week 12 (28 October 2026, updated 2 November 2026). Code at <a href="https://github.com/Andrea-Coa/data-visualization-project">github.com/Andrea-Coa/data-visualization-project</a>.</p>
+    <p>BATIMIX · DS5343 Data Visualization, UTEC 2026-2 · Final project page, updated 18 November 2026. Code at <a href="https://github.com/Andrea-Coa/data-visualization-project">github.com/Andrea-Coa/data-visualization-project</a>.</p>
   </div>
 </footer>
 <script>
