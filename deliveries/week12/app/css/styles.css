@@ -172,6 +172,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 #tooltip{position:fixed;left:0;top:0;pointer-events:none;background:#1B2029;border:1px solid var(--rule2);color:var(--ink);padding:7px 10px;border-radius:7px;font-size:12px;opacity:0;max-width:340px;z-index:60;line-height:1.45}
 #tooltip .note{margin:0 0 5px;color:var(--ink2)}
 #tooltip .note:last-child{margin:0}
+#tooltip .note.so{color:var(--ink);font-weight:500}
+#tooltip .note.how{color:var(--muted);font-size:11px}
 #tooltip .h{font-weight:600;margin-bottom:3px}
 #tooltip .m{color:var(--muted)}
 #tooltip .row{display:flex;align-items:center;gap:14px;justify-content:space-between}

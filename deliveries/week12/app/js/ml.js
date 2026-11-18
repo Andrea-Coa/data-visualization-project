@@ -53,12 +53,9 @@
     }
     d3.select("#cards").html(`<table class="mtab">${rows.map(([k, v, d, t]) => `<tr title="${t}"><th>${k}</th><td class="v">${v}</td><td class="d">${d}</td></tr>`).join("")}</table>`);
     setTitle("t-cards", "", "",
-      notes(ST.sc === "paired" ? "Question: given both recordings of a person, which one is after sleep deprivation?" : "Question: each recording alone, from a new person: normal sleep or deprivation?",
-        `${M.meta.n_records} recordings of ${M.meta.n_persons} people (eyes open). Cross-validation by person: ${N_CV}; hyperparameters chosen in a nested CV, so every number here is out of fold.`,
-        ST.sc === "paired" ? "Paired scenario: each person's two recordings are centered on their own mean before the model, so it only sees how the two nights differ (no labels used). It needs both recordings of the person." :
-          "Strict scenario: raw features of a single recording from a person the model never saw; features that depend on the absolute signal scale are left out.",
-        `Permutation test: NS and SD labels are swapped within each person at random (the null for a paired design). Visit control: the same model predicting 2nd vs 1st visit; if it worked as well, the classifier would be learning habituation, not deprivation.`,
-        "Exploratory: 136 recordings, 147 features. Stability and fidelity say how far single features can be trusted; read the grouped importance first."));
+      info(r.perm.p >= .05 ? "The model does not beat chance in this setting." : ST.sc === "paired" ? "Given both recordings of a person, the model picks the deprivation one well above chance." : "From a single recording of someone it never saw, the model tells the night apart above chance.",
+        "AUC: 0.50 is chance, 1 is perfect. Pair accuracy: share of people whose deprivation recording scores higher. The checks are in Validation below.",
+        `Out of fold: cross-validation by person, ${N_CV}. Exploratory.`));
   }
   const N_CV = "5 folds × 10 repetitions (StratifiedGroupKFold)";
 
@@ -141,9 +138,9 @@
     k.append("span").attr("class", "k").html(`<i class="ring" style="border-color:${C.vuln}"></i>wrong`);
     const ld = P.loadings, ldTxt = pc => ld[pc].slice(0, 4).map(([c, w]) => `${lab(c)} (${L.format("+.2f")(w)})`).join(", ");
     setTitle("t-rec", `${M.records.length} recordings`, "out-of-fold predictions",
-      notes(`Each mark is one recording: circle = normal sleep, diamond = sleep deprivation (true condition). Fill = probability of deprivation predicted when that person was in the test fold (blue, low; pink, high). Amber ring = the model got it wrong. A line joins each person's two recordings.`,
-        `Axes: PCA of the standardized features of this scenario (unsupervised, deterministic). PC1 loads on ${ldTxt("pc1")}; PC2 on ${ldTxt("pc2")}. ${ST.sc === "paired" ? "In the paired scenario the two recordings of a person sit symmetric around 0." : ""}`,
-        "Drag to select people (the Result shows how many of their recordings are right; no test, since you chose them). Click a mark or a line to see that person on the right."));
+      info("Where are the errors? Amber rings are recordings the model got wrong.",
+        "Circle: normal sleep; diamond: deprivation. Fill: predicted probability of deprivation. A line joins a person's two recordings. Click one to open the person; drag to select a group.",
+        `Axes: PCA of the features; PC1 mostly <span>${ldTxt("pc1").split(" (")[0]}</span>.`));
   }
 
   // ---------------------------------------------------------------- importancia agrupada
@@ -181,9 +178,9 @@
     });
     svg.append("g").attr("class", "axis").attr("transform", `translate(0,${y})`).call(d3.axisBottom(x).ticks(3).tickSizeOuter(0).tickFormat(fTick(L.format(".1f"))));
     setTitle("t-imp", "ΔAUC when a group is shuffled", "",
-      notes(hidden ? `Only ${rows.length === 1 ? "the band block fits" : "the band and region blocks fit"} in this window; enlarge it to see the rest.` : "", `Grouped permutation importance (${MDN[ST.md]}): in each test fold, all features of a group are shuffled together and the drop in AUC is measured (bar = mean, line = 95% range over folds and repeats). The three blocks share the same scale; the number at the right is how many features each group has.`,
-        "Groups, not single features: the features are correlated, so shuffling one alone hides what its neighbors carry. The TSFEL features without a band form one large group.",
-        "Theta is highlighted. The Features filter in Controls dims the other groups."));
+      info("The longer the bar, the more the model needs that band, region or kind of feature. Read this before single features.",
+        `Line: 95% range over folds. Number: features in the group.${hidden ? " Enlarge the window to see all blocks." : ""}`,
+        `Grouped permutation importance (${MDN[ST.md]}).`));
   }
 
   // ---------------------------------------------------------------- features (coeficientes de LR o curvas de la EBM)
@@ -209,8 +206,9 @@
       svg.append("g").attr("class", "axis").attr("transform", `translate(0,${H-24})`).call(d3.axisBottom(x).ticks(4).tickSizeOuter(0).tickFormat(fTick(L.format("+.2f"))));
       d3.select("#k-feat").html(`<span class="k"><i class="dot" style="background:${C.sd}"></i>toward SD</span><span class="k"><i class="dot" style="background:${C.ns}"></i>toward NS</span><span class="k m">% = selected in folds</span>`);
       setTitle("t-feat", "Logistic coefficients", `top ${Cf.length}`,
-        notes("Elastic-net logistic regression on standardized features: dot = mean coefficient over the 50 fold models, line = 95% range, fill = how often the penalty kept the feature (% at the right). Pink pushes toward deprivation, blue toward normal sleep.",
-          "Single features are unstable here (see Stability and Fidelity in the Result): neighbors can take each other's place. Click a feature to see its values for the selected person."));
+        info("Pink pushes toward deprivation, blue toward normal sleep. Single features are unstable: neighbors can swap places.",
+          "Dot: mean coefficient; line: 95% range over 50 fold models; %: how often the feature was kept. Click one to see it for the selected person.",
+          "Elastic-net logistic regression, standardized features."));
     } else {
       const shapes = Object.entries(R().shapes), n = shapes.length, cols = Math.max(1, Math.min(n, Math.floor(W/190))), rowsN = Math.ceil(n/cols), cw = W/cols, ch = Math.max(54, Math.min(170, (Hv-6)/rowsN)), H = rowsN*ch;
       const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("height", H).attr("role", "img").attr("aria-label", "EBM shape curves of the top features");
@@ -231,8 +229,9 @@
           .on("pointermove", ev => moveTip(ev)).on("pointerleave", hideTip);
       });
       setTitle("t-feat", "EBM shape curves", "top 5",
-        notes("Each curve is how one feature adds to the log-odds of deprivation (y > 0: toward SD) along its values (x, in the units of the scenario: centered on each person's mean in the paired scenario). A step means the model changes its mind at that value.",
-          "Curves come from an EBM fitted on all 136 recordings, only to draw them; every performance number is out of fold. Click a curve to see where the selected person falls."));
+        info("Above 0 pushes toward deprivation. A step is a threshold where the model changes its mind.",
+          "x: the feature's value (centered per person in Paired). Click a curve to see where the selected person falls.",
+          "EBM fitted on all recordings only to draw the curves; scores are out of fold."));
     }
   }
   // ejes con números corrientes (los prefijos SI, "100m", se leerían como mili de la unidad); muy chicos o grandes: científica
@@ -272,9 +271,9 @@
     wrap.append("table").attr("class", "mtab small").html(T.map(([k, v, t]) => v === null ? `<tr class="grp"><th colspan="2">${k}</th></tr>` : `<tr title="${t}"><th>${k}</th><td class="v">${v}</td></tr>`).join(""));
     const n = idx.length;
     setTitle("t-met", "Out-of-fold predictions", `${n} recordings${ST.order !== "all" ? `, ${ST.order.replace("->", "→")}` : ""}`,
-      notes(`Confusion matrix of the ${MDN[ST.md]} (P(SD) ≥ 0.5 = predicted deprivation), out of fold and averaged over the 10 repetitions; rows = true condition, gray = share of the row.`,
-        "The checks of this result (visit, permutation, visit order, baseline, fidelity, stability) are in Validation, in the left column. Explanation: stability of the ranking across folds, agreement between the two models, and AUC after removing the top 10 (fidelity).",
-        "The Order control filters the matrix."));
+      info(Math.abs(cm[0][1]-cm[1][0]) <= 2 ? "Errors are balanced: the model misses about as many deprivation recordings as normal ones." : cm[1][0] > cm[0][1] ? "The model misses more deprivation recordings than normal ones." : "The model calls more normal recordings deprivation than the reverse.",
+        "Rows: true night; columns: predicted. Darker: larger share of the row. Order in Controls filters it.",
+        `${MDN[ST.md][0].toUpperCase() + MDN[ST.md].slice(1)}, P(SD) ≥ 0.5, out of fold, mean of 10 repetitions.`));
   }
 
   // ---------------------------------------------------------------- persona: contribuciones locales y la feature elegida
@@ -289,7 +288,7 @@
     const el = $("person"); d3.select(el).selectAll("*").remove(); d3.select("#k-person").html("");
     if(!ST.person){
       d3.select(el).append("div").attr("class", "pempty").text("Click a record or a line in Records to see why the model decided what it did for that person.");
-      setTitle("t-person", "", "", notes("Local explanation: the exact contribution of each feature to each of the person's two recordings, from the model of the fold where that person was in the test set."));
+      setTitle("t-person", "", "", info("Why the model decided what it did for one person.", "Click a record or a line in Records.", ""));
       return;
     }
     const idx = personIdx(ST.person).sort((a, b) => isSD(a) - isSD(b)), r0 = M.records[idx[0]], ok = idx.filter(correct).length;
@@ -297,9 +296,9 @@
     // misma del tooltip de Explorer) va aquí porque ante un error lo primero es descartar un mal registro
     d3.select("#k-person").html(qualLine(ST.person));
     setTitle("t-person", ST.person, `${r0.order.replace("->", "→")} · ${ok === 2 ? "both right" : ok === 1 ? "one wrong" : "both wrong"}`,
-      notes(`Waterfalls: each bar is how much one feature moved this recording's score (log-odds of deprivation) from the start (${MDN[ST.md]} intercept) to its final value; pink pushes toward deprivation, blue toward normal sleep. The largest ones that fit are shown (up to 8) and the rest summed. Model: the one trained without this person (out of fold, repetition 1).`,
-        "Bottom (when there is room): the chosen feature for all 136 recordings, split by condition, with this person's two recordings ringed. Click a bar or a feature to change it.",
-        "EEG quality under the name: epochs kept of 75, channels interpolated and blinks per minute in each recording. Many rejected epochs or blinks point to a noisy recording rather than to the physiology."));
+      info("Which features pushed each of this person's recordings toward deprivation (pink) or normal sleep (blue).",
+        "Under the name, EEG quality: many rejected epochs or blinks suggest a noisy recording, not physiology. Bottom: the chosen feature for everyone, this person ringed.",
+        "Exact contributions from the model trained without this person."));
     const W = el.clientWidth || 400, Hv = Math.max(150, el.clientHeight || 600);
     const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${Hv}`).attr("height", Hv).attr("role", "img").attr("aria-label", `Contributions for ${ST.person}`);
     // cascada por registro: del intercepto a la puntuación final (log-odds), top 8 y el resto

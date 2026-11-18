@@ -133,11 +133,9 @@ const side = (() => {
     // ---- sin título sobre los gráficos: la lectura y de dónde sale cada cifra van en el ícono ⓘ de la barra
     const g = APER.global;
     setTitle("t-aper", "", "",
-      notes(`specparam (Bai et al., 2024 settings). Aperiodic change: exponent d_z = ${f2(g.exp.dz)} (p = ${fp(g.exp.p)}), offset d_z = ${f2(g.off.dz)} (p = ${fp(g.off.p)}); ${Math.round((AB ? AB.peak_fraction.NS : APER.theta_peak_fraction.NS)*100)}% of electrodes have a 4–8 Hz peak.`,
-        S.band === "delta" && AB ? "Delta sits at the lower edge of the fit (1 Hz) and the 1-s windows give it only 3 frequencies: the least reliable band here." : "",
-        `Bottom: each person's Δσθ (relative θ) vs. Δσθ of the periodic component (1/f removed), ${ROI[S.roi].name}. n = ${sg.n}: people with at least 50 well-fitted epochs (R² ≥ 0.8) in each session.`,
-        `Spearman ρ = ${f2(sg.rho_periodic)}: both rank people alike, so the σθ change is mostly oscillatory. R² = ${f2(sg.r2_exponent)}: share of the Δσθ variance explained (linearly) by the change in epoch-to-epoch variability of the aperiodic exponent.`,
-        sel ? `Spectrum and maps: mean of your selection (${ids.length}). The scatter always shows all ${sg.n}, with your selection ringed.` : ""));
+      info(sg.rho_periodic >= .6 ? `The σθ change is mostly a real rhythm, not the 1/f background: removing 1/f keeps the order of people (ρ = ${f2(sg.rho_periodic)}).` : `Part of the σθ change comes from the 1/f background: removing it reorders people (ρ = ${f2(sg.rho_periodic)}).`,
+        `Top: mean spectrum with its 1/f fit. Middle: change in exponent and offset. Bottom: Δσθ with and without 1/f, one dot per person (n = ${sg.n}).${sel ? ` Spectrum and maps: your selection (${ids.length}).` : ""}${S.band === "delta" && AB ? " Delta sits at the edge of the fit: least reliable band." : ""}`,
+        "specparam per epoch; details in About › Method."));
   }
 
   // ---------------------------------------------------------------- sincronía θ entre regiones
@@ -204,9 +202,9 @@ const side = (() => {
       .on("pointermove", ev => moveTip(ev)).on("pointerleave", () => { focus(null); hideTip(); });
     const g = CONN.global, down = d.filter(x => x < 0).length;
     setTitle("t-conn", `θ synchrony: lower in ${down} of 45 pairs`, nb(sel ? `your selection, n = ${ids.length}` : `none survives FDR; n = ${CONN.meta.n}`),
-      notes(`Debiased wPLI², 4–8 Hz, average reference, 10 regions (45 pairs). Global d_z = ${f2(g.dz)}, permutation p = ${fp(g.p_perm)}; no pair survives FDR.`,
-        "Bottom: mean Δ per pair with 95% CI, sorted. Exploratory: resting theta connectivity may partly reflect aperiodic activity.",
-        "Data: tools/build_secondary.py from the raw EEG (ds004902)."));
+      info(g.p_perm >= .05 ? `θ synchrony between regions barely changes (dz = ${f2(g.dz)}, p = ${fp(g.p_perm)}).` : `θ synchrony between regions ${g.dz < 0 ? "drops" : "rises"} overall (dz = ${f2(g.dz)}, p = ${fp(g.p_perm)}), but no single pair survives correction.`,
+        "Bottom: change per pair of regions with its 95% CI, sorted. Exploratory.",
+        "Debiased wPLI², 10 regions, 45 pairs."));
   }
 
   // ---------------------------------------------------------------- control de parpadeos
@@ -280,6 +278,9 @@ const side = (() => {
     const px = d3.scaleLinear().domain(ext).nice().range([m2.l, W-m2.r]), py = d3.scaleLinear().domain(px.domain()).range([H-m2.b, y0+m2.t]);
     svg.append("text").attr("class", "colhead").attr("x", m2.l-38).attr("y", y0+6).style("text-anchor", "start").style("font-size", "11px").text(`Δσθ ${ROI[k].name}: with vs without blinks`);
     svg.append("line").attr("x1", px(ext[0])).attr("y1", py(ext[0])).attr("x2", px(ext[1])).attr("y2", py(ext[1])).attr("stroke", C.ink2).attr("stroke-dasharray", "4 3");
+    // rótulo directo sobre la diagonal (en vez de explicarla en el ⓘ)
+    { const t = .9, xa = px(ext[0] + t*(ext[1]-ext[0])), ya = py(ext[0] + t*(ext[1]-ext[0])), ang = Math.atan2(py(ext[1])-py(ext[0]), px(ext[1])-px(ext[0]))*180/Math.PI;
+      svg.append("text").attr("class", "sub").attr("transform", `translate(${xa+4},${ya+12}) rotate(${ang})`).attr("text-anchor", "end").style("font-size", "10px").text("no change"); }
     svg.append("g").attr("class", "axis").attr("transform", `translate(0,${H-m2.b})`).call(d3.axisBottom(px).ticks(3).tickSizeOuter(0).tickFormat(fTick(L.format("+.2~f"))));
     svg.append("g").attr("class", "axis").attr("transform", `translate(${m2.l},0)`).call(d3.axisLeft(py).ticks(3).tickSizeOuter(0).tickFormat(fTick(L.format("+.2~f")))).call(a => a.select(".domain").remove());
     svg.append("text").attr("class", "atitle").attr("x", (m2.l+W-m2.r)/2).attr("y", H-2).attr("text-anchor", "middle").style("font-size", "10px").text("Δσθ, all 1-s windows");
@@ -290,12 +291,12 @@ const side = (() => {
       .on("pointerenter", (ev, d) => showTip(ev, `<div class="h">${d.id}</div>` + trow("Δσθ, all windows", fsr(d.x)) + trow("Δσθ, without blinks", fsr(d.y))))
       .on("pointermove", ev => moveTip(ev)).on("pointerleave", hideTip)
       .on("click", (ev, d) => { hideTip(); const p = P.find(o => o.id === d.id); if(!p) return; if(ev.shiftKey) pin(p); else togglePick(p); });
-    svg.append("text").attr("class", "ab").attr("x", m2.l+4).attr("y", y0+m2.t+12).style("font-size", "11px").text(`ρ = ${f2(sm.rho_clean_vs_all)} · n = ${sm.n_clean} · dashed: identity`);
+    svg.append("text").attr("class", "ab").attr("x", m2.l+4).attr("y", y0+m2.t+12).style("font-size", "11px").text(`ρ = ${f2(sm.rho_clean_vs_all)} · n = ${sm.n_clean}`);
     const bt = QUAL.meta.d_blinks_test;
     setTitle("t-eye", `Blinks do not drive σθ: ρ = ${f2(sm.rho_clean_vs_all)} without them`, nb(`${ROI[k].name}; n = ${sm.n_clean}`),
-      notes(`Blinks detected on Fp1/Fp2 of the raw EEG; rate ${L.format(".1f")(medA)} → ${L.format(".1f")(medB)}/min (median of the ${bl.length} people with both nights; ${up} go up; p = ${fp(bt.p)}).`,
-        `Top: one dot per person at their change in blinks (SD − NS), colored by their Δσθ (same diverging scale as the maps, clipped at the 95th percentile); amber ring = vulnerable quadrant. If blinks drove σθ, the red dots would gather on the right: Δblinks vs Δσθ, ρ = ${f2(sm.rho_dblinks_vs_dsigma)} (p = ${fp(sm.p_dblinks_vs_dsigma)}).`,
-        `Bottom: Δσθ from 1-s windows, all (x) vs. without those within 0.25 s of a blink (y). On the identity line: blinks left after ICA do not change σθ.`));
+      info("People blink more after deprivation, but blinks do not explain the σθ change.",
+        `Top: red and blue dots mix along the axis, so those who blink more are not those whose σθ rises (ρ = ${f2(sm.rho_dblinks_vs_dsigma)}). Bottom: removing blinks leaves each person on the diagonal.`,
+        "Blinks from Fp1/Fp2; windows within 0.25 s of a blink removed."));
   }
 
   bus.on("select.side", e => { if(!(e && e.live)) render(); });

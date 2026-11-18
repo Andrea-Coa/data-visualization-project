@@ -177,10 +177,19 @@ function setTitle(id, head, sub, info){
   const i = document.createElement("span");
   i.className = "info"; i.tabIndex = 0; i.setAttribute("role", "button"); i.setAttribute("aria-label", "Chart details"); i.textContent = "i";
   slot.appendChild(i);
-  const at = () => { const r = i.getBoundingClientRect(); return {clientX:r.right, clientY:r.bottom}; };
-  i.onpointerenter = e => showTip(e, info); i.onpointermove = e => moveTip(e); i.onpointerleave = hideTip;
-  i.onfocus = () => showTip(at(), info); i.onblur = hideTip;
-  i.onclick = e => showTip(e, info);   // también con clic o toque (pantallas táctiles, trackpads)
+  // el texto de la ⓘ no tapa la vista que explica: va al lado del panel (o de la ventana flotante), arriba, donde
+  // haya sitio; si no cabe a ningún lado, junto al ícono
+  const place = () => {
+    tipEl.innerHTML = info; tipEl.style.opacity = 1;
+    const p = (i.closest(".sidebox .sec") || host || i).getBoundingClientRect(), ir = i.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight, g = 8;
+    let x = p.right + g <= innerWidth - w - 8 ? p.right + g : p.left - g - w >= 8 ? p.left - g - w : null;
+    let y = Math.max(8, Math.min(innerHeight - h - 8, ir.top - 6));
+    if(x == null){ x = Math.min(innerWidth - w - 8, ir.right + g); y = Math.min(innerHeight - h - 8, ir.bottom + g); }
+    tipEl.style.transform = `translate(${Math.max(8, x)}px,${y}px)`;
+  };
+  i.onpointerenter = place; i.onpointerleave = hideTip;
+  i.onfocus = place; i.onblur = hideTip;
+  i.onclick = place;   // también con clic o toque (pantallas táctiles, trackpads)
 }
 // ---------- leyenda flotante dentro del área de datos (dispersión y serie por época) ----------
 // Se arrastra (o se mueve con las flechas); un clic sin arrastre la comprime en un ícono ↗ y otro la devuelve.
@@ -281,6 +290,11 @@ function floatLegend(){
   };
 }
 const notes = (...ls) => ls.filter(Boolean).map(l => `<p class="note">${nb(l)}</p>`).join("");   // contenido del ícono ⓘ
+// ⓘ en tres líneas cortas (17 nov 2026), siguiendo a Lundgard y Satyanarayan (TVCG 2022): primero la conclusión (L4),
+// luego cómo leer lo que no dice la leyenda (L3) y al final el método en una línea tenue; el detalle va en About
+// cada oración va en su propio nodo de texto: así i18n.js la traduce sola (menos combinaciones en el diccionario)
+const sents = l => nb(l.trim()).split(/(?<=[.?!])\s+(?=[A-ZÁÉÍÓÚÑΔσμθ(])/).map(x => `<span>${x}</span>`).join(" ");
+const info = (so, read, how) => [["so", so], ["", read], ["how", how]].filter(([, l]) => l && l.trim()).map(([c, l]) => `<p class="note${c ? " " + c : ""}">${sents(l)}</p>`).join("");
 const nb = s => s.replace(/ (=|≥|≤|&lt;|&gt;) /g, "\u00a0$1\u00a0");   // "ρ = −0.10" o "p ≥ 0.15" nunca se parten en dos líneas
 
 // ---------- estadística ----------

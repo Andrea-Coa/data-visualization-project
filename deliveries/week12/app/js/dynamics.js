@@ -206,7 +206,7 @@ const dyn = (() => {
   { const on = (id, f) => { const e = $(id); if(e) e.addEventListener("click", f); };
     on("playbtn", play); on("stopbtn", () => stopPlay()); on("prevbtn", () => step(-1)); on("nextbtn", () => step(1)); }
   // ayuda común de la ⓘ: cómo se elige una ventana y qué vale cada duración
-  const WINDOW_HELP = "Click the chart to show a window of the chosen length (Window: 32, 60 or 100 s) on the maps; drag to set your own interval. Shorter windows follow faster changes but are noisier; σθ needs at least 60 s (15 epochs). Clear returns to the full five minutes.";
+  const WINDOW_HELP = "Click to show that moment on the maps; drag to pick your own interval.";
   function title(){
     // puntos dentro de la ventana elegida (por su tiempo central), o todos
     const idx = d3.range(XS.length).filter(i => !S.win || (XS[i] >= S.win[0]*4 && XS[i] <= (S.win[1]+1)*4));
@@ -215,18 +215,18 @@ const dyn = (() => {
     const src = S.elec && ELEP ? ` · electrode ${S.elec}` : ` · ${ROI[S.roi].name}`;
     const upOf = s => idx.filter(i => s.mean[i] != null && s.mean[i] > 0).length;
     // el título no se ve en la vista (solo su ⓘ en la cabecera): lo usa la figura del reporte
-    const key = "Shaded band: ± SE; dashed line: linear trend. Legend box: drag to move it, click to minimize it. The y-axis is fixed: it only changes with the band, the metric, the region or electrode, the window length and whether a comparison is shown." +
-      (clipped ? " Part of this series falls outside the fixed y-axis and is cut at the edge of the chart." : "");
+    const key = clipped ? "Part of the series falls outside the fixed y-axis and is cut at the edge." : "";
     if(G){
       const u = cur.D.map(upOf);
       setTitle("t-dyn", `${isVar() ? "Δ moving σθ" : "Δθ per epoch"}${src}: two groups${post}`, nb(`n = ${cur.D[0].n} and ${cur.D[1].n}`),
-        notes(`Δ (deprivation − normal), mean ± SE per group: Δ &gt; 0 in ${u[0]} (${G[0].name}) and ${u[1]} (${G[1].name}) of ${idx.length} ${unit}.`, key, WINDOW_HELP));
+        info(`Deprivation is above normal in ${u[0]} of ${idx.length} ${unit} for ${G[0].name.toLowerCase()} and ${u[1]} for ${G[1].name.toLowerCase()}.`, `${WINDOW_HELP} ${key}`, "Mean ± SE per group."));
       return;
     }
     const d = idx.map(i => cur.SD.mean[i]-cur.NS.mean[i]), up = d.filter(v => v > 0).length;
     setTitle("t-dyn", `${isVar() ? `Moving σθ, ${S.winLen*4}-s windows` : "Relative θ per epoch"}${src}${S.selected ? " · your selection" : ""}${post}`, nb(`n = ${cur.SD.n}`),
-      notes(`${isVar() ? `SD of regional relative θ in ${S.winLen*4}-s windows (${S.winLen} epochs)` : "Regional relative θ per 4-s epoch"}, mean ± SE across people. Deprivation &gt; normal in ${up} of ${idx.length} ${unit}${S.win ? `; mean Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))}` : ""}.`, key,
-        `${S.elec && ELEP ? `Series of electrode ${S.elec}: noisier than a region and on a larger scale (a region averages 16–28 electrodes). Set the Electrode selector in the header back to None to return to the region.` : "Choose an electrode in the header (or click one on a map or a heatmap row) to see its own series."} Rejected epochs (&gt; 200 µV) are gaps.`, WINDOW_HELP));
+      info(`Deprivation is above normal in ${up} of ${idx.length} ${unit}${S.win ? ` (mean Δ ${fsr(d3.mean(d.filter(v => !isNaN(v))))})` : ""}${up >= .9*idx.length ? ": the gap is there from the start, not only at the end" : ""}.`,
+        `${WINDOW_HELP}${S.elec && ELEP ? ` One electrode (${S.elec}) is noisier than a region.` : ""} ${key}`,
+        `${isVar() ? `σθ in moving ${S.winLen*4}-s windows` : "θ per 4-s epoch"}, mean ± SE across people; gaps are rejected epochs.`));
   }
   function tipFor(i){
     const r = s => s.mean[i] != null ? `${f3(s.mean[i])} <span class="m">± ${f3(s.sem[i])}</span>` : "n/d";

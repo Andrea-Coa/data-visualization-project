@@ -167,12 +167,13 @@ const scatter = (() => {
   // en el recuadro. El título (oculto) guarda ρ, IC 95% y n para la figura del reporte
   function title(){
     const head = "Δθ vs. Δ behavior", G = cmpGroups(), xk = S.xKey(), yk = yK();
-    const info = notes("One point per person: Δθ (deprivation − normal) vs. Δ of the behavioral marker. Shaded: vulnerable quadrant (both above the median).",
-      "Box: Spearman ρ with its 95% CI and n (of each group when comparing), the comparison groups and your selection; drag to move, click to minimize. Click: select a person; drag: lasso.");
+    const inf = info("Does a larger θ change go with a larger behavioral change? A flat cloud means no.",
+      "One dot per person. Shaded: above the median on both (vulnerable). Click to select, drag a lasso for a group.",
+      "Spearman ρ with bootstrap 95% CI.");
     const rho = rows => { const r = spearman(rows, xk, yk); return isNaN(r.rho) ? `n = ${r.n}` : `Spearman ρ = ${f2(r.rho)} [${f2(r.lo)}, ${f2(r.hi)}], n = ${r.n}`; };
     const sub = G ? G.map(g => `${g.name}: ${rho(EEG.filter(d => g.set.has(d.id)))}`).join("; ")
       : rho(S.selected ? EEG.filter(d => S.selected.includes(d.id)) : EEG);
-    setTitle("t-sc", G ? `${head}: two groups` : (S.selected ? `${head}: your selection` : head), nb(sub), info);
+    setTitle("t-sc", G ? `${head}: two groups` : (S.selected ? `${head}: your selection` : head), nb(sub), inf);
   }
   function tipFor(d){
     const xk = S.xKey(), yk = yK(), L2 = pairLetter(d);

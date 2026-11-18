@@ -178,9 +178,9 @@ const simg = (() => {
     const rOut = b ? d3.mean(a.ids.flatMap(x => b.ids.map(y => model.R.get(x).get(y))).filter(v => v != null && !isNaN(v))) : null;
     setTitle("t-graph", b ? `${a.name}: ${alike ? "alike" : "not a group"}` : `${a.ids.length} people`,
       b ? nb(`${nbIn}/${a.ids.length*K} neighbors in-group, chance ≈ ${L.format(".0f")(expct)}`) : "",
-      notes(`Each person is joined to the ${K} people whose pattern of Δ${METN[model.met]} over the 61 electrodes is most alike (Pearson r). Groups come from behavior only, not from theta.`,
-        b ? `Mean similarity within ${a.name.toLowerCase()}: r = ${f2(rIn)}; ${a.name.toLowerCase()} with ${b.name.toLowerCase()}: r = ${f2(rOut)}.` : "",
-        "On scatter: each person sits where they are in the Vulnerability View. Network: layout by similarity (drag nodes, wheel to zoom). Click a person to select it (Shift+click for A/B). Not functional connectivity: it compares people, not electrodes."));
+      info(b ? `${a.name} are ${alike ? "more alike among themselves than with the rest" : "no more alike among themselves than with anyone else"} (r = ${f2(rIn)} within, ${f2(rOut)} across).` : "People with similar maps of change are linked.",
+        `Each person links to the ${K} whose Δ${METN[model.met]} map over 61 electrodes is most alike. On scatter keeps the Vulnerability View layout; Network arranges by similarity.`,
+        "Pearson r between people, not connectivity between electrodes."));
     d3.select("#k-graph").html(model.groups.map(g => `<span class="k"><i class="dot" style="background:${g.color}"></i>${g.name}</span>`).join("") +
       `<span class="k m">${K} most alike</span><span class="seg gseg" role="group" aria-label="Layout"><button type="button" data-m="scatter" aria-pressed="${mode === "scatter"}">On scatter</button><button type="button" data-m="net" aria-pressed="${mode === "net"}">Network</button></span>` +
       (mode === "net" ? `<button class="btn btn-sm" id="graphgrp" type="button" aria-pressed="${grouped}">Group</button>` : ""));

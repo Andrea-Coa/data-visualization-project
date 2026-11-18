@@ -154,8 +154,9 @@ const indiv = (() => {
     vt.textContent = "Individual View ";
     vt.append(Object.assign(document.createElement("span"), {className:"vmet", textContent:`· Δ${METN[model.met]}`}));
     const [a, b] = model.groups, mC = g => d3.mean(g.cons), strong = g => g.cons.filter(c => Math.abs(c) >= .6).length;
-    const hInfo = notes(`Δ${METN[model.met]} (deprivation − normal) per person (columns) and electrode (rows, front to back). Groups are defined by behavior only, not by theta.`,
-      "C(e): share of the group whose Δ rises minus share whose Δ falls (−1 to +1). Click a column to select a person; click a row to put that electrode on the scatter x-axis.");
+    const hInfo = info("If the more impaired shared one θ signature, their columns would look alike.",
+      `One column per person, one row per electrode (front to back). C(e): share whose Δ rises minus share whose Δ falls. Click a row to send that electrode to the scatter.`,
+      "Groups split by the behavioral marker only, never by θ.");
     if(b){
       const dA = mC(a), dB = mC(b);
       setTitle("t-heat", `Δ${METN[model.met]}`, nb(`C̄ ${a.name} ${fs2(dA)} · ${b.name} ${fs2(dB)}`), hInfo);

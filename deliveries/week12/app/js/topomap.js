@@ -476,7 +476,7 @@ const topo = (() => {
     const k = d3.select("#k-topo"); k.selectAll("*").remove();
     const meanD = (T, met) => d3.mean(ELEC.filter(e => T[e]).map(e => met === "var" ? T[e].dVar : T[e].dMean));
     const up = (T, met) => ELEC.filter(e => T[e] && (met === "var" ? T[e].dVar : T[e].dMean) > 0).length;
-    const base = ["σθ: SD of relative θ (4–8 / 1–40 Hz) across 4-s epochs; μθ: its mean. Δ = deprivation − normal. v4 interpolation (EEGLAB, FieldTrip)."];
+    const base = [];   // el método (σθ, μθ, interpolación) está en About › Method
     // conteos de p y q de un conjunto de mapas ya probado
     const cnt = (T, met) => ({p: ELEC.filter(e => T[e] && pOf(T[e], met) != null && pOf(T[e], met) < .05).length,
       q: ELEC.filter(e => T[e] && qOf(T[e], met) != null && qOf(T[e], met) < .05).length});
@@ -487,10 +487,9 @@ const topo = (() => {
       const [rc, rp] = sp.rows, kc = cnt(rc.T, S.met), kp = cnt(rp.T, S.met);
       setTitle("t-topo", "θ topomaps: crossover by session order",
         nb(`c: ${kc.q} of 61 electrodes q &lt; 0.05 · π: ${kp.q} of 61`),
-        notes(...base,
-          `Two-period crossover (Normal sleep first n = ${sp.nA}, Deprivation first n = ${sp.nB}). Top row, deprivation effect adjusted for visit: c = (mean Δ in each order, averaged with equal weight); Normal and Deprivation maps also give each order equal weight. Bottom row, visit effect: π = 2nd − 1st visit whatever the condition; it equals half the difference between the Δ maps of the two orders, so comparing those Δ maps tests the visit, not \"order modulates deprivation\".`,
-          `Welch t per electrode between orders (c: on 2nd − 1st visit; π: on Δ); FDR within each row (61 electrodes). Rings: q &lt; 0.05; dots: p &lt; 0.05. c: ${kc.p} p and ${kc.q} q; π: ${kp.p} p and ${kp.q} q. No cluster test in this mode (two independent groups).`,
-          "With 40 vs 28 people the plain mean Δ is c + 0.18·π; here π is near 0, so both agree. Carryover (difference between orders in the average of both nights) is descriptive only (Freeman, 1989). Grizzle (1965); Hills and Armitage (1979); Senn (2002); Jones and Kenward (2014)."));
+        info(`The deprivation effect holds after adjusting for visit order (c: ${kc.q} of 61 electrodes q &lt; 0.05); the visit itself barely matters (π: ${kp.q}).`,
+          `Top row: deprivation effect, each order weighted equally (${sp.nA} and ${sp.nB} people). Bottom row: 2nd minus 1st visit, whatever the night. Rings: q &lt; 0.05; dots: p &lt; 0.05.`,
+          "Two-period crossover, Welch t per electrode, FDR per row; details in About › Method."));
       legend();
       return;
     }
@@ -498,10 +497,10 @@ const topo = (() => {
       const [r0, r1] = sp.rows, m0 = meanD(r0.T, S.met), m1 = meanD(r1.T, S.met);
       const n0 = sp.mode === "pair" ? sp.names[0] : sp.G[0].name, n1 = sp.mode === "pair" ? sp.names[1] : sp.G[1].name;
       const test = sp.mode === "pair" ? "No per-electrode test for single people."
-        : sp.circular ? "No per-electrode test: these groups are defined by Δθ itself, so testing their Δθ would be circular."
-        : `Paired t-test per electrode within each group, FDR per group. Ring: p &lt; 0.05; dot: q &lt; 0.05 (${n0}: ${cnt(r0.T, S.met).p} and ${cnt(r0.T, S.met).q}; ${n1}: ${cnt(r1.T, S.met).p} and ${cnt(r1.T, S.met).q}). Marks show where each group changes, not where the groups differ.`;
+        : sp.circular ? "No test: these groups are defined by Δθ itself."
+        : `Paired t per electrode within each group, FDR per group (${n0}: ${cnt(r0.T, S.met).q} q &lt; 0.05; ${n1}: ${cnt(r1.T, S.met).q}). Marks show where each group changes, not where they differ.`;
       setTitle("t-topo", `θ topomaps: ${sp.mode === "pair" ? "two people" : "two groups"}`,
-        `mean Δ${METN[S.met]}: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`, notes(...base, "Both rows share the same scales.", test, sp.mode === "cmp" && !sp.circular ? marksNote(sp.rows) : ""));
+        `mean Δ${METN[S.met]}: ${n0} ${fsr(m0)}, ${n1} ${fsr(m1)}`, info(`Compare the two Δ maps: same color in the same place means the same change.`, `Both rows share the same scales. ${sp.mode === "cmp" && !sp.circular ? marksNote(sp.rows) : ""}`, test));
       if(sp.mode === "cmp" && !sp.circular) legend();
       // sin prueba (dos personas, o grupos definidos por Δθ): se dice en la leyenda, en lugar de dejarla vacía
       else d3.select("#k-topo").append("span").attr("class", "k notest")
@@ -511,15 +510,16 @@ const topo = (() => {
     }
     if(sp.mode === "group"){
       setTitle("t-topo", sp.n === 1 && S.selected ? `θ topomaps: ${S.selected[0]}` : "θ topomaps: your selection", nb(`n = ${sp.n}`),
-        notes(...base, `Δσθ &gt; 0 at ${up(sp.rows[0].T, "var")} of 61 electrodes.`,
-          "No per-electrode test: a selection is usually picked by its Δθ, so the test would be circular."));
+        info(`σθ rises at ${up(sp.rows[0].T, "var")} of 61 electrodes in your selection.`, "", "No test: a selection is usually picked by its Δθ, so testing it would be circular."));
       d3.select("#k-topo").append("span").attr("class", "k notest").attr("title", "A selection is usually picked by its Δθ, so testing its Δθ would be circular.").text("no test for a selection");
       return;
     }
     const v = sigCount("var"), m = sigCount("mean");
     // una cifra por métrica: sumarlas daba «113 of 61» cuando las dos tienen electrodos significativos
     setTitle("t-topo", `θ maps · q &lt; 0.05: σθ ${v.q}, μθ ${m.q} of 61 electrodes`, "",
-      notes(...base, `Paired t-test per electrode (n = 68): p &lt; 0.05 at σθ ${v.p} and μθ ${m.p} electrodes; FDR q &lt; 0.05 at ${v.q} and ${m.q}.`, marksNote(sp.rows)));
+      info((uv => `After deprivation, θ variability ${uv >= 31 ? "rises" : "falls"} at ${uv >= 31 ? uv : 61-uv} of 61 electrodes; ${v.q} survive FDR (mean level, μθ: ${m.q}).`)(up(TOPO, "var")),
+        `Columns: Normal, Deprivation and Δ (warm = higher after deprivation). ${marksNote(sp.rows)}`,
+        "Paired t per electrode, n = 68, FDR over 61; method in About."));
     // las marcas solo se dibujan sobre los mapas Δ: una capa a la vez, elegida en la leyenda
     marksKey(sp.rows);
   }
@@ -568,12 +568,10 @@ const topo = (() => {
   // nota de la ⓘ sobre la marca elegida
   function marksNote(rows){
     const tested = (rows || []).filter(r => r.cl);
-    const res = tested.map(r => { const c = r.cl.clusters[0]; return `${r.label.replace(/ \(\d+\)$/, "")}: ${c && c.p < CLUSTER.alpha ? `p ${fp(c.p)}, largest cluster ${c.nodes.length} electrodes` : "no cluster with p &lt; 0.05"}`; }).join("; ");
-    const glob = tested.length ? `Cluster-based permutation test (Maris and Oostenveld, 2007; neighbors by Delaunay, ${CLUSTER.perms} sign-flip permutations, checked against MNE): ${res}. It shows that the Δ map differs from zero; it does not establish where (Sassenhagen and Draschkow, 2019): the color shows where the change is largest.` : "";
-    const mk = {cluster:"Marks: channels inside the clusters (descriptive, not a per-electrode test).",
-      fdr:"Marks: rings at the electrodes that survive Benjamini–Hochberg FDR across the 61 electrodes (q &lt; 0.05), as in Cui et al. (2026) on this dataset.",
-      p:"Marks: small dots at electrodes with p &lt; 0.05 before correction. Exploratory: with 61 tests about 3 reach it by chance.",
-      none:"Marks hidden: only the color map."}[S.marks];
+    const res = tested.map(r => { const c = r.cl.clusters[0]; return `<span>${r.label.replace(/ \(\d+\)$/, "")} ${c && c.p < CLUSTER.alpha ? `p ${/^</.test(fp(c.p)) ? fp(c.p) : "= " + fp(c.p)}` : "none"}</span>`; }).join(", ");
+    const glob = tested.length ? `Cluster test: ${res}. It says the map differs from zero, not where.` : "";
+    const mk = {cluster:"Marks: electrodes inside the clusters.", fdr:"Rings: q &lt; 0.05 after FDR.",
+      p:"Dots: p &lt; 0.05 uncorrected (about 3 of 61 by chance).", none:""}[S.marks];
     return [mk, glob].filter(Boolean).join(" ");
   }
 
@@ -589,10 +587,9 @@ const topo = (() => {
     const k = d3.select("#k-topo"); k.selectAll("*").remove();
     const n = frame[1]-frame[0]+1, tested = sp.rows.some(r => ELEC.some(e => r.T[e] && pOf(r.T[e], r.met) != null));
     setTitle("t-topo", `θ maps · window ${winTxt(frame)}`, nb(`${n} epochs`),
-      notes(`Only the ${n} epochs (${n*4} s) of this window: μθ is their mean and σθ their SD. This window σθ is a different and noisier measure than the five-minute σθ, which also contains the slow drift across the recording.`,
-        tested ? `Paired t-test per electrode within this window, FDR across the 61 electrodes of this window only. Exploratory: not corrected across windows, and a window chosen after looking at the data favours large effects. For a corrected view across time, use Series.`
-          : "No per-electrode test here (selection, two people or groups defined by Δθ).",
-        "Click another moment in the Time View to move the window; Back to the full recording (or Clear) returns to the five minutes.", tested ? marksNote(sp.rows) : ""));
+      info(`Maps of this ${n*4}-s window only: a noisier measure than the five minutes, which also include slow drift.`,
+        `Click another moment in the Time View to move it; Clear returns to the five minutes. ${tested ? marksNote(sp.rows) : ""}`,
+        tested ? "Exploratory: FDR within this window only. For a corrected view over time, use Series." : "No per-electrode test here."));
     if(tested) marksKey(sp.rows);
   }
   // ---------------------------------------------------------------- serie completa (botón «Series»)
@@ -689,13 +686,11 @@ const topo = (() => {
   function seriesHeader(sp, nBlk, len, tested){
     const k = d3.select("#k-topo"); k.selectAll("*").remove();
     const cnt = row => { let p = 0, q = 0; row.cells.forEach(T => ELEC.forEach(e => { const t = T[e]; if(t && pOf(t, row.met) != null){ if(pOf(t, row.met) < .05) p++; if(qOf(t, row.met) < .05) q++; } })); return {p, q}; };
-    const counts = sp.rows.filter(r => r.tested).map(r => { const c = cnt(r); return `${r.label}: ${c.p} with p &lt; 0.05, ${c.q} with q &lt; 0.05`; }).join("; ");
+    const counts = sp.rows.filter(r => r.tested).map(r => { const c = cnt(r); return `<span>${r.label}: ${c.p} with p &lt; 0.05, ${c.q} with q &lt; 0.05</span>`; }).join("; ");
     setTitle("t-topo", `θ series · ${nBlk} blocks of ${len*4} s`, sp.mode === "pair" ? "" : nb(`n = ${sp.rows[0].ids.length}`),
-      notes(`Δ maps (deprivation − normal) in ${nBlk} consecutive, non-overlapping blocks of ${len*4} s, aligned with the Time View below. Hover a map to highlight its block; click it to open that block as a window.`,
-        "σθ of a block is the SD within that block only (fast fluctuations). The five-minute σθ also includes the slow drift between blocks (for example, growing drowsiness), so comparing the two tells which part the deprivation effect comes from.",
-        tested ? `Paired t-test per electrode and block, Benjamini–Hochberg FDR across all ${nBlk} × 61 tests of each row (stricter than one map, so fewer marks than in the five-minute map are expected). ${counts}.` : "No per-electrode test (selection, two people or groups defined by Δθ).",
-        tested ? "Cluster test over electrodes × blocks: neighbors are adjacent electrodes in the same block and the same electrode in consecutive blocks. " + marksNote(sp.rows) : "",
-        "Limits: five minutes with eyes open and no vigilance marker, so a drift over time can be drowsiness, fatigue or time on task."));
+      info("Does the change build up over the five minutes or is it there from the start? Read the Δ maps left to right.",
+        `${nBlk} blocks of ${len*4} s, aligned with the Time View. Click a map to open its block. ${tested ? marksNote(sp.rows) : ""}`,
+        tested ? `FDR over all ${nBlk} × 61 tests of each row, so fewer marks than in one map. ${counts}.` : "No per-electrode test here."));
     if(tested) marksKey(sp.rows, true);
   }
   bus.on("select.topo", e => { if(!(e && e.live)) render(); });
