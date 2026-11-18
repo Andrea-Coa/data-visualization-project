@@ -795,3 +795,7 @@ body.touring .sidebox .sec[data-open="true"]:not(.tourcur){visibility:hidden}
 /* el tooltip (y la ⓘ) siempre encima de todo: las ventanas flotantes de validación suben su z-index cada vez que se
    traen al frente (--z, desde 60), y la vista ampliada usa 70; la guía (200) queda por encima de la página, no del tooltip */
 #tooltip{z-index:1000}
+
+/* guided tour / expo: focus on the Classifier panels */
+body[data-focus^="ml"] :where(.mlsum,.ml-rec,.ml-feat,.ml-imp,.ml-met,.ml-person){opacity:.14;transition:opacity .35s}
+body[data-focus="mlsum"] .mlsum,body[data-focus="mlrec"] .ml-rec,body[data-focus="mlfeat"] .ml-feat,body[data-focus="mlimp"] .ml-imp,body[data-focus="mlmet"] .ml-met,body[data-focus="mlperson"] .ml-person{opacity:1}

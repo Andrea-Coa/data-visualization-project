@@ -56,6 +56,7 @@
     pgEl.textContent = i+1;
     document.body.classList.toggle("on-dark", s.classList.contains("dark"));
     document.body.classList.toggle("on-demo", s.classList.contains("demo"));
+    document.body.classList.toggle("on-chart", s.classList.contains("chart"));
     [1, 2, 3].forEach(p => { const idx = parts[p].indexOf(s), el = document.querySelector(`.rail i[data-p="${p}"]`);
       el.style.setProperty("--f", (idx >= 0 ? (idx+1)/parts[p].length : (+s.dataset.part > p ? 1 : 0))*100+"%"); });
     $("notett").textContent = s.dataset.title; $("notetx").textContent = s.dataset.notes || "";

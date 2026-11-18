@@ -8,12 +8,14 @@
       const t = setInterval(() => { if(!$("boot").classList.contains("done")) return; clearInterval(t);
         if(q.get("tab")){ const b = document.querySelector(`[data-tab="${q.get("tab")}"]`); if(b) b.click(); }
         (q.get("sec") || "").split(",").filter(Boolean).forEach(id => { const b = $(id); if(b && b.closest(".sec").dataset.open !== "true") b.click(); });
-        if(q.get("focus")) setTimeout(() => { document.body.dataset.focus = q.get("focus"); }, 600); }, 250);
+        if(q.get("row")) setTimeout(() => { const b = document.querySelectorAll("#vlist .vrow2")[+q.get("row")]; if(b) b.click(); }, 500);
+        if(q.get("person")) setTimeout(() => { if(window.ML) ML.pick(q.get("person")); }, 1400);
+        if(q.get("focus")) setTimeout(() => { document.body.dataset.focus = q.get("focus"); }, 2200); }, 250);
     }
     return;
   }
   document.documentElement.classList.add("embed");
-  const SEL = {bar:".bar", scatter:".p-scatter", heat:".p-heat", topo:".p-topo", dyn:".p-dyn", side:"#side", maps:".col-c", compare:"#cmpsel"};
+  const SEL = {bar:".bar", scatter:".p-scatter", heat:".p-heat", topo:".p-topo", dyn:".p-dyn", side:"#side", maps:".col-c", compare:"#cmpsel", mlsum:".mlsum", mlrec:".ml-rec", mlfeat:".ml-feat", mlimp:".ml-imp", mlmet:".ml-met", mlperson:".ml-person"};
   const post = m => parent.postMessage({batimix:true, ...m}, "*");
   const rectOf = f => {
     const el = f && SEL[f] && document.querySelector(SEL[f]);
@@ -29,6 +31,8 @@
     (m.do || []).forEach(a => {
       if(a.startsWith("sec:")) openSec(a.slice(4));
       else if(a.startsWith("tab:")) openTab(a.slice(4));
+      else if(a.startsWith("row:")) setTimeout(() => { const b = document.querySelectorAll("#vlist .vrow2")[+a.slice(4)]; if(b) b.click(); }, 500);
+      else if(a.startsWith("person:")) setTimeout(() => { if(window.ML) ML.pick(a.slice(7)); }, 1400);
       else if(a === "play") setTimeout(() => dyn.play(), 700);
     });
     // measured twice: opening a section or toggling a view moves the layout for a moment
