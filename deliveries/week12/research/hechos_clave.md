@@ -5,7 +5,7 @@ pipeline principal es el de referencia promedio con ICA (`tools/eeg_ica.py`, `to
 (referencia FCz, sin ICA) queda como dimensión del multiverso y como comparación. Si una cifra cambia, se cambia aquí primero.
 
 ## Proyecto
-- Título: "Una noche sin dormir no le pasa igual a todos" (BATIMIX). Curso DS5343 Data Visualization, UTEC 2026-2, Prof. Germain García-Zanabria.
+- Título: "BATIMIX: A Visual Analytics System for Individual Vulnerability to Sleep Deprivation" (en español: "BATIMIX: un sistema de analítica visual de la vulnerabilidad individual a la privación de sueño"). Curso DS5343 Data Visualization, UTEC 2026-2, Prof. Germain García-Zanabria.
 - Equipo y responsabilidades: Jimena Gurbillon (mapa del cuero cabelludo, Q1 y Q2, datos y métodos), Andrea Coa (dinámica y moderadores, Q6 y Q7), Paolo Medrano (vulnerabilidad, convergencia y multiverso, Q3 a Q5).
 - Audiencia: investigador en fisiología del sueño que hace screening exploratorio sobre datos públicos. Decisión que apoya: qué canales, regiones y covariables merecen una prueba formal. No es diagnóstica ni predictiva.
 - Repositorio: https://github.com/Andrea-Coa/data-visualization-project (rama de trabajo `visuales`).

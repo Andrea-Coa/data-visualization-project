@@ -1,4 +1,4 @@
-# BATIMIX: One sleepless night does not affect everyone the same way
+# BATIMIX: A Visual Analytics System for Individual Vulnerability to Sleep Deprivation
 
 **Refined Draft Report, Week 12** · DS5343 Data Visualization, UTEC 2026-2
 **Team:** Jimena Gurbillon, Andrea Coa, Paolo Medrano

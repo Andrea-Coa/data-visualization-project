@@ -1,6 +1,6 @@
 <p align="center"><img src="assets/batimix-mole.png" alt="BATIMIX mole" width="320"></p>
 
-# BATIMIX: One sleepless night does not affect everyone the same way
+# BATIMIX: A Visual Analytics System for Individual Vulnerability to Sleep Deprivation
 
 Course project for **DS5343 Data Visualization** (UTEC, 2026-2, Prof. Germain García-Zanabria).
 An interactive **D3.js** explorer of individual vulnerability to sleep deprivation in resting-state EEG

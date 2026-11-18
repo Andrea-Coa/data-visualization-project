@@ -37,6 +37,9 @@ code,.mono{font-family:var(--mono);font-size:.88em;font-variant-numeric:tabular-
 .kicker{margin:0 0 14px;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 h1{margin:0;font-weight:600;font-size:clamp(32px,5.2vw,56px);line-height:1.06;letter-spacing:-.025em;max-width:18ch}
 h1 em{font-style:italic;color:var(--sd)}
+/* nombre del sistema arriba y su descripción debajo, más chica (como en los papers de IEEE VIS) */
+h1{max-width:24ch}
+h1 .h1sub{display:block;margin-top:.3em;font-size:.52em;line-height:1.15;letter-spacing:-.015em;font-weight:500}
 .team{margin:18px 0 0;font-size:18px;color:var(--ink2)}
 .team b{font-weight:600;color:var(--ink)}
 .course{margin:4px 0 0;font-size:15px;color:var(--muted)}
