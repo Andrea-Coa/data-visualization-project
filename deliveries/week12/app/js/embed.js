@@ -2,7 +2,16 @@
    highlight and what to do there (play the time view, open a validation section); the app dims the rest and answers
    with the view's rectangle so the page can zoom onto it. Without a parent page this file does nothing. */
 (() => {
-  if(parent === window) return;
+  const q = new URLSearchParams(location.search);
+  if(parent === window){
+    if(q.has("focus") || q.has("tab")){   // static preview of a state (expo screenshots)
+      const t = setInterval(() => { if(!$("boot").classList.contains("done")) return; clearInterval(t);
+        if(q.get("tab")){ const b = document.querySelector(`[data-tab="${q.get("tab")}"]`); if(b) b.click(); }
+        (q.get("sec") || "").split(",").filter(Boolean).forEach(id => { const b = $(id); if(b && b.closest(".sec").dataset.open !== "true") b.click(); });
+        if(q.get("focus")) setTimeout(() => { document.body.dataset.focus = q.get("focus"); }, 600); }, 250);
+    }
+    return;
+  }
   document.documentElement.classList.add("embed");
   const SEL = {bar:".bar", scatter:".p-scatter", heat:".p-heat", topo:".p-topo", dyn:".p-dyn", side:"#side", maps:".col-c", compare:"#cmpsel"};
   const post = m => parent.postMessage({batimix:true, ...m}, "*");
@@ -12,12 +21,14 @@
     const b = (f === "compare" ? el.closest(".fld") : el).getBoundingClientRect();
     return {x:b.x, y:b.y, w:b.width, h:b.height};
   };
+  const openTab = n => { const b = document.querySelector(`[data-tab="${n}"]`); if(b && b.getAttribute("aria-selected") !== "true") b.click(); };
   const openSec = id => { const b = $(id); if(b && b.closest(".sec").dataset.open !== "true") b.click(); };
   function apply(m){
     dyn.stop();
     if(m.focus) document.body.dataset.focus = m.focus; else delete document.body.dataset.focus;
     (m.do || []).forEach(a => {
       if(a.startsWith("sec:")) openSec(a.slice(4));
+      else if(a.startsWith("tab:")) openTab(a.slice(4));
       else if(a === "play") setTimeout(() => dyn.play(), 700);
     });
     // measured twice: opening a section or toggling a view moves the layout for a moment

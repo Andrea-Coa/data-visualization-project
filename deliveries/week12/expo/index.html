@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BATIMIX · Exposición final</title>
+<meta name="description" content="Exposición final de BATIMIX (DS5343 Visualización de Datos, UTEC 2026-2): problema, tareas y diseño, conclusiones. 10 minutos.">
+<link rel="icon" href="../app/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="expo.css">
+</head>
+<body>
+
+<header class="top" id="top">
+  <div class="brand"><img src="img/batimix-mole.png" alt="" width="34" height="34"><b>BATIMIX</b><span>Exposición final · 10 min</span></div>
+  <nav class="parts" aria-label="Partes de la exposición">
+    <button data-goto="s1" class="pt on" data-p="1"><i>1</i> Problema y datos <em>2 min</em></button>
+    <button data-goto="s5" class="pt" data-p="2"><i>2</i> Tareas y diseño <em>6 min</em></button>
+    <button data-goto="s15" class="pt" data-p="3"><i>3</i> Cierre <em>2 min</em></button>
+  </nav>
+  <div class="tools">
+    <button id="clock" type="button" title="Iniciar o pausar el cronómetro (T)">⏱ <span id="clk">0:00</span> / 10:00</button>
+    <button id="notesbtn" type="button" title="Notas del orador (N)">Notas</button>
+    <span class="count" id="count">1 / 17</span>
+  </div>
+</header>
+<div class="progress"><i id="prog"></i></div>
+
+<main id="deck">
+
+<!-- ================= PARTE 1 · 2 min ================= -->
+<section class="slide cover" id="s1" data-part="1" data-sec="10" data-title="Portada"
+  data-notes="(10 s) Buenas. Somos Jimena, Andrea y Paolo. Les presentamos BATIMIX: un sistema de analítica visual para ver quién se deteriora y quién no después de una noche sin dormir. En 10 minutos vamos a ver el problema, las tareas que resuelve la herramienta y qué encontramos.">
+  <div class="cover-in">
+    <img class="mole" src="img/batimix-mole.png" alt="BATIMIX, un topo con anteojos" width="220">
+    <p class="eyebrow">DS5343 Visualización de Datos · UTEC 2026-2</p>
+    <h1>Una noche sin dormir <em>no le pasa igual a todos</em></h1>
+    <p class="sub">BATIMIX: un sistema de analítica visual de la vulnerabilidad individual a la privación de sueño</p>
+    <p class="team"><b>Jimena Gurbillon</b> · <b>Andrea Coa</b> · <b>Paolo Medrano</b><br><span>Prof. Germain García-Zanabria</span></p>
+  </div>
+  <div class="hint">Avanza con ↓ o la barra espaciadora</div>
+</section>
+
+<section class="slide" id="s2" data-part="1" data-sec="35" data-title="Problema y audiencia"
+  data-notes="(35 s) El problema: casi todos los estudios reportan el promedio del grupo, y el promedio esconde a las personas. Acá cada punto es una persona real de nuestro conjunto de datos: el cambio en la variabilidad de theta después de una noche sin dormir. La mayoría sube, pero hay quienes bajan. Nuestra audiencia es una investigadora o un investigador del sueño que hace cribado exploratorio con datos públicos: quiere decidir qué canales, regiones o covariables merecen una prueba formal. No es una herramienta de diagnóstico.">
+  <div class="cols">
+    <div class="txt">
+      <p class="eyebrow">Problema y audiencia</p>
+      <h2>El promedio del grupo <em>esconde a las personas</em></h2>
+      <p>Tras una noche sin dormir, unas personas se deterioran mucho y otras casi nada. Un solo número por grupo no dice quién es quién.</p>
+      <div class="persona"><b>Para quién</b><span>Investigadoras e investigadores del sueño que hacen <i>cribado exploratorio</i> con datos públicos: ¿qué canales, regiones y covariables merecen una prueba formal?</span><small>No es una herramienta de diagnóstico ni de predicción.</small></div>
+    </div>
+    <figure class="viz"><div id="strip" role="img" aria-label="Cambio en la variabilidad de theta de cada una de las 68 personas"></div>
+      <figcaption>Cada punto es una persona (68). Eje: cambio en la variabilidad de theta frontal (Δσθ) tras la privación. <span id="stripcap"></span></figcaption></figure>
+  </div>
+</section>
+
+<section class="slide" id="s3" data-part="1" data-sec="35" data-title="Motivación"
+  data-notes="(35 s) La motivación viene de un artículo reciente, Cui y colaboradores 2026: con este mismo dataset público reportaron que quienes aumentan la variabilidad de theta se vuelven más lentos en la prueba de reacción, una correlación de 0.55 con apenas 28 personas. Una correlación con n tan chico es frágil. Nuestra pregunta: ¿se sostiene si miramos persona por persona y probando distintas decisiones de análisis?">
+  <div class="cols">
+    <div class="txt">
+      <p class="eyebrow">Motivación</p>
+      <h2>Una correlación publicada con <em>28 personas</em></h2>
+      <p>Cui et al. (2026) reportaron, con el conjunto público ds004902, que quienes aumentan la variabilidad de theta (σθ) se vuelven más lentos en la tarea de vigilancia (PVT).</p>
+      <p>Con un n tan pequeño y un solo camino de análisis, el resultado es <b>frágil</b>. Nuestra pregunta:</p>
+      <blockquote>¿Se sostiene persona por persona, y si cambiamos las decisiones del análisis?</blockquote>
+    </div>
+    <div class="viz big-stat">
+      <div class="stat"><b>ρ ≈ 0,55</b><span>correlación publicada<br>n = 28 personas</span></div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="stat q"><b>¿?</b><span>nuestro reanálisis<br>68 personas · 896 análisis</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s4" data-part="1" data-sec="40" data-title="Datos"
+  data-notes="(40 s) Los datos: OpenNeuro ds004902, licencia abierta. 71 personas grabadas en reposo, cinco minutos con ojos abiertos, dos veces: después de una noche normal y después de entre 24 y 30 horas despiertas. 68 tienen EEG en las dos noches, con 61 electrodos. Calculamos la theta relativa y, por persona, su variabilidad y su nivel medio, y el cambio entre las dos noches. Una decisión de rigor: encontramos y corregimos dos errores del procesamiento, una asignación invertida de sesiones y tres grabaciones a otra frecuencia de muestreo; por eso todas las cifras que van a ver son las corregidas.">
+  <div class="cols">
+    <div class="txt">
+      <p class="eyebrow">Datos</p>
+      <h2>71 personas, <em>dos noches</em>, 5 minutos de EEG</h2>
+      <div class="chips">
+        <div><b>71</b><span>personas</span></div><div><b>68</b><span>con EEG en las 2 noches</span></div>
+        <div><b>61</b><span>electrodos</span></div><div><b>5 min</b><span>reposo, ojos abiertos</span></div>
+        <div><b>30</b><span>con prueba de vigilancia (PVT)</span></div><div><b>CC0</b><span>OpenNeuro ds004902</span></div>
+      </div>
+      <div class="rigor"><b>Decisión de rigor.</b> Detectamos y corregimos dos errores del procesamiento (sesión↔condición invertida en 28 personas y tres grabaciones a 5000 Hz). Todas las cifras de hoy son las corregidas.</div>
+    </div>
+    <figure class="viz">
+      <svg viewBox="0 0 560 360" role="img" aria-label="Del EEG crudo al cambio por persona" class="flow">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5E6675"/></marker></defs>
+        <g font-family="Roboto, Arial" font-size="15">
+          <g><rect x="20" y="20" width="520" height="62" rx="12" fill="#F1F3F6" stroke="#CDD2DA"/><text x="40" y="48" font-weight="700" fill="#14181F">1 · EEG crudo (BIDS)</text><text x="40" y="68" fill="#5E6675" font-size="13">61 electrodos, 500 Hz, noche normal (NS) y privación (SD)</text></g>
+          <g><rect x="20" y="104" width="520" height="62" rx="12" fill="#F1F3F6" stroke="#CDD2DA"/><text x="40" y="132" font-weight="700" fill="#14181F">2 · Limpieza + ICA</text><text x="40" y="152" fill="#5E6675" font-size="13">filtros, canales malos, referencia promedio, quita ojos y músculo</text></g>
+          <g><rect x="20" y="188" width="520" height="62" rx="12" fill="#F1F3F6" stroke="#CDD2DA"/><text x="40" y="216" font-weight="700" fill="#14181F">3 · θ relativa por época y electrodo</text><text x="40" y="236" fill="#5E6675" font-size="13">75 épocas de 4 s · σθ = variabilidad entre épocas, μθ = nivel medio</text></g>
+          <g><rect x="20" y="272" width="520" height="62" rx="12" fill="#14181F"/><text x="40" y="300" font-weight="700" fill="#fff">4 · Δ = SD − NS, por persona y electrodo</text><text x="40" y="320" fill="#C9CED6" font-size="13">lo que la herramienta pone en pantalla</text></g>
+        </g>
+        <g stroke="#5E6675" stroke-width="2" marker-end="url(#ar)"><line x1="280" y1="82" x2="280" y2="102"/><line x1="280" y1="166" x2="280" y2="186"/><line x1="280" y1="250" x2="280" y2="270"/></g>
+      </svg>
+      <figcaption>Del EEG crudo al cambio por persona.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ================= PARTE 2 · 6 min ================= -->
+<section class="slide tasks" id="s5" data-part="2" data-sec="35" data-title="Las tareas"
+  data-notes="(35 s) Diseñamos la herramienta a partir de ocho tareas, en la tipología de Brehmer y Munzner. Cada tarea es una pregunta del investigador y tiene una vista que la responde. Vamos a recorrerlas con la herramienta en vivo, agrupadas por vista. Más adelante las traducimos a un lenguaje más sencillo.">
+  <p class="eyebrow">Parte 2 · Tareas y fundamentos de diseño</p>
+  <h2>Ocho tareas, <em>una vista para cada una</em></h2>
+  <div class="tgrid">
+    <div><i>T1</i><b>Localizar</b><span>¿Dónde cambia theta?</span><em>Topografía</em></div>
+    <div><i>T2</i><b>Comparar métricas</b><span>¿Cantidad o variabilidad?</span><em>Topografía</em></div>
+    <div><i>T3</i><b>Identificar</b><span>¿Quiénes son vulnerables?</span><em>Vulnerabilidad</em></div>
+    <div><i>T4</i><b>Comparar</b><span>¿Comparten un patrón?</span><em>Individual</em></div>
+    <div><i>T5</i><b>Correlacionar</b><span>¿Va con la conducta?</span><em>Vulnerabilidad</em></div>
+    <div><i>T6</i><b>Describir tendencia</b><span>¿Cuándo, en 5 minutos?</span><em>Tiempo</em></div>
+    <div><i>T7</i><b>Moderadores</b><span>¿Depende de quién es?</span><em>Comparar</em></div>
+    <div><i>T8</i><b>Verificar robustez</b><span>¿Resiste otro análisis?</span><em>Validación</em></div>
+  </div>
+</section>
+
+<section class="slide demo" id="s6" data-part="2" data-sec="35" data-title="Demo: topografía" data-focus="topo" data-img="topo"
+  data-notes="(35 s) T1 y T2. Cada cabeza es el cuero cabelludo visto desde arriba. Columnas: noche normal, privación y el cambio. Las filas separan la variabilidad, σθ, del nivel medio, μθ. Los anillos son electrodos significativos y los puntos rellenos sobreviven a la corrección por comparaciones múltiples. Acá casi toda la cabeza se pone roja: el cambio es generalizado. Con el botón de play, todo se mueve en el tiempo, lo vemos en un momento.">
+  <div class="side"><p class="eyebrow">Demo · T1 · T2</p><h2>¿Dónde cambia theta?</h2>
+    <ul><li>Cada cabeza es el cuero cabelludo visto desde arriba.</li><li>Columnas: <b>NS</b>, <b>SD</b> y su diferencia <b>Δ</b>.</li><li>Filas: variabilidad <b>σθ</b> y nivel medio <b>μθ</b>.</li></ul>
+    <p class="why">Decisión de diseño: escala fija por fila y marcas de significancia solo donde hay prueba.</p></div>
+</section>
+
+<section class="slide demo" id="s7" data-part="2" data-sec="35" data-title="Demo: vulnerabilidad" data-focus="scatter" data-img="scatter"
+  data-notes="(35 s) T3, T5 y T7. Cada punto es una persona: en horizontal cuánto aumentó su variabilidad de theta, en vertical cuánto se enlenteció en la prueba de reacción. La esquina ámbar son quienes empeoraron en ambas. La correlación con su intervalo está en el recuadro: va en la dirección esperada, pero más débil que lo publicado. Con el selector Comparar dividimos a todos en dos grupos, por sexo, orden de sesión o sueño habitual, y todas las vistas se repintan con dos colores.">
+  <div class="side"><p class="eyebrow">Demo · T3 · T5 · T7</p><h2>¿Quiénes la pasan peor?</h2>
+    <ul><li>Cada punto es una persona: cambio en theta contra cambio en la prueba de reacción.</li><li>La esquina ámbar: peor en ambas.</li><li><b>Comparar</b> divide a todos en dos grupos y repinta todo.</li></ul>
+    <p class="why">Decisión de diseño: ρ siempre con su intervalo y su n.</p></div>
+</section>
+
+<section class="slide demo" id="s8" data-part="2" data-sec="25" data-title="Demo: vista individual" data-focus="heat" data-img="heat"
+  data-notes="(25 s) T4. Una columna por persona y una fila por electrodo. Separamos a las personas solo por su conducta, nunca por theta, para que la comparación no sea circular. Si los más afectados compartieran una firma, sus columnas se parecerían: vemos que cada persona cambia a su manera. El grafo de similitud en el panel lateral hace la misma pregunta con una red.">
+  <div class="side"><p class="eyebrow">Demo · T4</p><h2>¿Comparten un patrón?</h2>
+    <ul><li>Una columna por persona, una fila por electrodo.</li><li>Los grupos se definen <b>solo por conducta</b>, nunca por theta.</li><li>Si compartieran firma, sus columnas se parecerían.</li></ul>
+    <p class="why">Decisión de diseño: evitar la circularidad.</p></div>
+</section>
+
+<section class="slide demo" id="s9" data-part="2" data-sec="35" data-title="Demo: tiempo y reproducción" data-focus="maps" data-do="play" data-img="maps"
+  data-notes="(35 s) T6. La vista de tiempo muestra los cinco minutos: noche normal contra privación, con su error estándar. Y acá viene lo que integra todo: con el play, una ventana deslizante de 60 segundos recorre la grabación y todas las vistas se recalculan para esa ventana: los mapas evolucionan, el scatter, el mapa de calor y el grafo se actualizan, y una bolita marca el instante en esta serie. Se puede pausar y estudiar una ventana.">
+  <div class="side"><p class="eyebrow">Demo · T6</p><h2>¿Cuándo, en los 5 minutos?</h2>
+    <ul><li>Presiona <b>▶</b>: una ventana de 60 s recorre la grabación.</li><li>Mapas, dispersión, mapa de calor y grafo se recalculan para esa ventana.</li><li>Una bolita marca el instante en la serie.</li></ul>
+    <p class="why">Decisión de diseño: todas las vistas cuentan la misma historia a la vez.</p></div>
+</section>
+
+<section class="slide demo" id="s10" data-part="2" data-sec="30" data-title="Demo: validación" data-focus="bar" data-img="valid"
+  data-notes="(30 s) T8. El panel de validación intenta romper el hallazgo. ¿Es un ritmo real o el fondo 1 sobre f? Correlación 0.78 con la parte periódica: es oscilatorio. ¿Son los parpadeos? Quitar las ventanas con parpadeos deja el resultado igual, rho 0.95. ¿Cambia la sincronía entre regiones? Y el multiverso: 896 análisis con inferencia conjunta por permutaciones, para mostrar todas las decisiones razonables frente al azar.">
+  <div class="side"><p class="eyebrow">Demo · T8</p><h2>¿Resiste otro análisis?</h2>
+    <ul><li><b>¿Ritmo real o fondo 1/f?</b> ρ = 0,78: es oscilatorio.</li><li><b>¿Parpadeos?</b> Quitarlos no cambia nada (ρ = 0,95).</li><li><b>Multiverso:</b> 896 análisis frente al azar.</li></ul>
+    <p class="why">Decisión de diseño: la exploración se separa de la inferencia.</p></div>
+</section>
+
+<section class="slide demo" id="s11" data-part="2" data-sec="25" data-title="Demo: clasificador" data-do="tab:classifier" data-img="classifier"
+  data-notes="(25 s) Una pregunta nueva que surgió: si de verdad hay un cambio generalizado, ¿un modelo explicable puede encontrar la noche de privación? La pestaña Clasificador lo responde: dado el par de grabaciones de una persona, modelos explicables eligen la de privación en el 81 % de las personas, con theta como característica más importante. Y la visita, primera o segunda, no se puede predecir, que es el control.">
+  <div class="side"><p class="eyebrow">Demo · pestaña Clasificador</p><h2>¿Se puede reconocer la noche sin dormir?</h2>
+    <ul><li>Modelos explicables eligen la noche de privación en el <b>81 %</b> de las personas.</li><li><b>θ</b> es la característica que más pesa.</li><li>Control: la visita (1.ª o 2.ª) no se predice (AUC 0,49).</li></ul></div>
+</section>
+
+<section class="slide" id="s12" data-part="2" data-sec="50" data-title="Fundamentos de diseño"
+  data-notes="(50 s) Los fundamentos de diseño, en seis ideas. Uno: personas antes que promedios. Dos: cada título de panel enuncia su hallazgo, no su tema. Tres: los grupos se definen solo por conducta. Cuatro: la incertidumbre siempre visible, con n, intervalos y bandas. Cinco: la exploración separada de la inferencia, con el multiverso. Seis: vistas coordinadas, con selección, hover y reproducción que actúan sobre todas a la vez. Y un criterio de accesibilidad: guía paso a paso, idioma, y colores que se leen con daltonismo.">
+  <p class="eyebrow">Fundamentos de diseño</p>
+  <h2>Seis decisiones <em>que sostienen la herramienta</em></h2>
+  <div class="dgrid">
+    <div><b>1 · Personas antes que promedios</b><span>Cada punto, columna o nodo es una persona.</span></div>
+    <div><b>2 · El título es el hallazgo</b><span>Cada panel dice lo que encontró, no de qué trata.</span></div>
+    <div><b>3 · Grupos solo por conducta</b><span>Si se definieran por theta, el resultado sería circular.</span></div>
+    <div><b>4 · Incertidumbre siempre visible</b><span>n, intervalos de confianza y bandas, en cada gráfico.</span></div>
+    <div><b>5 · Explorar ≠ inferir</b><span>El multiverso de 896 análisis se calcula aparte, con permutaciones.</span></div>
+    <div><b>6 · Vistas coordinadas</b><span>Selección, hover y reproducción actúan sobre todas a la vez.</span></div>
+  </div>
+</section>
+
+<section class="slide" id="s13" data-part="2" data-sec="50" data-title="Hallazgos"
+  data-notes="(50 s) Los hallazgos, con los datos corregidos. Uno: theta se vuelve más inestable en 50 de 68 personas, pero 18 van en sentido contrario, así que no es universal. Dos: el cambio es generalizado, los 61 electrodos sobreviven a la corrección. Tres: la relación con la conducta es débil: rho 0.16 frontal y 0.37 centro-temporal, en la dirección de Cui pero más baja que 0.55, así que no replicamos la magnitud publicada. Cuatro: es un ritmo, no el fondo 1 sobre f, y no son los parpadeos. Cinco: el multiverso no supera el azar. Seis: un clasificador explicable reconoce la noche de privación.">
+  <p class="eyebrow">Principales hallazgos · datos corregidos</p>
+  <h2>El cambio es <em>generalizado, pero no universal</em></h2>
+  <div class="fgrid">
+    <div class="f"><b>50 / 18</b><h4>Más inestable en 50, al revés en 18</h4><p>Δσθ frontal: t = 5,88 · d<sub>z</sub> = 0,71. No todos reaccionan igual.</p></div>
+    <div class="f"><b>61 / 61</b><h4>Difuso por toda la cabeza</h4><p>Electrodos que sobreviven a FDR en σθ, sin un foco frontal.</p></div>
+    <div class="f"><b>ρ +0,16 · +0,37</b><h4>Relación débil con la conducta</h4><p>Frontal y centro-temporal con ΔPVT (n = 30). Misma dirección que Cui et al., más débil que 0,55.</p></div>
+    <div class="f"><b>ρ 0,78</b><h4>Es un ritmo, no el fondo 1/f</h4><p>Y quitar los parpadeos no cambia nada (ρ = 0,95).</p></div>
+    <div class="f"><b>896</b><h4>Análisis, ninguno supera el azar</h4><p>Multiverso con inferencia conjunta por 2000 permutaciones.</p></div>
+    <div class="f"><b>AUC 0,88</b><h4>Se reconoce la noche sin dormir</h4><p>Un clasificador explicable acierta en el 81 % de las personas.</p></div>
+  </div>
+</section>
+
+<section class="slide cristiano" id="s14" data-part="2" data-sec="40" data-title="En cristiano"
+  data-notes="(40 s) Y ahora, las tareas en cristiano, como se las explicaríamos a alguien que nunca vio el dataset. Leer los ocho globos en voz alta, con humor: dónde cambia, cuánto o qué tan inestable, quiénes la pasan mal, si se parecen o cada uno es distinto, si más cambio en el cerebro significa peor en la prueba, cuándo pasa, si depende de quién eres y si resiste otro análisis. Esa es toda la herramienta.">
+  <div class="cr-img"><img src="img/en-cristiano.jpg" alt="Imagen de apoyo para la sección En cristiano" onerror="this.parentNode.classList.add('missing')"><div class="ph"><b>Pon aquí tu imagen</b><span>Guarda el archivo como <code>expo/img/en-cristiano.jpg</code></span></div></div>
+  <div class="cr-txt">
+    <p class="eyebrow">Las tareas</p><h2>… <em>en cristiano</em></h2>
+    <div class="bubbles">
+      <p><i>T1</i> ¿En qué parte de la cabeza cambia?</p>
+      <p><i>T2</i> ¿Cambia cuánto hay, o qué tan inestable es?</p>
+      <p><i>T3</i> ¿Quiénes la pasan peor?</p>
+      <p><i>T4</i> ¿Los que la pasan mal se parecen, o cada uno es distinto?</p>
+      <p><i>T5</i> Más cambio en el cerebro, ¿es peor en la prueba?</p>
+      <p><i>T6</i> ¿Cuándo pasa, y se va acumulando?</p>
+      <p><i>T7</i> ¿Depende de si eres hombre o mujer, o de cómo duermes?</p>
+      <p><i>T8</i> Si analizo distinto, ¿sigue saliendo lo mismo?</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PARTE 3 · 2 min ================= -->
+<section class="slide" id="s15" data-part="3" data-sec="50" data-title="Conclusiones"
+  data-notes="(50 s) Conclusiones. Primera: una noche sin dormir sí cambia theta en casi toda la cabeza, pero no a todos por igual: 50 suben y 18 bajan. Segunda: esa variación entre personas se relaciona débilmente con la conducta, así que no replicamos la magnitud publicada. Tercera: mostrar a las personas y todo el espacio de análisis, no solo un promedio, es lo que permite decir esto con honestidad. BATIMIX es la herramienta para hacerlo.">
+  <p class="eyebrow">Parte 3 · Conclusiones</p>
+  <h2>Qué nos llevamos</h2>
+  <ol class="concl">
+    <li><div><b>Sí cambia, pero no a todos por igual.</b> Theta se vuelve más inestable en casi toda la cabeza: 50 personas suben y 18 bajan.</div></li>
+    <li><div><b>La relación con la conducta es débil.</b> En la dirección de lo publicado, pero lejos de ρ ≈ 0,55: no replicamos la magnitud.</div></li>
+    <li><div><b>Mostrar personas y todo el espacio de análisis</b> permite decirlo con honestidad. BATIMIX está hecha para eso.</div></li>
+  </ol>
+</section>
+
+<section class="slide" id="s16" data-part="3" data-sec="40" data-title="Limitaciones"
+  data-notes="(40 s) Limitaciones, sin maquillaje. La prueba de vigilancia solo la tienen 30 personas: la potencia para detectar una correlación de 0.3 es baja. Un solo conjunto de datos. Los componentes de ICA se eligieron por regla, sin revisión visual. No hay EEG de tarea. El clasificador no está validado fuera de este conjunto. Y la lección del error de sesiones: el procesamiento hay que verificarlo contra la documentación del dataset. Es exploratorio, no diagnóstico.">
+  <p class="eyebrow">Limitaciones</p>
+  <h2>Lo que <em>todavía no podemos afirmar</em></h2>
+  <ul class="lim">
+    <li><b>n = 30</b> con prueba de vigilancia: potencia ≈ 0,35 para ρ = 0,3.</li>
+    <li><b>Un solo conjunto de datos</b> (68 personas); el clasificador no está validado afuera.</li>
+    <li><b>ICA sin revisión visual:</b> componentes elegidos por regla.</li>
+    <li><b>Sin EEG de tarea</b> ni marcadores de eventos.</li>
+    <li><b>Dos errores de procesamiento</b> detectados a tiempo: verificar siempre contra la documentación del dataset.</li>
+    <li><b>Exploratorio, no diagnóstico.</b></li>
+  </ul>
+</section>
+
+<section class="slide close" id="s17" data-part="3" data-sec="30" data-title="Trabajo futuro y gracias"
+  data-notes="(30 s) Trabajo futuro: validar el diseño con tres a cinco usuarios resolviendo las ocho tareas pensando en voz alta, que es el nivel más externo del modelo de Munzner; extender el análisis a las otras bandas, delta, alfa y beta; replicar en otro conjunto de datos; y recalcular el tiempo de reacción desde los ensayos del PVT. Gracias. Aquí está el enlace y el código QR a la aplicación y al repositorio.">
+  <div class="cols">
+    <div class="txt">
+      <p class="eyebrow">Trabajo futuro</p>
+      <h2>Lo que sigue</h2>
+      <ul class="lim">
+        <li><b>Validar con 3 a 5 usuarios</b> resolviendo T1–T8 en voz alta.</li>
+        <li><b>Otras bandas</b> (δ, α, β) y otros conjuntos de datos.</li>
+        <li><b>Recalcular el tiempo de reacción</b> desde los ensayos del PVT.</li>
+      </ul>
+      <p class="thanks">¡Gracias!</p>
+      <p class="links">Aplicación y proyecto:<br><b>andrea-coa.github.io/data-visualization-project</b><br>Código: <b>github.com/Andrea-Coa/data-visualization-project</b></p>
+    </div>
+    <div class="viz qr"><div id="qr" role="img" aria-label="Código QR al proyecto"></div><small>Escanea para abrir el proyecto</small></div>
+  </div>
+</section>
+
+</main>
+
+<div class="notebar" id="notebar" hidden><b id="notett"></b><p id="notetx"></p></div>
+
+<!-- escenario con la aplicación en vivo: se muestra solo en las diapositivas de demostración -->
+<div class="stage" id="stage" aria-hidden="true">
+  <div class="stage-box" id="stagebox">
+    <iframe id="appframe" title="BATIMIX en vivo" src="../app/index.html?embed=1&amp;theme=light" loading="eager"></iframe>
+  </div>
+  <div class="stage-foot"><button id="free" type="button">Probar la herramienta</button><a href="../app/index.html" target="_blank" rel="noopener">Abrir a pantalla completa ↗</a></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="expo.js"></script>
+</body>
+</html>
