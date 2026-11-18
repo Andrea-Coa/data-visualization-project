@@ -8,6 +8,8 @@
 ![BATIMIX at 1600 × 900, Explorer tab: controls and Validation table (left), Topography View and Time View (center), Vulnerability View and Individual View (right)](assets/dashboard-1600x900.png)
 
 > **Correction, 15 November 2026.** In ds004902 the session folder gives the condition (`ses-1` is always normal sleep, `ses-2` always deprivation; the visit order is only in `SessionOrder`). Our pipeline took `ses-1` as the first condition of `SessionOrder`, so for the 28 people who were deprived first, normal sleep and deprivation were swapped in the EEG. It is now fixed and every number in this report was recomputed. The main conclusions changed: deprivation does raise theta variability across the whole scalp. Evidence and before/after figures: `research/correccion_sesiones.md`.
+>
+> **Correction, 17 November 2026.** The Week 6 notebook passed the electrode positions to MNE with the axes of `electrodes.tsv` (x nose, y left ear) as if they were MNE's (x right, y nose), so ICLabel saw every component map rotated by 90°. Fixed in `tools/eeg_ica.py` and all data regenerated (`research/correccion_orientacion.md`): ICA removes 7.2 instead of 5.1 components per recording. No conclusion changes, but the centrotemporal ρ with PVT drops from +0.37 (p = 0.047) to +0.30 (p = 0.11).
 
 ## 1. Narrative
 
@@ -21,14 +23,14 @@
 
 | Question | Answer (real data) | View |
 |---|---|---|
-| Does everyone change the same way? | No, but most rise: 50 people become more unstable and 18 more stable; the mean rises +0.0129 (SD across people 0.018; t = 5.88, d_z = 0.71) | Vulnerability and Individual views |
-| Where does it change on the head? | Everywhere: σθ survives FDR at 61 of 61 electrodes (d_z 0.30 to 0.77), μθ at 45 of 61 | Topography View, Δ column |
-| When, within the five minutes? | Throughout: moving σθ in SD above NS in every window (frontal; 61 of 61 with 60 s, 66 of 66 with 40 s, 51 of 51 with 100 s). In the Series of 5 × 60 s, 445 of 610 electrode-blocks survive FDR across blocks (68 people) | Time View; Topography View, Window and Series |
-| Is more unstable slower? | Weakly, and only centrotemporal: ρ = +0.37 [+0.01, +0.64], n = 30; frontal +0.16 [−0.21, +0.49]. Same direction as Cui et al. (0.54 to 0.56), weaker | Vulnerability View (figure in the Report) |
-| Is the effect oscillatory or 1/f? | Mostly oscillatory: the change in σθ tracks the change in periodic theta (ρ = 0.78 frontal, 0.86 centrotemporal); the aperiodic offset also rises (d_z = 0.48) | Validation Panel, «Oscillatory & aperiodic components» |
-| Does the change predict who deteriorates, however it is analyzed? | Across 896 alternative analyses (two preprocessing pipelines), no joint statistic exceeds chance (p ≥ 0.34); PVT median RT is the most consistent marker | About, «Robustness» (section 4) |
+| Does everyone change the same way? | No, but most rise: 46 people become more unstable and 22 more stable; the mean rises +0.0135 (SD across people 0.018; t = 6.07, d_z = 0.74) | Vulnerability and Individual views |
+| Where does it change on the head? | Everywhere: σθ survives FDR at 61 of 61 electrodes (d_z 0.28 to 0.75), μθ at 42 of 61 | Topography View, Δ column |
+| When, within the five minutes? | Throughout: moving σθ in SD above NS in every window (frontal; 61 of 61 with 60 s, 51 of 51 with 100 s). In the Series of 5 × 60 s, 427 of 610 electrode-blocks survive FDR across blocks (68 people) | Time View; Topography View, Window and Series |
+| Is more unstable slower? | Not clearly: centrotemporal ρ = +0.30 [−0.07, +0.59], frontal +0.18 [−0.19, +0.51], n = 30. Same direction as Cui et al. (0.54 to 0.56), weaker and not significant | Vulnerability View (figure in the Report) |
+| Is the effect oscillatory or 1/f? | Mostly oscillatory: the change in σθ tracks the change in periodic theta (ρ = 0.81 frontal, 0.82 centrotemporal); the aperiodic offset also rises (d_z = 0.47) | Validation Panel, «Oscillatory & aperiodic components» |
+| Does the change predict who deteriorates, however it is analyzed? | Across 896 alternative analyses (two preprocessing pipelines), no joint statistic exceeds chance (p ≥ 0.28); PVT median RT is the most consistent marker | About, «Robustness» (section 4) |
 
-**Preliminary conclusion.** Without sleep, theta becomes more unstable and higher across the whole scalp, in most but not all people (about one in four goes the other way). How much it rises tracks slower reaction times only weakly (centrotemporal ρ = +0.37 with n = 30), in the same direction as Cui et al. but not robustly across analytic choices. It is a group marker of sleep loss more than an individual marker of who deteriorates.
+**Preliminary conclusion.** Without sleep, theta becomes more unstable and higher across the whole scalp, in most but not all people (about one in three goes the other way). How much it rises does not clearly track slower reaction times (centrotemporal ρ = +0.30, p = 0.11, n = 30): the direction is the same as in Cui et al., but the link is weak and not robust across analytic choices. It is a group marker of sleep loss more than an individual marker of who deteriorates.
 
 ## 2. What changed since Week 10
 
@@ -92,28 +94,28 @@ Joint inference follows Simonsohn, Simmons and Nelson (2020), adapted to observa
 
 | Test | Median r | Significant with r > 0 | Stouffer Z |
 |---|---|---|---|
-| Main, σθ only (448) | +0.030 (p = 0.34) | 3; chance reaches 58 (p = 0.54) | +2.02 (p = 0.40) |
-| Full multiverse (896) | +0.027 (p = 0.34) | 4; chance reaches 102 (p = 0.72) | +2.95 (p = 0.40) |
+| Main, σθ only (448) | +0.028 (p = 0.35) | 2; chance reaches 60 (p = 0.59) | +2.49 (p = 0.38) |
+| Full multiverse (896) | +0.037 (p = 0.28) | 3; chance reaches 100 (p = 0.76) | +3.83 (p = 0.36) |
 
-Only 4 of the 896 analyses are significant in the predicted direction (2 with PVT median RT, 1 with PANAS− and 1 with PVT lapses). The most consistent marker is PVT median RT: median r = +0.21 over its 128 analyses (−0.03 to +0.39), but it does not exceed chance jointly: it remains a hypothesis. Before the session correction, the only consistent signal was PANAS+; it no longer is (median r = −0.08). The recomputed frontal Δσθ matches `merged_summary.csv` of each pipeline (maximum difference 4e−17; the Week 6 pipeline is read with the corrected session labels, see `tools/build_multiverse.py`).
+Only 3 of the 896 analyses are significant in the predicted direction (1 with PVT median RT, 1 with PANAS− and 1 with PVT lapses). The most consistent marker is PVT median RT: median r = +0.20 over its 128 analyses (−0.03 to +0.37), but it does not exceed chance jointly: it remains a hypothesis. Before the session correction, the only consistent signal was PANAS+; it no longer is (median r = −0.09). The recomputed frontal Δσθ matches `merged_summary.csv` of each pipeline (maximum difference 3e−17; the Week 6 pipeline is read with the corrected session labels, see `tools/build_multiverse.py`).
 
-**Why it might not replicate** (`research/literatura_verificada.md`): Cui et al. used average reference, ICA, a 1–30 Hz filter, a 4–30 Hz denominator, epoch rejection and reaction-time cleaning, with n = 28; our Week 6 pipeline used FCz reference, no ICA, a 1–40 Hz denominator and n = 30; the main pipeline now uses average reference and ICA (finding 10). With n = 30, the probability of detecting ρ = 0.3 is close to 0.35. **We tested this directly** (`tools/build_cui_variant.py`): rerunning the raw EEG with their pipeline (1–30 Hz, average reference, extended Infomax ICA at 99% variance removing ocular components by |r| > 0.85 with Fp1/Fp2 and muscle components by ICLabel p > 0.85, 200 µV epoch rejection, 4–30 Hz denominator) removes 1.9 and 2.6 components per recording (NS and SD; Cui: 2.6 to 3.1) and keeps 69 of 75 epochs. ΔσΘ then tracks ΔPVT centrotemporally (ρ = +0.33, p = 0.08, n = 30; all 435 ways of leaving two people out give +0.19 to +0.47) but not frontally (ρ = −0.04; −0.25 to +0.11), against 0.544 and 0.558 in Cui et al. (n = 28). The centrotemporal result partly replicates; the frontal one does not. The PVT variable (Cui likely recomputed median RT from trials) and sampling remain possible reasons.
+**Why it might not replicate** (`research/literatura_verificada.md`): Cui et al. used average reference, ICA, a 1–30 Hz filter, a 4–30 Hz denominator, epoch rejection and reaction-time cleaning, with n = 28; our Week 6 pipeline used FCz reference, no ICA, a 1–40 Hz denominator and n = 30; the main pipeline now uses average reference and ICA (finding 10). With n = 30, the probability of detecting ρ = 0.3 is close to 0.35. **We tested this directly** (`tools/build_cui_variant.py`): rerunning the raw EEG with their pipeline (1–30 Hz, average reference, extended Infomax ICA at 99% variance removing ocular components by |r| > 0.85 with Fp1/Fp2 and muscle components by ICLabel p > 0.85, 200 µV epoch rejection, 4–30 Hz denominator) removes 2.6 and 2.9 components per recording (NS and SD; Cui: 2.6 to 3.1) and keeps 69 of 75 epochs. ΔσΘ then tracks ΔPVT centrotemporally (ρ = +0.33, p = 0.08, n = 30; all 435 ways of leaving two people out give +0.19 to +0.47) but not frontally (ρ = +0.00; −0.20 to +0.15), against 0.544 and 0.558 in Cui et al. (n = 28). The centrotemporal result partly replicates; the frontal one does not. The PVT variable (Cui likely recomputed median RT from trials) and sampling remain possible reasons.
 
 ## 5. Preliminary findings
 
-All figures after the session correction of 15 November 2026 (`research/correccion_sesiones.md`).
+All figures after the session correction of 15 November 2026 (`research/correccion_sesiones.md`) and the electrode-orientation correction of 17 November 2026 (`research/correccion_orientacion.md`): MNE received the electrode positions rotated by 90°, so ICLabel saw every component map rotated; with the right orientation ICA removes 7.2 instead of 5.1 components per recording. No conclusion changes; the figures below are the corrected ones.
 
-1. **Most people become more unstable after deprivation, but not all.** Frontal σθ rises in 50 people and falls in 18; the mean rises +0.0129 (SD across people 0.018; t = 5.88, p < 0.001, d_z = 0.71). Centrotemporal: 53 and 15 (d_z = 0.76). μθ also rises (frontal d_z = 0.36, centrotemporal 0.51).
-2. **The change is widespread.** σθ survives FDR at all 61 electrodes (d_z 0.30 to 0.77) and μθ at 45 of 61: no single focus, the whole scalp.
-3. **It holds throughout the five minutes.** Moving σθ is higher after deprivation in every window (61 of 61 with 60 s), and in the Series of 5 × 60 s, 445 of 610 electrode-blocks survive FDR across blocks.
-4. **The link with vigilance is weak and regional.** Δσθ centrotemporal vs ΔPVT median RT: ρ = +0.37 [+0.01, +0.64], n = 30 (p = 0.047, uncorrected); frontal +0.16 [−0.21, +0.49]. Not with lapses (frontal −0.17, centrotemporal 0.00).
-5. **Across the multiverse no joint statistic exceeds chance** (section 4). PVT median RT is the most consistent marker (median r = +0.21 over 128 analyses), which is the direction Cui et al. reported.
-6. **Person by person:** with the groups of the Individual View defined by PVT (14 who deteriorate more than the median, 16 who resist), both groups rise, and those who deteriorate rise more consistently (mean consistency C = +0.50 vs +0.29 in σθ; +0.45 vs +0.31 in μθ). With PANAS+ it is the other way (C = +0.35 for those who lose positive affect vs +0.49), so the earlier «mood» signal does not hold. The similarity graph has not been re-analyzed after the correction.
-7. **σθ is mostly oscillatory.** Each person's change in σθ tracks the change in their periodic theta (ρ = 0.78 frontal, n = 46; 0.86 centrotemporal, n = 52: people with at least 50 well-fitted epochs per session). The change in the epoch-to-epoch variability of the aperiodic exponent explains only R² = 0.06 (frontal) and 0.11 (centrotemporal) of Δσθ. Periodic theta rises after deprivation (d_z = 0.56), and so do the aperiodic offset (d_z = 0.48, p < 0.001) and, less, the exponent (d_z = 0.25, p = 0.042), as Bai et al. (2024) report on this dataset; the earlier statement that the offset change disappears with ICA came from the session mix-up. A theta peak appears at 40% of electrodes after normal sleep and 54% after deprivation, as Monchy et al. ask to verify before interpreting theta.
-8. **Blinks do not drive σθ.** Blinks detected on Fp1/Fp2 of the raw EEG rise somewhat with deprivation (median 17.1 → 22.8 per minute in the people with both nights; t = 1.36, p = 0.18). Removing the 1-s windows within 0.25 s of a blink leaves each person's Δσθ almost unchanged (ρ = 0.95 frontal, 0.93 centrotemporal, n = 47), the group increase survives (t = 4.57 frontal), within recordings epochs with more blinks do not have more theta (r = −0.05), and the change in blink rate is unrelated to Δσθ (ρ = 0.15, p = 0.23).
-9. **Theta synchrony between regions (exploratory).** With average reference and wPLI², it decreases in 30 of 45 region pairs after deprivation, but the global change is small (d_z = −0.08, permutation p = 0.58) and no pair survives FDR.
-10. **The result does not depend on the preprocessing pipeline.** ICA removes 5.1 components per recording (2.5 ocular, 2.6 muscle) and 71 of 75 epochs are kept. The Week 6 pipeline without ICA, read with the corrected session labels, also shows the increase (frontal t = 3.44, centrotemporal t = 5.72), and each person's Δσθ agrees with the main pipeline (ρ = 0.64 frontal, 0.79 centrotemporal). Copying Cui et al. exactly gives frontal t = 4.53 and centrotemporal t = 5.97 (section 4).
-11. **It is not a visit effect.** In a two-period crossover analysis by session order, the deprivation effect adjusted for visit, c, is +0.0128 in frontal σθ (Welch t = 5.40, p = 2.2e-6) and survives FDR at 61 of 61 electrodes; the visit effect (2nd − 1st visit) survives at none, in any band. Behavior agrees: KSS c = +2.25, PVT median RT c = +42.7 ms, both with π not significant (`research/analisis_cruzado.md`).
+1. **Most people become more unstable after deprivation, but not all.** Frontal σθ rises in 46 people and falls in 22; the mean rises +0.0135 (SD across people 0.018; t = 6.07, p < 0.001, d_z = 0.74). Centrotemporal: 52 and 16 (d_z = 0.75). μθ also rises (frontal d_z = 0.37, centrotemporal 0.48).
+2. **The change is widespread.** σθ survives FDR at all 61 electrodes (d_z 0.28 to 0.75) and μθ at 42 of 61: no single focus, the whole scalp.
+3. **It holds throughout the five minutes.** Moving σθ is higher after deprivation in every window (61 of 61 with 60 s), and in the Series of 5 × 60 s, 427 of 610 electrode-blocks survive FDR across blocks.
+4. **The link with vigilance is weak and not significant.** Δσθ centrotemporal vs ΔPVT median RT: ρ = +0.30 [−0.07, +0.59], n = 30 (p = 0.11); frontal +0.18 [−0.19, +0.51]. Not with lapses (frontal −0.10, centrotemporal 0.00). Before the orientation correction the centrotemporal ρ was +0.37 (p = 0.047, uncorrected): a small change in cleaning moves it across the threshold, which shows how fragile this link is.
+5. **Across the multiverse no joint statistic exceeds chance** (section 4). PVT median RT is the most consistent marker (median r = +0.20 over 128 analyses), which is the direction Cui et al. reported.
+6. **Person by person:** with the groups of the Individual View defined by PVT (14 who deteriorate more than the median, 16 who resist), both groups rise, and those who deteriorate rise more consistently (mean consistency C = +0.49 vs +0.32 in σθ; +0.41 vs +0.26 in μθ). With PANAS+ it is the other way (C = +0.34 for those who lose positive affect vs +0.51), so the earlier «mood» signal does not hold. The similarity graph has not been re-analyzed after the correction.
+7. **σθ is mostly oscillatory.** Each person's change in σθ tracks the change in their periodic theta (ρ = 0.81 frontal, n = 46; 0.82 centrotemporal, n = 55: people with at least 50 well-fitted epochs per session). The change in the epoch-to-epoch variability of the aperiodic exponent explains only R² = 0.17 (frontal) and 0.21 (centrotemporal) of Δσθ. Periodic theta rises after deprivation (d_z = 0.58), and so does the aperiodic offset (d_z = 0.47, p < 0.001), as Bai et al. (2024) report on this dataset; the exponent rises less and not significantly (d_z = 0.22, p = 0.08); the earlier statement that the offset change disappears with ICA came from the session mix-up. A theta peak appears at 41% of electrodes after normal sleep and 55% after deprivation, as Monchy et al. ask to verify before interpreting theta.
+8. **Blinks do not drive σθ.** Blinks detected on Fp1/Fp2 of the raw EEG rise somewhat with deprivation (median 17.1 → 22.8 per minute in the people with both nights; t = 1.36, p = 0.18). Removing the 1-s windows within 0.25 s of a blink leaves each person's Δσθ almost unchanged (ρ = 0.94 frontal, 0.93 centrotemporal, n = 47), the group increase survives (t = 4.50 frontal), within recordings epochs with more blinks do not have more theta (r = −0.05), and the change in blink rate is unrelated to Δσθ (ρ = 0.14, p = 0.25).
+9. **Theta synchrony between regions (exploratory).** With average reference and wPLI², it decreases in 34 of 45 region pairs after deprivation, but the global change is small (d_z = −0.10, permutation p = 0.48) and no pair survives FDR.
+10. **The result does not depend on the preprocessing pipeline.** ICA removes 7.2 components per recording (3.7 ocular, 3.5 muscle) and 72 of 75 epochs are kept. The Week 6 pipeline without ICA, read with the corrected session labels, also shows the increase (frontal t = 3.44, centrotemporal t = 5.72), and each person's Δσθ agrees with the main pipeline (ρ = 0.59 frontal, 0.81 centrotemporal). Copying Cui et al. exactly gives frontal t = 4.41 and centrotemporal t = 5.98 (section 4).
+11. **It is not a visit effect.** In a two-period crossover analysis by session order, the deprivation effect adjusted for visit, c, is +0.0134 in frontal σθ (Welch t = 5.77, p = 4.2e-7) and survives FDR at 61 of 61 electrodes; the visit effect (2nd − 1st visit) survives at none, in any band. Behavior agrees: KSS c = +2.25, PVT median RT c = +42.7 ms, both with π not significant (`research/analisis_cruzado.md`).
 
 ## 5b. Other bands (exploratory)
 
@@ -121,26 +123,26 @@ Relative power of each band over 1–40 Hz, computed in the same spectral pass a
 
 | Band | σ: electrodes p < 0.05 / q < 0.05 (d_z range) | μ: p < 0.05 / q < 0.05 | Frontal σ: up / down, d_z | ρ(frontal Δσ, ΔPVT), n = 30 |
 |---|---|---|---|---|
-| Delta, 1–4 Hz | 49 / 49 (+0.14 to +0.50) | 1 / 0 | 48 / 20, +0.43 | +0.17 |
-| **Theta, 4–8 Hz** | **61 / 61 (+0.30 to +0.77)** | 51 / 45 | 50 / 18, +0.71 | +0.16 (centrotemporal +0.37) |
-| Alpha, 8–13 Hz | 6 / 0 (−0.05 to +0.33) | 6 / 0 | 42 / 26, +0.14 | −0.15 |
-| Beta, 13–30 Hz | 25 / 7 (+0.01 to +0.47) | 16 / 2 | 45 / 23, +0.33 | +0.25 |
+| Delta, 1–4 Hz | 43 / 36 (+0.09 to +0.54) | 1 / 0 | 47 / 21, +0.43 | +0.07 |
+| **Theta, 4–8 Hz** | **61 / 61 (+0.28 to +0.75)** | 47 / 42 | 46 / 22, +0.74 | +0.18 (centrotemporal +0.30) |
+| Alpha, 8–13 Hz | 5 / 0 (−0.06 to +0.32) | 0 / 0 | 43 / 25, +0.17 | −0.20 |
+| Beta, 13–30 Hz | 30 / 15 (+0.03 to +0.43) | 10 / 0 | 45 / 23, +0.33 | +0.19 |
 
-Reading: after deprivation the epoch-to-epoch variability rises most in theta, then in delta and less in beta; alpha does not change. Mean power rises only in theta. No band links clearly with the PVT (no ρ reaches p < 0.05 except centrotemporal theta). Caveats in section 6.
+Reading: after deprivation the epoch-to-epoch variability rises most in theta, then in delta and less in beta; alpha does not change. Mean power rises only in theta. No band links clearly with the PVT (no ρ reaches p < 0.05). Caveats in section 6.
 
 **Band as a multiverse dimension** (`tools/build_multiverse_bands.py`, 2240 analyses, the same 2000 permutations of the behavioral rows for every band; theta keeps both pipelines, the other bands only the main one because the Week 6 pipeline computed theta only):
 
 | Band | Analyses | Median r (p) | Significant with r > 0 (chance up to) | Stouffer Z (p) |
 |---|---|---|---|---|
-| Delta | 448 | −0.044 (p = 0.77) | 0 (57) | −1.52 (p = 0.60) |
-| Theta | 896 | +0.027 (p = 0.33) | 4 (103) | +2.95 (p = 0.39) |
-| Alpha | 448 | +0.005 (p = 0.46) | 3 (56) | −3.34 (p = 0.67) |
-| Beta | 448 | +0.062 (p = 0.13) | 8 (46) | +3.94 (p = 0.28) |
-| All bands | 2240 | +0.017 (p = 0.28) | 15 (157) | +1.45 (p = 0.42) |
+| Delta | 448 | −0.018 (p = 0.63) | 0 (53) | −2.51 (p = 0.66) |
+| Theta | 896 | +0.037 (p = 0.26) | 3 (100) | +3.83 (p = 0.35) |
+| Alpha | 448 | −0.024 (p = 0.63) | 4 (58) | −3.50 (p = 0.66) |
+| Beta | 448 | +0.011 (p = 0.42) | 1 (48) | +2.32 (p = 0.36) |
+| All bands | 2240 | +0.012 (p = 0.35) | 8 (156) | +0.77 (p = 0.46) |
 
-No band exceeds chance jointly, with σ only either (theta σ median r +0.030, p = 0.33; beta σ +0.073, p = 0.16). By marker, PVT median RT has the most positive median r in theta (+0.21) and delta (+0.23), and a negative one in alpha (−0.21): the weak vigilance link is specific to slow bands. The theta p values differ slightly from section 4 because the permutations are drawn again; its 896 r are identical (checked). The all-band joint test mixes non-equivalent measures and is descriptive only.
+No band exceeds chance jointly, with σ only either (theta σ median r +0.028, p = 0.34; beta σ +0.009, p = 0.45). By marker, PVT median RT has the most positive median r in theta (+0.20) and delta (+0.14), and a negative one in alpha (−0.21): the weak vigilance link is specific to slow bands. The theta p values differ slightly from section 4 because the permutations are drawn again; its 896 r are identical (checked). The all-band joint test mixes non-equivalent measures and is descriptive only.
 
-**Oscillatory or aperiodic, by band** (specparam, same settings as finding 7; frontal, n = 46): the change in epoch-to-epoch variability tracks its periodic part in theta (ρ = 0.78) and alpha (0.86), less in beta (0.44) and barely in delta (0.30), where the variability of the aperiodic exponent explains most of it (R² = 0.68 vs 0.06 in theta). So the delta increase in σ is mostly a broadband (1/f) change, not a delta rhythm; the theta increase is oscillatory. Periodic power itself rises only in theta (d_z = 0.56, p = 1.7e-5, 48 of 61 electrodes with q < 0.05; delta d_z = −0.21, p = 0.09; alpha −0.04; beta −0.06; no electrode with q < 0.05). Delta is at the lower edge of the fit, so this is the least reliable band.
+**Oscillatory or aperiodic, by band** (specparam, same settings as finding 7; frontal, n = 46): the change in epoch-to-epoch variability tracks its periodic part in theta (ρ = 0.81) and alpha (0.88), less in beta (0.53) and barely in delta (0.22), where the variability of the aperiodic exponent explains much more of it (R² = 0.45 vs 0.17 in theta). So the delta increase in σ is mostly a broadband (1/f) change, not a delta rhythm; the theta increase is oscillatory. Periodic power itself rises only in theta (d_z = 0.58, p = 1.1e-5, 53 of 61 electrodes with q < 0.05); periodic delta falls slightly (d_z = −0.27, p = 0.03), alpha and beta do not change (−0.03, −0.06); outside theta no electrode reaches q < 0.05. Delta is at the lower edge of the fit, so this is the least reliable band.
 
 ## 5c. Classifier: which features tell the night without sleep apart (exploratory)
 
@@ -148,13 +150,13 @@ A new tab (**Classifier**, next to Explorer under the name) classifies each reco
 
 | | Paired: which of a person's two recordings is SD | Strict: one recording of a new person |
 |---|---|---|
-| Logistic regression, AUC (pair accuracy) | 0.88 (81 %), p ≤ 0.001 | 0.75 (77 %), p ≤ 0.001 |
-| EBM, AUC (pair accuracy) | 0.90 (80 %), p ≤ 0.005 | 0.72 (77 %), p ≤ 0.005 |
-| Gradient boosting with SHAP (reference only) | 0.84 | 0.70 |
-| Control: predicting the visit (1st vs 2nd) | 0.49 | 0.49 |
-| Only the project features (band and 1/f) | 0.85 | 0.71 |
+| Logistic regression, AUC (pair accuracy) | 0.89 (80 %), p ≤ 0.001 | 0.72 (76 %), p ≤ 0.001 |
+| EBM, AUC (pair accuracy) | 0.90 (82 %), p ≤ 0.005 | 0.72 (76 %), p ≤ 0.005 |
+| Gradient boosting with SHAP (reference only) | 0.91 | 0.61 |
+| Control: predicting the visit (1st vs 2nd) | 0.52 | 0.51 |
+| Only the project features (band and 1/f) | 0.85 | 0.70 |
 
-Reading: (1) the deprivation recording can be told apart in about 4 of 5 people, and it is not the visit, which is not predictable; (2) theta is the band group that matters most and σθ centrotemporal leads the logistic ranking, so the classifier agrees with the paired test; (3) generic time-series features add little; (4) the explainable models do not lose against the black box. Single-feature rankings are unstable across folds (Kendall τ 0.42; top-10 overlap 0.30) and the information is redundant (retraining without the top 10 keeps AUC 0.88), so the page leads with grouped importance.
+Reading: (1) the deprivation recording can be told apart in about 4 of 5 people, and it is not the visit, which is not predictable; (2) theta is the band group that matters most and σθ centrotemporal leads the logistic ranking, so the classifier agrees with the paired test; (3) generic time-series features add little; (4) the explainable models stay close to the black box in the paired scenario (0.89–0.90 vs 0.91) and beat it in the strict one (0.72 vs 0.61). Single-feature rankings are unstable across folds (Kendall τ 0.49; top-10 overlap 0.32) and the information is redundant (retraining without the top 10 keeps AUC 0.89), so the page leads with grouped importance.
 
 ## 6. Limitations
 
