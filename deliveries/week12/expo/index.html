@@ -89,7 +89,7 @@
 </section>
 
 <section class="slide" id="s5" data-part="1" data-title="Datos"
-  data-notes="Los datos: OpenNeuro ds004902, licencia abierta. 71 personas grabadas en reposo, cinco minutos con ojos abiertos, dos veces: después de una noche normal y después de entre 24 y 30 horas despiertas. 68 tienen EEG en las dos noches, con 61 electrodos. Calculamos la theta relativa y, por persona, su variabilidad y su nivel medio, y el cambio entre las dos noches. Una decisión de rigor: encontramos y corregimos dos errores del procesamiento, una asignación invertida de sesiones y tres grabaciones a otra frecuencia de muestreo; por eso todas las cifras que van a ver son las corregidas. (40 s)">
+  data-notes="Los datos: OpenNeuro ds004902, licencia abierta. 71 personas grabadas en reposo, cinco minutos con ojos abiertos, dos veces: después de una noche normal y después de entre 24 y 30 horas despiertas. 68 tienen EEG en las dos noches, con 61 electrodos. Calculamos la theta relativa y, por persona, su variabilidad y su nivel medio, y el cambio entre las dos noches. Una decisión de rigor: encontramos y corregimos tres errores del procesamiento: una asignación invertida de sesiones, tres grabaciones a otra frecuencia de muestreo y la orientación de los electrodos en una herramienta; por eso todas las cifras que van a ver son las corregidas. (40 s)">
   <div class="cols">
     <div class="txt">
       <p class="eyebrow rv">Datos</p>
@@ -98,7 +98,7 @@
         <div><b>71</b><span>personas</span></div><div><b>68</b><span>con EEG en las 2 noches</span></div><div><b>61</b><span>electrodos</span></div>
         <div><b>5 min</b><span>reposo, ojos abiertos</span></div><div><b>30</b><span>con prueba de vigilancia</span></div><div><b>CC0</b><span>OpenNeuro ds004902</span></div>
       </div>
-      <div class="rigor rv"><svg><use href="#i-shield"/></svg><p><b>Rigor.</b> Corregimos dos errores del procesamiento. Las cifras de hoy son las corregidas.</p></div>
+      <div class="rigor rv"><svg><use href="#i-shield"/></svg><p><b>Rigor.</b> Corregimos tres errores del procesamiento. Las cifras de hoy son las corregidas.</p></div>
     </div>
     <figure class="viz rv">
       <ol class="flow">
@@ -180,21 +180,21 @@
 </section>
 
 <section class="slide demo chart" id="s14" data-part="2" data-title="Validación 1 · Parpadeos" data-focus="float" data-do="tab:explorer row:0" data-img="blinks"
-  data-notes="¿Son los parpadeos? Qué muestra: Si los parpadeos explican el cambio de theta. Cómo se lee: Un punto sobre la diagonal: quitar los parpadeos no cambia nada (ρ = 0,95). Por qué así: Los puntos de distinto color están mezclados: el cambio no sigue a los parpadeos. (20 s)">
+  data-notes="¿Son los parpadeos? Qué muestra: Si los parpadeos explican el cambio de theta. Cómo se lee: Un punto sobre la diagonal: quitar los parpadeos no cambia nada (ρ = 0,94). Por qué así: Los puntos de distinto color están mezclados: el cambio no sigue a los parpadeos. (20 s)">
   <div class="side"><p class="eyebrow rv">Validación 1 · Parpadeos</p><div class="tags rv"><i class="trust">T8</i></div><h2 class="rv">¿Son los parpadeos?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Si los parpadeos explican el cambio de theta.</p></div><div class="rv"><b>Cómo se lee</b><p>Un punto sobre la diagonal: <b>quitar los parpadeos no cambia nada</b> (ρ = 0,95).</p></div><div class="rv"><b>Por qué así</b><p>Los puntos de distinto color están mezclados: el cambio no sigue a los parpadeos.</p></div><div class="rv inter"><b>Interacción</b><p>Cursor sobre una persona: ver sus datos.</p></div></div></div>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Si los parpadeos explican el cambio de theta.</p></div><div class="rv"><b>Cómo se lee</b><p>Un punto sobre la diagonal: <b>quitar los parpadeos no cambia nada</b> (ρ = 0,94).</p></div><div class="rv"><b>Por qué así</b><p>Los puntos de distinto color están mezclados: el cambio no sigue a los parpadeos.</p></div><div class="rv inter"><b>Interacción</b><p>Cursor sobre una persona: ver sus datos.</p></div></div></div>
 </section>
 
 <section class="slide demo chart" id="s15" data-part="2" data-title="Validación 2 · Ritmo o fondo 1/f" data-focus="float" data-do="tab:explorer row:1" data-img="aper"
-  data-notes="¿Ritmo real o fondo 1/f? Qué muestra: El espectro de las dos noches y su fondo 1/f. Cómo se lee: Un pico en theta sobre el fondo es un ritmo. ρ = 0,78 con la parte periódica. Por qué así: Solo el espectro permite separar un ritmo del fondo. (20 s)">
+  data-notes="¿Ritmo real o fondo 1/f? Qué muestra: El espectro de las dos noches y su fondo 1/f. Cómo se lee: Un pico en theta sobre el fondo es un ritmo. ρ = 0,81 con la parte periódica. Por qué así: Solo el espectro permite separar un ritmo del fondo. (20 s)">
   <div class="side"><p class="eyebrow rv">Validación 2 · Ritmo o fondo 1/f</p><div class="tags rv"><i class="trust">T8</i></div><h2 class="rv">¿Ritmo real o fondo 1/f?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>El espectro de las dos noches y su fondo 1/f.</p></div><div class="rv"><b>Cómo se lee</b><p>Un pico en theta sobre el fondo es un ritmo. <b>ρ = 0,78</b> con la parte periódica.</p></div><div class="rv"><b>Por qué así</b><p>Solo el espectro permite separar un ritmo del fondo.</p></div><div class="rv inter"><b>Interacción</b><p>Clic en la banda gris: amplía theta.</p></div></div></div>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>El espectro de las dos noches y su fondo 1/f.</p></div><div class="rv"><b>Cómo se lee</b><p>Un pico en theta sobre el fondo es un ritmo. <b>ρ = 0,81</b> con la parte periódica.</p></div><div class="rv"><b>Por qué así</b><p>Solo el espectro permite separar un ritmo del fondo.</p></div><div class="rv inter"><b>Interacción</b><p>Clic en la banda gris: amplía theta.</p></div></div></div>
 </section>
 
 <section class="slide demo chart" id="s16" data-part="2" data-title="Validación 3 · Sincronía" data-focus="float" data-do="tab:explorer row:2" data-img="sync"
-  data-notes="¿Cambia la sincronía entre regiones? Qué muestra: Sincronía de theta entre 10 regiones del cerebro. Cómo se lee: Una red de regiones y, abajo, el efecto de cada par con su intervalo. Por qué así: Los intervalos muestran la incertidumbre: no hay cambio global (p = 0,58). (15 s)">
+  data-notes="¿Cambia la sincronía entre regiones? Qué muestra: Sincronía de theta entre 10 regiones del cerebro. Cómo se lee: Una red de regiones y, abajo, el efecto de cada par con su intervalo. Por qué así: Los intervalos muestran la incertidumbre: no hay cambio global (p = 0,48). (15 s)">
   <div class="side"><p class="eyebrow rv">Validación 3 · Sincronía</p><div class="tags rv"><i class="trust">T8</i></div><h2 class="rv">¿Cambia la sincronía entre regiones?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Sincronía de theta entre 10 regiones del cerebro.</p></div><div class="rv"><b>Cómo se lee</b><p>Una red de regiones y, abajo, el efecto de cada par con su intervalo.</p></div><div class="rv"><b>Por qué así</b><p>Los intervalos muestran la incertidumbre: no hay cambio global (p = 0,58).</p></div><div class="rv inter"><b>Interacción</b><p>Cursor sobre una región o un par.</p></div></div></div>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>Sincronía de theta entre 10 regiones del cerebro.</p></div><div class="rv"><b>Cómo se lee</b><p>Una red de regiones y, abajo, el efecto de cada par con su intervalo.</p></div><div class="rv"><b>Por qué así</b><p>Los intervalos muestran la incertidumbre: no hay cambio global (p = 0,48).</p></div><div class="rv inter"><b>Interacción</b><p>Cursor sobre una región o un par.</p></div></div></div>
 </section>
 
 <section class="slide demo chart" id="s17" data-part="2" data-title="Validación 4 · Similitud" data-focus="float" data-do="tab:explorer row:3" data-img="graph"
@@ -204,9 +204,9 @@
 </section>
 
 <section class="slide demo chart" id="s18" data-part="2" data-title="Clasificador 1 · Resultado" data-focus="mlsum" data-do="tab:classifier" data-img="mlsum"
-  data-notes="¿Se reconoce la noche sin dormir? Qué muestra: AUC 0,88 (0,5 es azar) y 81 % de acierto por persona. Cómo se lee: Punto lleno: el modelo. Vacío: la comparación. Línea punteada: azar. Por qué así: Se lee la validación antes que el puntaje: un AUC alto puede ser un truco. (20 s)">
+  data-notes="¿Se reconoce la noche sin dormir? Qué muestra: AUC 0,89 (0,5 es azar) y 80 % de acierto por persona. Cómo se lee: Punto lleno: el modelo. Vacío: la comparación. Línea punteada: azar. Por qué así: Se lee la validación antes que el puntaje: un AUC alto puede ser un truco. (20 s)">
   <div class="side"><p class="eyebrow rv">Clasificador 1 · Resultado</p><div class="tags rv"><i class="trust">Nuevo</i></div><h2 class="rv">¿Se reconoce la noche sin dormir?</h2>
-    <div class="spec"><div class="rv"><b>Qué muestra</b><p>AUC 0,88 (0,5 es azar) y 81 % de acierto por persona.</p></div><div class="rv"><b>Cómo se lee</b><p>Punto lleno: el modelo. Vacío: la comparación. <b>Línea punteada: azar.</b></p></div><div class="rv"><b>Por qué así</b><p>Se lee la validación antes que el puntaje: un AUC alto puede ser un truco.</p></div><div class="rv inter"><b>Interacción</b><p>Cursor sobre una fila: ver la prueba completa.</p></div></div></div>
+    <div class="spec"><div class="rv"><b>Qué muestra</b><p>AUC 0,89 (0,5 es azar) y 80 % de acierto por persona.</p></div><div class="rv"><b>Cómo se lee</b><p>Punto lleno: el modelo. Vacío: la comparación. <b>Línea punteada: azar.</b></p></div><div class="rv"><b>Por qué así</b><p>Se lee la validación antes que el puntaje: un AUC alto puede ser un truco.</p></div><div class="rv inter"><b>Interacción</b><p>Cursor sobre una fila: ver la prueba completa.</p></div></div></div>
 </section>
 
 <section class="slide demo chart" id="s19" data-part="2" data-title="Clasificador 2 · Registros" data-focus="mlrec" data-do="tab:classifier" data-img="mlrec"
@@ -255,16 +255,16 @@
 </section>
 
 <section class="slide" id="s25" data-part="2" data-title="Hallazgos"
-  data-notes="Los hallazgos, con los datos corregidos. Uno: theta se vuelve más inestable en 50 de 68 personas, pero 18 van en sentido contrario, así que no es universal. Dos: el cambio es generalizado, los 61 electrodos sobreviven a la corrección. Tres: la relación con la conducta es débil: rho 0.16 frontal y 0.37 centro-temporal, en la dirección de Cui pero más baja que 0.55, así que no replicamos la magnitud publicada. Cuatro: es un ritmo, no el fondo 1 sobre f, y no son los parpadeos. Cinco: el multiverso no supera el azar. Seis: un clasificador explicable reconoce la noche de privación. (50 s)">
+  data-notes="Los hallazgos, con los datos corregidos. Uno: theta se vuelve más inestable en 46 de 68 personas, pero 22 van en sentido contrario, así que no es universal. Dos: el cambio es generalizado, los 61 electrodos sobreviven a la corrección. Tres: la relación con la conducta es débil: rho 0.18 frontal y 0.30 centro-temporal, en la dirección de Cui pero más baja que 0.55 y no significativa, así que no replicamos la magnitud publicada. Cuatro: es un ritmo, no el fondo 1 sobre f, y no son los parpadeos. Cinco: el multiverso no supera el azar. Seis: un clasificador explicable reconoce la noche de privación. (50 s)">
   <p class="eyebrow rv">Principales hallazgos · datos corregidos</p>
   <h2 class="rv">El cambio es <em>generalizado, pero no universal</em></h2>
   <div class="fg">
-    <div class="f hero rv"><b><span class="cnt" data-to="50">50</span><i> / </i><span class="cnt" data-to="18">18</span></b><h4>Más inestable en 50 personas; al revés en 18</h4><p>t = 5,88 · d<sub>z</sub> = 0,71</p></div>
+    <div class="f hero rv"><b><span class="cnt" data-to="46">46</span><i> / </i><span class="cnt" data-to="22">22</span></b><h4>Más inestable en 46 personas; al revés en 22</h4><p>t = 6,07 · d<sub>z</sub> = 0,74</p></div>
     <div class="f rv"><b><span class="cnt" data-to="61">61</span> / 61</b><h4>Electrodos con cambio</h4><p>Todos, y sin foco frontal.</p></div>
-    <div class="f rv"><b>ρ +0,16 · +0,37</b><h4>Relación débil con la conducta</h4><p>Misma dirección que Cui et al., pero más débil que 0,55.</p></div>
-    <div class="f rv"><b>ρ 0,78</b><h4>Es un ritmo, no el fondo 1/f</h4><p>Y no son los parpadeos (ρ = 0,95).</p></div>
+    <div class="f rv"><b>ρ +0,18 · +0,30</b><h4>Relación débil con la conducta</h4><p>Misma dirección que Cui et al., pero más débil que 0,55 y no significativa.</p></div>
+    <div class="f rv"><b>ρ 0,81</b><h4>Es un ritmo, no el fondo 1/f</h4><p>Y no son los parpadeos (ρ = 0,94).</p></div>
     <div class="f rv"><b><span class="cnt" data-to="896">896</span></b><h4>Análisis distintos: ninguno supera al azar</h4><p>Multiverso con 2000 permutaciones.</p></div>
-    <div class="f wide rv"><b>AUC 0,88</b><h4>Se reconoce la noche sin dormir</h4><p>Acierta en el 81 % de las personas.</p></div>
+    <div class="f wide rv"><b>AUC 0,89</b><h4>Se reconoce la noche sin dormir</h4><p>Acierta en el 80 % de las personas.</p></div>
   </div>
 </section>
 
@@ -276,11 +276,11 @@
 </section>
 
 <section class="slide" id="s27" data-part="3" data-title="Conclusiones"
-  data-notes="Conclusiones. Primera: una noche sin dormir sí cambia theta en casi toda la cabeza, pero no a todos por igual: 50 suben y 18 bajan. Segunda: esa variación entre personas se relaciona débilmente con la conducta, así que no replicamos la magnitud publicada. Tercera: mostrar a las personas y todo el espacio de análisis, no solo un promedio, es lo que permite decir esto con honestidad. BATIMIX es la herramienta para hacerlo. (50 s)">
+  data-notes="Conclusiones. Primera: una noche sin dormir sí cambia theta en casi toda la cabeza, pero no a todos por igual: 46 suben y 22 bajan. Segunda: esa variación entre personas se relaciona débilmente con la conducta, así que no replicamos la magnitud publicada. Tercera: mostrar a las personas y todo el espacio de análisis, no solo un promedio, es lo que permite decir esto con honestidad. BATIMIX es la herramienta para hacerlo. (50 s)">
   <p class="eyebrow rv">Conclusiones</p>
   <h2 class="rv">Qué nos llevamos</h2>
   <ol class="concl">
-    <li class="rv"><div><b>Sí cambia, pero no a todos por igual.</b> 50 personas suben y 18 bajan.</div></li>
+    <li class="rv"><div><b>Sí cambia, pero no a todos por igual.</b> 46 personas suben y 22 bajan.</div></li>
     <li class="rv"><div><b>La relación con la conducta es débil.</b> No replicamos el ρ ≈ 0,55 publicado.</div></li>
     <li class="rv"><div><b>Ver a las personas y todo el análisis</b> permite contarlo con honestidad.</div></li>
   </ol>
@@ -295,7 +295,7 @@
     <div class="rv"><b>Un solo conjunto</b><span>68 personas; el clasificador no se ha validado fuera de este conjunto.</span></div>
     <div class="rv"><b>ICA sin revisión visual</b><span>componentes elegidos por regla.</span></div>
     <div class="rv"><b>Sin EEG de tarea</b><span>ni marcadores de eventos.</span></div>
-    <div class="rv"><b>Dos errores de procesamiento</b><span>los detectamos a tiempo; hay que verificar siempre contra la documentación del dataset.</span></div>
+    <div class="rv"><b>Tres errores de procesamiento</b><span>los detectamos a tiempo; hay que verificar siempre contra la documentación del dataset.</span></div>
     <div class="rv"><b>Exploratorio</b><span>no es una herramienta de diagnóstico.</span></div>
   </div>
 </section>
