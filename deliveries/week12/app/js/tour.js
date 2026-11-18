@@ -1,6 +1,7 @@
 /* Guided tour ("Guide" button in the header). A step-by-step walkthrough, like a game tutorial: a spotlight glides from
    view to view and a card follows it, with chapters you can jump between. It follows the reading order of the tool
    (topography, vulnerability, individual, time, compare, validation) and then explains every control and interaction.
+   The Classifier tab has its own walkthrough (CLS): the Guide button opens the one of the tab in view.
    Next / Back / Skip, arrow keys, Esc to leave. Nothing in the data changes: steps that need a view open (the similarity
    graph, the side panel) only open it. English and Spanish (window.LANG, set by i18n.js). */
 const tour = (() => {
@@ -25,7 +26,7 @@ const tour = (() => {
     es:{next:"Siguiente", back:"Atrás", skip:"Saltar", done:"Terminar", close:"Cerrar", hint:"← → para moverte · Esc para salir"},
   };
   // c: chapter; el: target (none = centered card); before: open what the step needs; en / es: [title, text]
-  const STEPS = [
+  const EXP = [
     {c:"start", en:["Welcome to BATIMIX", "One night without sleep does not affect everyone the same way. This short guide shows how to read the tool and what every control does. Use Next or the arrow keys; Skip leaves at any time."],
       es:["Bienvenida a BATIMIX", "Una noche sin dormir no afecta a todos por igual. Esta guía corta te muestra cómo leer la herramienta y qué hace cada control. Usa Siguiente o las flechas; Saltar sale en cualquier momento."]},
     {c:"start", en:["The reading order", "Read it in six moves:<ol><li><b>Topography</b>: where theta changes.</li><li><b>Vulnerability</b>: who changes most, and does it go with behavior.</li><li><b>Individual</b>: same pattern in everyone, or one each.</li><li><b>Time</b>: when within the five minutes.</li><li><b>Compare</b>: does it depend on who the person is.</li><li><b>Validation</b>: can we trust it.</li></ol>"],
@@ -83,6 +84,49 @@ const tour = (() => {
     {c:"tips", en:["You are ready", "Start by looking at the maps, then ask who, where and when. You can reopen this guide any time with the <b>Guide</b> button."],
       es:["Todo listo", "Empieza mirando los mapas y pregunta quién, dónde y cuándo. Puedes reabrir esta guía cuando quieras con el botón <b>Guía</b>."]},
   ];
+
+  // pestaña Classifier: su propio recorrido (mismos capítulos). No cambia el estado del modelo; solo señala vistas y controles
+  const CLS = [
+    {c:"start", en:["The Classifier", "Can the resting EEG tell the night without sleep apart, and which properties, regions and bands carry that? This tab answers it with explainable models trained on the 136 recordings of the 68 people. Every number is <b>out of fold</b>: the model never saw the person it is scoring."],
+      es:["El Clasificador", "¿Puede el EEG en reposo distinguir la noche sin dormir, y qué propiedades, regiones y bandas lo hacen? Esta pestaña lo responde con modelos explicables entrenados con las 136 grabaciones de las 68 personas. Cada número es <b>fuera de pliegue</b>: el modelo nunca vio a la persona que está evaluando."]},
+    {c:"start", en:["The reading order", "<ol><li><b>Result</b>: does it work at all (AUC, pair accuracy).</li><li><b>Validation</b>: is it deprivation and not the second visit.</li><li><b>Feature groups</b>: which band, region and kind of feature matter.</li><li><b>Features</b>: how single features push the decision.</li><li><b>Records</b> and <b>Person</b>: who is classified well, who is not, and why.</li></ol>"],
+      es:["El orden de lectura", "<ol><li><b>Resultado</b>: si funciona (AUC, acierto por pares).</li><li><b>Validación</b>: si es privación y no la segunda visita.</li><li><b>Grupos de rasgos</b>: qué banda, región y tipo de rasgo importan.</li><li><b>Rasgos</b>: cómo empuja la decisión cada rasgo.</li><li><b>Registros</b> y <b>Persona</b>: a quién clasifica bien, a quién no y por qué.</li></ol>"]},
+    {c:"views", el:() => $("cards"), en:["Result", "<b>AUC</b>: how well the predicted probability ranks deprivation above normal sleep (0.50 = chance), with its range over 10 repetitions of the cross-validation. <b>Pair accuracy</b>: share of people whose deprivation recording gets the higher probability. When you brush records, a third row shows how many of yours are right."],
+      es:["Resultado", "<b>AUC</b>: qué tan bien la probabilidad predicha ordena la privación por encima del sueño normal (0,50 = azar), con su rango en 10 repeticiones de la validación cruzada. <b>Acierto por pares</b>: proporción de personas cuya grabación con privación recibe la probabilidad más alta. Si seleccionas registros con el pincel, una tercera fila dice cuántos de los tuyos acierta."]},
+    {c:"views", el:() => q(".ml-rec"), en:["Records View", "Each mark is one recording, placed by a PCA of its features: circle = normal sleep, diamond = deprivation (the true condition). The fill is the predicted probability of deprivation (blue low, pink high); an amber ring means the model got it wrong. A line joins each person's two recordings."],
+      es:["Vista de registros", "Cada marca es una grabación, ubicada por un PCA de sus rasgos: círculo = sueño normal, rombo = privación (la condición real). El relleno es la probabilidad predicha de privación (azul baja, rosa alta); un anillo ámbar indica que el modelo se equivocó. Una línea une las dos grabaciones de cada persona."]},
+    {c:"views", el:() => q(".ml-rec"), en:["Pick records", "<b>Click</b> a mark or a line to open that person in the Person panel. <b>Drag a rectangle</b> to brush a group: the others fade and the Result counts how many of yours are right. Click an empty spot to clear the brush."],
+      es:["Elegir registros", "<b>Haz clic</b> en una marca o una línea para abrir a esa persona en el panel Persona. <b>Arrastra un rectángulo</b> para seleccionar un grupo: el resto se atenúa y el Resultado cuenta cuántos de los tuyos acierta. Haz clic en un lugar vacío para quitar la selección."]},
+    {c:"views", el:() => q(".ml-imp"), en:["Feature groups", "Read this first. In each test fold, all features of a group (a band, a region, a kind of feature) are shuffled together and the drop in AUC is measured: the longer the bar, the more the model needs that group. Line = 95% range over folds and repeats. Groups are more stable than single features."],
+      es:["Grupos de rasgos", "Léelo primero. En cada pliegue de prueba se barajan juntos todos los rasgos de un grupo (una banda, una región, un tipo de rasgo) y se mide cuánto cae el AUC: cuanto más larga la barra, más necesita el modelo ese grupo. Línea = rango del 95 % entre pliegues y repeticiones. Los grupos son más estables que los rasgos sueltos."]},
+    {c:"views", el:() => q(".ml-feat"), en:["Features", "With <b>Logistic</b>: the standardized coefficient of each top feature (dot = mean over 50 fold models, line = 95% range, % = how often the penalty kept it). Pink pushes toward deprivation, blue toward normal sleep. With <b>EBM</b>: one shape curve per feature, showing how it adds to the decision along its values. Click a feature to see it in the Person panel."],
+      es:["Rasgos", "Con <b>Logística</b>: el coeficiente estandarizado de cada rasgo principal (punto = media de 50 modelos de pliegue, línea = rango del 95 %, % = cuántas veces lo conservó la penalización). Rosa empuja hacia privación, azul hacia sueño normal. Con <b>EBM</b>: una curva de forma por rasgo, que muestra cómo suma a la decisión a lo largo de sus valores. Haz clic en un rasgo para verlo en el panel Persona."]},
+    {c:"views", el:() => q(".ml-met"), en:["Model metrics", "Confusion matrix of the out-of-fold predictions (P(SD) ≥ 0.5 = predicted deprivation), averaged over the 10 repetitions. Rows are the true condition; the gray is the share of the row, with recall at the side. It follows the Order control."],
+      es:["Métricas del modelo", "Matriz de confusión de las predicciones fuera de pliegue (P(SD) ≥ 0,5 = privación predicha), promediada en las 10 repeticiones. Las filas son la condición real; el gris es la proporción de la fila, con la sensibilidad al lado. Sigue el control Orden."]},
+    {c:"views", el:() => q(".ml-person"), en:["Person", "Details on demand for the person you clicked: a waterfall per recording shows how each feature moved its score from the model's starting point to the final value (pink toward deprivation, blue toward normal sleep), using the model trained without that person. Under the name, the EEG quality of each recording (epochs kept, channels interpolated, blinks): rule out a noisy recording before reading an error as physiology."],
+      es:["Persona", "Detalle a demanda de la persona en la que hiciste clic: una cascada por grabación muestra cuánto movió cada rasgo su puntaje desde el punto de partida del modelo hasta el valor final (rosa hacia privación, azul hacia sueño normal), con el modelo entrenado sin esa persona. Bajo el nombre, la calidad del EEG de cada grabación (épocas conservadas, canales interpolados, parpadeos): descarta un mal registro antes de leer un error como fisiología."]},
+    {c:"ctrl", el:fld("scseg"), en:["Scenario", "<b>Paired</b>: given both recordings of a person, which one is after deprivation? Each person's two recordings are centered on their own mean, so the model only sees how the nights differ. <b>Strict</b>: a single recording from a person the model never saw; harder, and closer to a real test."],
+      es:["Escenario", "<b>Pareado</b>: dadas las dos grabaciones de una persona, ¿cuál es tras la privación? Las dos grabaciones de cada persona se centran en su propia media, así que el modelo solo ve en qué difieren las noches. <b>Estricto</b>: una sola grabación de una persona que el modelo nunca vio; más difícil y más cercano a una prueba real."]},
+    {c:"ctrl", el:fld("mdseg"), en:["Model", "<b>Logistic</b>: elastic-net logistic regression, one coefficient per feature. <b>EBM</b>: Explainable Boosting Machine, one curve per feature, so it can capture thresholds. Both are explainable by design; a black-box gradient boosting is kept only as a reference in Validation."],
+      es:["Modelo", "<b>Logística</b>: regresión logística elastic-net, un coeficiente por rasgo. <b>EBM</b>: Explainable Boosting Machine, una curva por rasgo, así que puede captar umbrales. Ambos son explicables por diseño; un gradient boosting de caja negra se guarda solo como referencia en Validación."]},
+    {c:"ctrl", el:fld("orseg"), en:["Order", "Half of the people slept normally first and half were deprived first. Filter Records and Model metrics by visit order to check that the result holds in both."],
+      es:["Orden", "La mitad durmió normal primero y la otra mitad fue privada primero. Filtra Registros y Métricas del modelo por orden de visita para comprobar que el resultado se sostiene en ambos."]},
+    {c:"ctrl", el:fld("shseg"), en:["Show", "<b>Errors</b> keeps only the recordings the model got wrong in Records: are they the same people, the same order, the same region of the map?"],
+      es:["Mostrar", "<b>Errores</b> deja en Registros solo las grabaciones en las que el modelo se equivocó: ¿son las mismas personas, el mismo orden, la misma zona del mapa?"]},
+    {c:"ctrl", el:fld("ffsel"), en:["Features filter", "Highlights one family (a band, the aperiodic 1/f part, or the TSFEL spectral or statistical features) in Feature groups, Features and Person; the rest fade. The model itself does not change."],
+      es:["Filtro de rasgos", "Resalta una familia (una banda, la parte aperiódica 1/f, o los rasgos espectrales o estadísticos de TSFEL) en Grupos de rasgos, Rasgos y Persona; el resto se atenúa. El modelo no cambia."]},
+    {c:"ctrl", el:() => q(".topbar .vtabs"), en:["Back to the Explorer", "The Explorer tab keeps its own state. Its Guide covers the maps, the scatter and the time view."],
+      es:["Volver al Explorador", "La pestaña Explorador conserva su propio estado. Su Guía explica los mapas, el gráfico de dispersión y la vista de tiempo."]},
+    {c:"valid", el:() => $("mlvlist"), en:["Validation", "Checks that try to break the classifier, always visible. Filled dot = the model, empty = the comparison, dotted line = chance (0.50). Hover a row for its full reading.<ul><li><b>Not the visit</b>: the same features predicting 2nd vs 1st visit should stay near chance.</li><li><b>Permutation</b>: AUC when NS and SD are swapped within each person (gray band) against the real one.</li><li><b>Visit order</b>: pair accuracy in each order.</li><li><b>Bands + 1/f</b>: band features alone and a black-box model.</li><li><b>Fidelity</b> and <b>Stability</b>: how far single features can be trusted.</li></ul>"],
+      es:["Validación", "Comprobaciones que intentan romper el clasificador, siempre visibles. Punto lleno = el modelo, vacío = la comparación, línea punteada = azar (0,50). Pasa el cursor por una fila para leerla completa.<ul><li><b>No es la visita</b>: los mismos rasgos prediciendo 2.ª frente a 1.ª visita deberían quedar cerca del azar.</li><li><b>Permutación</b>: AUC al intercambiar NS y SD dentro de cada persona (banda gris) frente al real.</li><li><b>Orden de visita</b>: acierto por pares en cada orden.</li><li><b>Bandas + 1/f</b>: solo los rasgos de banda y un modelo de caja negra.</li><li><b>Fidelidad</b> y <b>Estabilidad</b>: cuánto se puede confiar en los rasgos sueltos.</li></ul>"]},
+    {c:"valid", el:() => !$("warn").hidden && $("warn"), en:["A warning when it matters", "If the visit were predicted almost as well as the condition, a warning appears at the bottom: the model could be learning habituation, not deprivation."],
+      es:["Un aviso cuando importa", "Si la visita se predijera casi tan bien como la condición, aparece un aviso abajo: el modelo podría estar aprendiendo la habituación y no la privación."]},
+    {c:"tips", el:() => q(".ml-c .info") || q(".ml-rec"), en:["Details on demand", "The small <b>i</b> next to each title explains what the chart is and how to read it. Every mark has a tooltip."],
+      es:["Detalles a demanda", "La pequeña <b>i</b> junto a cada título explica qué es el gráfico y cómo leerlo. Cada marca tiene su tooltip."]},
+    {c:"tips", en:["Exploratory, not diagnostic", "136 recordings and 147 features: read groups before single features, and the validation before the score. You can reopen this guide any time with the <b>Guide</b> button."],
+      es:["Exploratorio, no diagnóstico", "136 grabaciones y 147 rasgos: lee los grupos antes que los rasgos sueltos, y la validación antes que el puntaje. Puedes reabrir esta guía cuando quieras con el botón <b>Guía</b>."]},
+  ];
+  let STEPS = EXP;
 
   const lang = () => (window.LANG === "es" ? "es" : "en");
   let i = 0, on = false, shade, card, body, prevFocus = null, token = 0;
@@ -162,7 +206,9 @@ const tour = (() => {
     setTimeout(show, s.before ? 420 : 0);
   }
   function start(){
-    if(on) return; on = true; prevFocus = document.activeElement; build();
+    if(on) return; on = true;
+    STEPS = document.body.classList.contains("tab-ml") ? CLS : EXP;   // la guía de la pestaña abierta
+    prevFocus = document.activeElement; build();
     requestAnimationFrame(() => shade.classList.add("on"));
     go(0); addEventListener("keydown", key, true); addEventListener("resize", refresh);
   }
