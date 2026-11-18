@@ -173,3 +173,4 @@ b.ns{color:var(--ns)} b.sd{color:var(--sd)}
   .stage-foot{display:none}
 }
 @media (prefers-reduced-motion:reduce){ .stage-box iframe,.step .card{transition:none} }
+.videos video.frame{width:100%;height:auto;background:#000;padding:0;border-radius:10px;display:block}
