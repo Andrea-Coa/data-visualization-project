@@ -56,7 +56,7 @@ PROC_ICA = REPO / "deliveries" / "week12" / "data" / "processed_ica"     # main 
 PROC_W6 = REPO / "deliveries" / "week06" / "data" / "processed"          # Week 6 pipeline (no ICA), robustness
 PROC_BANDS = PROC_ICA / "bands"   # delta, alfa y beta: misma estructura de archivos que processed_ica, una carpeta por banda
 N_COMP, EOG_Z, ICL_P, REJECT_UV, SEED, BAD_FRAC = 30, 3.0, 0.85, 200.0, 97, 0.5
-RULE = "v3, 30 components: ocular = MNE adaptive z > 3 on Fp1/Fp2 or ICLabel eye p > 0.85; muscle = ICLabel p > 0.85"
+RULE = "v4, 30 components, montage in MNE head axes (x right, y nose): ocular = MNE adaptive z > 3 on Fp1/Fp2 or ICLabel eye p > 0.85; muscle = ICLabel p > 0.85"
 PIPELINE = {"band": [1.0, 40.0], "notch": 50.0, "reference": "average (FCz re-inserted)",
             "ica": "extended Infomax, 30 components, seed 97",
             "post_ica_bad_channels": "> 200 µV peak-to-peak in more than half of the epochs, interpolated",
@@ -104,10 +104,30 @@ def visit_of(participants_df):
     return out
 
 
+# ---------------------------------------------------------------- posiciones de los electrodos (corrección del 17 nov 2026)
+# electrodes.tsv de ds004902 usa los ejes de EEGLAB/BESA: x hacia la nariz, y hacia la oreja IZQUIERDA, z arriba (Fp1 =
+# (80.8, 26.1, −4.0), T7 = (0, 84.5, −8.8)). El sistema "head" de MNE es x hacia la DERECHA, y hacia la nariz. El
+# build_montage del notebook 02 copiaba x e y tal cual, así que MNE veía la cabeza girada 90° (Fp1 a la derecha). No
+# afectaba a la interpolación ni a FCz ni a find_bads_eog (dependen de distancias o de la señal), pero sí a ICLabel, que
+# clasifica los componentes por su mapa: con la orientación correcta cambian ~9 de 30 etiquetas por grabación. Los
+# mapas de la app (tools/build_coords.py) ya usaban la conversión correcta: X = −y, Y = x, Z = z.
+def build_montage(electrodes_tsv):
+    import mne
+    import numpy as np
+    import pandas as pd
+    if not Path(electrodes_tsv).exists():
+        return None
+    df = pd.read_csv(electrodes_tsv, sep="\t")
+    ch_pos = {r["name"]: np.array([-r["y"], r["x"], r["z"]]) / 1000.0 for _, r in df.iterrows()}   # mm -> m, ejes de MNE
+    return mne.channels.make_dig_montage(ch_pos=ch_pos, coord_frame="head")
+
+
 def fix_sessions(ns):
-    """Reemplaza en el espacio de nombres del notebook 02 la asignación errónea de sesiones por la correcta."""
+    """Reemplaza en el espacio de nombres del notebook 02 lo que estaba mal: la asignación de sesiones (15 nov 2026) y
+    la orientación de los electrodos (17 nov 2026)."""
     ns["session_to_condition"] = session_to_condition
     ns["visit_of"] = visit_of
+    ns["build_montage"] = build_montage
     return ns
 
 

@@ -1,5 +1,7 @@
 # Análisis cruzado por orden de sesiones (16 de noviembre de 2026)
 
+> Cifras recalculadas el 17 de noviembre de 2026, tras corregir la orientación de los electrodos en MNE (`correccion_orientacion.md`); la conducta no cambia.
+
 Fase B de `PLAN.md`. Requiere la corrección de sesiones (`correccion_sesiones.md`). Código: `app/tools/crossover.py` (validación y datos) y `crossoverSpec` en `app/js/topomap.js` (la vista). Datos: `app/data/crossover.json`.
 
 ## Diseño
@@ -52,25 +54,25 @@ Regiones (σ = variabilidad entre épocas, μ = media):
 
 | | c (t, p) | π (p) | arrastre p | media simple |
 |---|---|---|---|---|
-| θ σ frontal | +0.0128 (t = 5.40, p = 2.2e-6) | +0.0009 (0.71) | 0.40 | +0.0129 |
-| θ σ centrotemporal | +0.0127 (t = 5.97, p = 2e-7) | +0.0006 (0.79) | 0.74 | +0.0129 |
-| θ μ frontal | +0.0167 (t = 2.82, p = 0.0067) | +0.0026 (0.66) | 0.58 | +0.0172 |
-| θ μ centrotemporal | +0.0230 (t = 3.77, p = 0.00057) | −0.0031 (0.61) | 0.55 | +0.0224 |
-| δ σ frontal | +0.0125 (t = 3.15, p = 0.0029) | +0.0021 (0.59) | 0.16 | +0.0129 |
-| β σ frontal | +0.0054 (t = 2.93, p = 0.0048) | −0.0023 (0.22) | 0.18 | +0.0050 |
+| θ σ frontal | +0.0134 (t = 5.77, p = 4.2e-7) | +0.0003 (0.89) | 0.49 | +0.0135 |
+| θ σ centrotemporal | +0.0126 (t = 5.91, p = 2.1e-7) | +0.0007 (0.75) | 0.86 | +0.0128 |
+| θ μ frontal | +0.0178 (t = 2.94, p = 0.0047) | +0.0009 (0.88) | 0.44 | +0.0180 |
+| θ μ centrotemporal | +0.0228 (t = 3.57, p = 0.001) | −0.0032 (0.62) | 0.49 | +0.0222 |
+| δ σ frontal | +0.0098 (t = 3.08, p = 0.0034) | +0.0047 (0.14) | 0.94 | +0.0106 |
+| β σ frontal | +0.0053 (t = 2.80, p = 0.0069) | −0.0007 (0.69) | 0.22 | +0.0051 |
 
 Por electrodo, con FDR de Benjamini–Hochberg dentro de cada familia (pregunta × métrica × banda, 61 electrodos):
 
 | Banda | σ: c / π con q < 0.05 | μ: c / π con q < 0.05 |
 |---|---|---|
-| Delta | 40 / 0 | 0 / 0 |
-| Theta | 61 / 0 | 40 / 0 |
+| Delta | 22 / 0 | 0 / 0 |
+| Theta | 61 / 0 | 39 / 0 |
 | Alfa | 0 / 0 | 0 / 0 |
-| Beta | 1 / 0 | 0 / 0 |
+| Beta | 12 / 0 | 0 / 0 |
 
-Confirmación por permutación (cuidado 5, opcional en el plan): se permutan las etiquetas de secuencia con p_i fijo (para c) o d_i fijo (para π), 5000 permutaciones, FDR igual que arriba. Theta σ: c 61/61 y π 0/61, la misma decisión que Welch en los 61 electrodos. Theta μ: c 44/61 (Welch 40/61; misma decisión en 57 de 61). Delta σ: c 42/61 (Welch 40/61; 59 de 61). π no pasa FDR en ningún electrodo ni banda con ninguno de los dos métodos.
+Confirmación por permutación (cuidado 5, opcional en el plan): se permutan las etiquetas de secuencia con p_i fijo (para c) o d_i fijo (para π), 5000 permutaciones, FDR igual que arriba. Theta σ: c 61/61 y π 0/61, la misma decisión que Welch en los 61 electrodos. Theta μ: c 44/61 (Welch 39/61; misma decisión en 56 de 61). Delta σ: c 27/61 (Welch 22/61; 56 de 61). Beta σ: c 13/61 (Welch 12/61; 60 de 61). π no pasa FDR con Welch en ningún electrodo ni banda; con permutación solo en 2 electrodos de alfa σ (P6 y PO4, q = 0.049 en ambos; con Welch q = 0.07 y 0.05), un hallazgo aislado en el límite que no se interpreta.
 
-Lectura: el efecto de la privación sobrevive al ajuste por visita casi sin cambios (c ≈ media simple, porque π ≈ 0). No hay efecto de visita en ningún electrodo ni banda, y el arrastre no es significativo. Theta μ baja de 45 a 40 electrodos con q < 0.05 porque la prueba de dos muestras (Welch) tiene menos potencia que la pareada: con π ≈ 0 la prueba pareada de la Topography View sigue siendo válida y se mantiene como principal; c se informa junto a ella (cuidado 2 del plan).
+Lectura: el efecto de la privación sobrevive al ajuste por visita casi sin cambios (c ≈ media simple, porque π ≈ 0). No hay efecto de visita en ningún electrodo ni banda, y el arrastre no es significativo. Theta μ baja de 42 a 39 electrodos con q < 0.05 porque la prueba de dos muestras (Welch) tiene menos potencia que la pareada: con π ≈ 0 la prueba pareada de la Topography View sigue siendo válida y se mantiene como principal; c se informa junto a ella (cuidado 2 del plan).
 
 ## Hora del día (cuidado 6, descriptivo)
 

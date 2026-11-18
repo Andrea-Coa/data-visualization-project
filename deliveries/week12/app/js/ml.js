@@ -74,7 +74,7 @@
         tip:`Pair accuracy in each visit order. Filled: normal sleep first (${r.byOrder["NS->SD"].n} people); empty: deprivation first (${r.byOrder["SD->NS"].n}). Close values: the result does not depend on the order.`},
       {id:"base", k:"Bands + 1/f", v:f2(ctl.project_only_lr.auc.mean), dom:A, ref:.5,
         marks:[{v:s.models.lr.metrics.auc.mean, lab:"AUC, all features"}, {v:ctl.project_only_lr.auc.mean, open:true, lab:"AUC, band and 1/f features only"}, {v:gbm, open:true, lab:"AUC, black-box GBM"}],
-        tip:`Filled: AUC with all ${s.cols.length} features. Empty: with the ${ctl.project_only_lr.n_features} band and 1/f features only (${f2(ctl.project_only_lr.auc.mean)}), and a black-box gradient boosting (${f2(gbm)}). TSFEL adds little; the explainable model does not lose.`},
+        tip:`Filled: AUC with all ${s.cols.length} features. Empty: with the ${ctl.project_only_lr.n_features} band and 1/f features only (${f2(ctl.project_only_lr.auc.mean)}), and a black-box gradient boosting (${f2(gbm)}). TSFEL adds little; the explainable models stay close to the black box.`},
       {id:"fid", k:"Fidelity", v:f2(fid), dom:A, ref:.5, marks:[{v:cAuc, lab:"AUC, full model"}, {v:fid, open:true, lab:"AUC, retrained without its top 10"}],
         tip:`Fidelity: AUC retrained without its 10 most important features (${f2(fid)}; with only them: ${f2(x.fidelity.auc_only_top10.mean)}). Similar to the full model: other, correlated features carry the same information.`},
       {id:"stab", k:"Stability", v:`τ ${f2(x.stability.kendall_tau)}`, dom:[0, 1],

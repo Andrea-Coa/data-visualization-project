@@ -88,7 +88,7 @@
     "One dot per person.":"Un punto por persona.",
     "Shaded: above the median on both ({G}).":"Sombreado: por encima de la mediana en ambos ({G}).",
     "Click to select, drag a lasso for a group.":"Clic para elegir, arrastra un lazo para un grupo.",
-    "Spearman ρ with bootstrap #% CI.":"ρ de Spearman con IC bootstrap del #%.",
+    "Spearman ρ; #% CI by Fisher z.":"ρ de Spearman; IC del #% por z de Fisher.",
     "If the {G} shared one θ signature, their columns would look alike.":"Si el grupo «{G}» compartiera una firma θ, sus columnas se parecerían.",
     "One column per person, one row per electrode (front to back).":"Una columna por persona, una fila por electrodo (de adelante hacia atrás).",
     "C(e): share whose Δ rises minus share whose Δ falls.":"C(e): proporción cuyo Δ sube menos la proporción cuyo Δ baja.",
