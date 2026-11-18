@@ -799,3 +799,12 @@ body.touring .sidebox .sec[data-open="true"]:not(.tourcur){visibility:hidden}
 /* guided tour / expo: focus on the Classifier panels */
 body[data-focus^="ml"] :where(.mlsum,.ml-rec,.ml-feat,.ml-imp,.ml-met,.ml-person){opacity:.14;transition:opacity .35s}
 body[data-focus="mlsum"] .mlsum,body[data-focus="mlrec"] .ml-rec,body[data-focus="mlfeat"] .ml-feat,body[data-focus="mlimp"] .ml-imp,body[data-focus="mlmet"] .ml-met,body[data-focus="mlperson"] .ml-person{opacity:1}
+
+/* validation list, floating chart windows and Classifier panels: their container (#side) must stay opaque, because opacity
+   multiplies down to the children; only the neighbors are dimmed */
+body[data-focus="valsum"] :where(.p-scatter,.p-heat,.p-topo,.p-dyn,.bar){opacity:.16}
+body[data-focus="valsum"] #side{opacity:1}
+body[data-focus="float"] :where(.p-scatter,.p-heat,.p-topo,.p-dyn,.bar){opacity:.16}
+body[data-focus="float"] #side{opacity:1} body[data-focus="float"] .valsum{opacity:.55}
+body[data-focus^="ml"] .bar{opacity:.16}
+body[data-focus^="ml"] #side{opacity:1}

@@ -15,7 +15,7 @@
     return;
   }
   document.documentElement.classList.add("embed");
-  const SEL = {bar:".bar", scatter:".p-scatter", heat:".p-heat", topo:".p-topo", dyn:".p-dyn", side:"#side", maps:".col-c", compare:"#cmpsel", mlsum:".mlsum", mlrec:".ml-rec", mlfeat:".ml-feat", mlimp:".ml-imp", mlmet:".ml-met", mlperson:".ml-person"};
+  const SEL = {bar:".bar", scatter:".p-scatter", heat:".p-heat", topo:".p-topo", dyn:".p-dyn", side:"#side", maps:".col-c", compare:"#cmpsel", valsum:".valsum:not(.mlsum)", float:".sidebox .sec[data-open=true]", mlsum:".mlsum", mlrec:".ml-rec", mlfeat:".ml-feat", mlimp:".ml-imp", mlmet:".ml-met", mlperson:".ml-person"};
   const post = m => parent.postMessage({batimix:true, ...m}, "*");
   const rectOf = f => {
     const el = f && SEL[f] && document.querySelector(SEL[f]);
